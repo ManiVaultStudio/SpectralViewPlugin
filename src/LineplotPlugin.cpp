@@ -62,8 +62,6 @@ void LineplotPlugin::init()
             // Get points dataset from the core
             hdps::Dataset<Points>  candidateDataset = _core->requestDataset<Points>(datasetId);
             int numDimensions = candidateDataset->getNumDimensions();
-            int width = candidateDataset->getProperty("width").toInt();
-            int height = candidateDataset->getProperty("height").toInt();
             auto dimensions = candidateDataset->getDimensionNames();
                
                
