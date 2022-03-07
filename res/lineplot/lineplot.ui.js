@@ -6,6 +6,14 @@ var margin = { top: 10, right: 80, bottom: 30, left: 60 },
 var x, y;
 var lineR, lineG, lineB;
 var setRGBCheck, setRGBLabel, setRGB;
+var moveLine = "N";
+var moving = 0;
+var distR, distG, distB, maxDist;
+
+var colors;
+var wavelengthR = 630;
+var wavelengthG = 532;
+var wavelengthB = 465;
 
 // append the svg object to the body of the page
 var svg = d3.select("#line_chart")
@@ -16,6 +24,10 @@ var svg = d3.select("#line_chart")
     .attr("transform",
         "translate(" + margin.left + "," + margin.top + ")");
 
+// delte
+//var data = "[{\"x\":10, \"y\":0.5}, {\"x\":500, \"y\":0.4}, {\"x\":800, \"y\":0.9}]";
+//var _data = JSON.parse(data);
+//drawLineChart();
 
 function drawLineChart() {
 
@@ -70,18 +82,11 @@ function drawLineChart() {
     // This allows to find the closest X index of the mouse:
     var bisect = d3.bisector(function (d) { return d.x; }).left;
 
-    // Create the circle that travels along the curve of chart
-    var focus = svg
-        .append('g')
-        .append('line')
-        .style("stroke", "red")
-        .attr("stroke-width", 4);
-
     // Create the text that travels along the curve of chart
     var focusText = svg
         .append('g')
         .append('text')
-        .style("opacity", 0)
+        .style("opacity", 1)
         .attr("text-anchor", "left")
         .attr("alignment-baseline", "middle");
 
@@ -94,79 +99,159 @@ function drawLineChart() {
         .attr('height', height)
         .on('mouseover', mouseover)
         .on('mousemove', mousemove)
-        .on('mouseout', mouseout)
+        //.on('mouseout', mouseout)
         .on("click", mouseclick);
 
     // What happens when the mouse move -> show the annotations at the right positions.
     function mouseover() {
-        focus.style("opacity", 1)
-        focusText.style("opacity", 1)
+
+        /*
+        if (moving == 0) {
+
+            // recover coordinate we need
+            var x0 = x.invert(d3.mouse(this)[0]);
+            var i = bisect(_data, x0, 1);
+            selectedData = _data[i];
+
+            distR = Math.abs(selectedData.x - wavelengthR);
+            distG = Math.abs(selectedData.x - wavelengthG);
+            distB = Math.abs(selectedData.x - wavelengthB);
+            maxDist = 10;
+
+            if (distR < maxDist) {
+                log("jello");
+                var lineRFocus = svg
+                    .append('g')
+                    .append('line')
+                    .style("stroke", colors[0])
+                    .style("opacity", 0.5)
+                    .attr("stroke-width", 4)
+                    .attr("x1", x(wavelengthG))
+                    .attr("y1", y(0))
+                    .attr("x2", x(wavelengthG))
+                    .attr("y2", y(height - 10));
+            }
+
+        }
+        */
+        
     }
 
     function mousemove() {
-        // recover coordinate we need
-        var x0 = x.invert(d3.mouse(this)[0]);
-        var i = bisect(_data, x0, 1);
-        selectedData = _data[i];
-        var xValue = Number(selectedData.x).toFixed(0);
-        var yValue = Number(selectedData.y).toFixed(3);
-        focus
-            .attr("x1", function () {
-                log(selectedData.x)
-                log(x(selectedData.x));
-                return x(selectedData.x);
-            })
-            .attr("y1", y(0))
-            .attr("x2", x(selectedData.x))
-            .attr("y2", y(height - 10))
-        focusText
-            .html("x:" + xValue + "\n" + "y:" + yValue)
-            .attr("x", x(selectedData.x) + 15)
-            .attr("y", y(selectedData.y))
-            
+
+        //var _data = JSON.parse(data);
+
+        if (moving == 1) {
+            // recover coordinate we need
+            var x0 = x.invert(d3.mouse(this)[0]);
+            var i = bisect(_data, x0, 1);
+            selectedData = _data[i];
+            var xValue = Number(selectedData.x).toFixed(0);
+            var yValue = Number(selectedData.y).toFixed(3);
+
+            if (moveLine != "N") {
+                focusText
+                    .html("x:" + xValue + "\n" + "y:" + yValue)
+                    .attr("x", x(selectedData.x) + 15)
+                    .attr("y", y(selectedData.y))
+            }
+
+            if (moveLine == "R") {
+                lineR
+                    .attr("x1", x(selectedData.x))
+                    .attr("y1", y(0))
+                    .attr("x2", x(selectedData.x))
+                    .attr("y2", y(height - 10));
+            }
+            else if (moveLine == "G") {
+                lineG
+                    .attr("x1", x(selectedData.x))
+                    .attr("y1", y(0))
+                    .attr("x2", x(selectedData.x))
+                    .attr("y2", y(height - 10));
+            }
+            else if (moveLine == "B") {
+                lineB
+                    .attr("x1", x(selectedData.x))
+                    .attr("y1", y(0))
+                    .attr("x2", x(selectedData.x))
+                    .attr("y2", y(height - 10));
+            }
+        }
     }
 
-    function mouseout() {
-        focus.style("opacity", 0)
-        focusText.style("opacity", 0)
-    }
+  //  function mouseout() {
+  //      focus.style("opacity", 0)
+  //      focusText.style("opacity", 0)
+   // }
 
     function mouseclick() {
-      /*  focus
-            .attr("stroke", function () {
 
-                
-                //var currentColor = 
-                for (var i = 0; i < colorsLength-1; i++) {
-                    if (colors[i] == d) {
-                        d = colors[i + 1];
-                    }
-                }
-                if (d == colors[colorsLength - 1]) {
-                    d = colors[0];
-                }
-            })
-            */
+       // var _data = JSON.parse(data);
 
-        // recover coordinate we need
-        var x0 = x.invert(d3.mouse(this)[0]);
-        var i = bisect(_data, x0, 1);
-        selectedData = _data[i];
-        focus
-            .attr("x1", x(selectedData.x))
-            .attr("y1", y(0))
-            .attr("x2", x(selectedData.x))
-            .attr("y2", y(height - 10))
+        if (moving == 0) {
+
+            focusText.style("opacity", 1);
+
+            // recover coordinate we need
+            var x0 = x.invert(d3.mouse(this)[0]);
+            var i = bisect(_data, x0, 1);
+            selectedData = _data[i];
+
+            distR = Math.abs(selectedData.x - wavelengthR);
+            distG = Math.abs(selectedData.x - wavelengthG);
+            distB = Math.abs(selectedData.x - wavelengthB);
+            maxDist = 10;
+
+            log(selectedData.x);
+            if (distR < maxDist) {
+                moveLine = "R";
+            }
+            else if (distG < maxDist) {
+                moveLine = "G";
+            }
+            else if (distB < maxDist) {
+                moveLine = "B";
+            }
+
+            moving = 1;
+        }
+        else if (moving = 1) {
+
+            focusText.style("opacity", 0);
+
+            if (moveLine == "R") {
+                wavelengthR = selectedData.x;
+                lineR
+                    .attr("x1", x(wavelengthR))
+                    .attr("y1", y(0))
+                    .attr("x2", x(wavelengthR))
+                    .attr("y2", y(height - 10));
+            }
+            else if (moveLine == "G") {
+                wavelengthG = selectedData.x;
+                lineG
+                    .attr("x1", x(wavelengthG))
+                    .attr("y1", y(0))
+                    .attr("x2", x(wavelengthG))
+                    .attr("y2", y(height - 10));
+            }
+            else if (moveLine == "B") {
+                wavelengthB = selectedData.x;
+                lineB
+                    .attr("x1", x(wavelengthB))
+                    .attr("y1", y(0))
+                    .attr("x2", x(wavelengthB))
+                    .attr("y2", y(height - 10));
+            }
+
+            moving = 0;
+        }
     }
-
 }
 
 function drawRGBlines() {
-    var colors = ["red", "green", "blue"];
-
-    var wavelengthR = 630;
-    var wavelengthG = 532;
-    var wavelengthB = 465;
+    colors = ["red", "green", "blue"];
 
     // Create the lines corresponding to RGB wavelengths
     lineR = svg
