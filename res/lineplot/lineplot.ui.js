@@ -7,8 +7,6 @@ var x, y;
 var lineR, lineG, lineB;
 var setRGBCheck, setRGBLabel, setRGB;
 var moveLine = "N";
-var moving = 0;
-var distR, distG, distB, maxDist;
 
 var colors;
 var wavelengthR = 630;
@@ -73,7 +71,7 @@ function drawLineChart() {
         .attr("d", d3.line()
             .x(function (d) { return x(d.x) })
             .y(function (d) { return y(d.y) })
-    )
+        )
 
     // Options menu
     drawRGBlines();
@@ -99,62 +97,81 @@ function drawLineChart() {
         .attr('height', height)
         .on('mouseover', mouseover)
         .on('mousemove', mousemove)
-        //.on('mouseout', mouseout)
-        .on("click", mouseclick);
+        .on('mousedown', mousedown)
+        .on('mouseup', mouseup);
 
-    // What happens when the mouse move -> show the annotations at the right positions.
     function mouseover() {
-
-        /*
-        if (moving == 0) {
-
-            // recover coordinate we need
-            var x0 = x.invert(d3.mouse(this)[0]);
-            var i = bisect(_data, x0, 1);
-            selectedData = _data[i];
-
-            distR = Math.abs(selectedData.x - wavelengthR);
-            distG = Math.abs(selectedData.x - wavelengthG);
-            distB = Math.abs(selectedData.x - wavelengthB);
-            maxDist = 10;
-
-            if (distR < maxDist) {
-                log("jello");
-                var lineRFocus = svg
-                    .append('g')
-                    .append('line')
-                    .style("stroke", colors[0])
-                    .style("opacity", 0.5)
-                    .attr("stroke-width", 4)
-                    .attr("x1", x(wavelengthG))
-                    .attr("y1", y(0))
-                    .attr("x2", x(wavelengthG))
-                    .attr("y2", y(height - 10));
-            }
-
-        }
-        */
         
+        // recover coordinate we need
+        var x0 = x.invert(d3.mouse(this)[0]);
+        var i = bisect(_data, x0, 1);
+        selectedData = _data[i];
+
+        var distR = Math.abs(selectedData.x - wavelengthR);
+        var distG = Math.abs(selectedData.x - wavelengthG);
+        var distB = Math.abs(selectedData.x - wavelengthB);
+        var maxDist = 10;
+
+
+        if (distR < maxDist) {
+            lineR.attr("stroke-width", 6);
+        }
+        else if (distG < maxDist) {
+            lineG.attr("stroke-width", 6);
+        }
+        else if (distB < maxDist) {
+            lineB.attr("stroke-width", 6);
+        }        
+    }
+
+    function mousedown() {
+
+        // recover coordinate we need
+        var x0 = x.invert(d3.mouse(this)[0]);
+        var i = bisect(_data, x0, 1);
+        selectedData = _data[i];
+
+        var distR = Math.abs(selectedData.x - wavelengthR);
+        var distG = Math.abs(selectedData.x - wavelengthG);
+        var distB = Math.abs(selectedData.x - wavelengthB);
+        var maxDist = 10;
+
+
+        if (distR < maxDist) {
+            moveLine = "R";
+            lineR.attr("stroke-width", 2);
+        }
+        else if (distG < maxDist) {
+            moveLine = "G";
+            lineG.attr("stroke-width", 2);
+        }
+        else if (distB < maxDist) {
+            moveLine = "B";
+            lineB.attr("stroke-width", 2);
+        }
+
     }
 
     function mousemove() {
 
-        //var _data = JSON.parse(data);
+        lineR.attr("stroke-width", 2);
+        lineG.attr("stroke-width", 2);
+        lineB.attr("stroke-width", 2);
 
-        if (moving == 1) {
-            // recover coordinate we need
-            var x0 = x.invert(d3.mouse(this)[0]);
-            var i = bisect(_data, x0, 1);
-            selectedData = _data[i];
+        // recover coordinate we need
+        var x0 = x.invert(d3.mouse(this)[0]);
+        var i = bisect(_data, x0, 1);
+        selectedData = _data[i];
+
+        if (moveLine != "N") {
             var xValue = Number(selectedData.x).toFixed(0);
             var yValue = Number(selectedData.y).toFixed(3);
 
-            if (moveLine != "N") {
-                focusText
-                    .html("x:" + xValue + "\n" + "y:" + yValue)
-                    .attr("x", x(selectedData.x) + 15)
-                    .attr("y", y(selectedData.y))
-            }
+            focusText
+                .html("x:" + xValue + "<br>" + "y:" + yValue)
+                .attr("x", x(selectedData.x) + width / 90)
+                .attr("y", 3 * height / 5)
+                .style("opacity", 1);
 
             if (moveLine == "R") {
                 lineR
@@ -176,77 +193,63 @@ function drawLineChart() {
                     .attr("y1", y(0))
                     .attr("x2", x(selectedData.x))
                     .attr("y2", y(height - 10));
+            }
+        }
+        else {
+            var distR = Math.abs(selectedData.x - wavelengthR);
+            var distG = Math.abs(selectedData.x - wavelengthG);
+            var distB = Math.abs(selectedData.x - wavelengthB);
+            var maxDist = 10;
+
+            log("R: " + distR);
+            log("G: " + distG);
+            log("B: " + distB);
+
+            if (distR < maxDist) {
+                lineR.attr("stroke-width", 6);
+            }
+            else if (distG < maxDist) {
+                lineG.attr("stroke-width", 6);
+            }
+            else if (distB < maxDist) {
+                lineB.attr("stroke-width", 6);
             }
         }
     }
 
-  //  function mouseout() {
-  //      focus.style("opacity", 0)
-  //      focusText.style("opacity", 0)
-   // }
+    function mouseup() {
 
-    function mouseclick() {
-
-       // var _data = JSON.parse(data);
-
-        if (moving == 0) {
-
-            focusText.style("opacity", 1);
-
-            // recover coordinate we need
-            var x0 = x.invert(d3.mouse(this)[0]);
-            var i = bisect(_data, x0, 1);
-            selectedData = _data[i];
-
-            distR = Math.abs(selectedData.x - wavelengthR);
-            distG = Math.abs(selectedData.x - wavelengthG);
-            distB = Math.abs(selectedData.x - wavelengthB);
-            maxDist = 10;
-
-            log(selectedData.x);
-            if (distR < maxDist) {
-                moveLine = "R";
-            }
-            else if (distG < maxDist) {
-                moveLine = "G";
-            }
-            else if (distB < maxDist) {
-                moveLine = "B";
-            }
-
-            moving = 1;
+        // recover coordinate we need
+        var x0 = x.invert(d3.mouse(this)[0]);
+        var i = bisect(_data, x0, 1);
+        selectedData = _data[i];
+        if (moveLine == "R") {
+            wavelengthR = selectedData.x;
+            lineR
+                .attr("x1", x(wavelengthR))
+                .attr("y1", y(0))
+                .attr("x2", x(wavelengthR))
+                .attr("y2", y(height - 10));
         }
-        else if (moving = 1) {
-
-            focusText.style("opacity", 0);
-
-            if (moveLine == "R") {
-                wavelengthR = selectedData.x;
-                lineR
-                    .attr("x1", x(wavelengthR))
-                    .attr("y1", y(0))
-                    .attr("x2", x(wavelengthR))
-                    .attr("y2", y(height - 10));
-            }
-            else if (moveLine == "G") {
-                wavelengthG = selectedData.x;
-                lineG
-                    .attr("x1", x(wavelengthG))
-                    .attr("y1", y(0))
-                    .attr("x2", x(wavelengthG))
-                    .attr("y2", y(height - 10));
-            }
-            else if (moveLine == "B") {
-                wavelengthB = selectedData.x;
-                lineB
-                    .attr("x1", x(wavelengthB))
-                    .attr("y1", y(0))
-                    .attr("x2", x(wavelengthB))
-                    .attr("y2", y(height - 10));
-            }
-
-            moving = 0;
+        else if (moveLine == "G") {
+            wavelengthG = selectedData.x;
+            lineG
+                .attr("x1", x(wavelengthG))
+                .attr("y1", y(0))
+                .attr("x2", x(wavelengthG))
+                .attr("y2", y(height - 10));
         }
+        else if (moveLine == "B") {
+            wavelengthB = selectedData.x;
+            lineB
+                .attr("x1", x(wavelengthB))
+                .attr("y1", y(0))
+                .attr("x2", x(wavelengthB))
+                .attr("y2", y(height - 10));
+        }
+        moveLine = "N";
+
+        focusText.style("opacity", 0)
     }
 }
 
