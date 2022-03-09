@@ -7,11 +7,12 @@ var x, y;
 var lineR, lineG, lineB;
 var setRGBCheck, setRGBLabel, setRGB;
 var moveLine = "N";
-
-var colors;
+var spectrumNo = 0;
+var colorsRGB;
 var wavelengthR = 630;
 var wavelengthG = 532;
 var wavelengthB = 465;
+var colors = ["gold", "blue", "green", "black", "grey", "darkblue", "darkgreen", "pink", "brown", "purple", "grey1", "orange"];
 
 // append the svg object to the body of the page
 var svg = d3.select("#line_chart")
@@ -22,16 +23,17 @@ var svg = d3.select("#line_chart")
     .attr("transform",
         "translate(" + margin.left + "," + margin.top + ")");
 
-// delte
-//var data = "[{\"x\":10, \"y\":0.5}, {\"x\":500, \"y\":0.4}, {\"x\":800, \"y\":0.9}]";
-//var _data = JSON.parse(data);
-//drawLineChart();
+drawLineChart();
+
+// Options menu
+drawRGBlines();
+setRGBCheckbox();
 
 function drawLineChart() {
 
     // Add X axis --> it is a date format
     x = d3.scaleLinear()
-        .domain(d3.extent(_data, function (d) { return d.x; }))
+        .domain(d3.range([400, 900]))
         .range([0, width]);
     svg.append("g")
         .attr("class", "xAxis")
@@ -48,7 +50,7 @@ function drawLineChart() {
 
     // Add Y axis
     y = d3.scaleLinear()
-        .domain([0, d3.max(_data, function (d) { return +d.y; })])
+        .domain([0, 1])
         .range([height, 0]);
     svg.append("g")
         .call(d3.axisLeft(y));
@@ -61,21 +63,30 @@ function drawLineChart() {
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text("Value");
+}
+
+
+function addData() {
+
+    // Change axes domain
+    x.domain(d3.extent(_data, function (d) { return d.x; }));
+    y.domain([0, d3.max(_data, function (d) { return +d.y; })]);
 
     // Add the line
     svg.append("path")
         .datum(_data)
         .attr("fill", "none")
-        .attr("stroke", "black")
+        .attr("stroke", colors[spectrumNo])
         .attr("stroke-width", 2)
         .attr("d", d3.line()
             .x(function (d) { return x(d.x) })
             .y(function (d) { return y(d.y) })
         )
 
-    // Options menu
-    drawRGBlines();
-    setRGBCheckbox();
+    spectrumNo++;
+    if (spectrumNo > colors.length) {
+        spectrumNo = 0;
+    }
 
     // This allows to find the closest X index of the mouse:
     var bisect = d3.bisector(function (d) { return d.x; }).left;
@@ -201,10 +212,6 @@ function drawLineChart() {
             var distB = Math.abs(selectedData.x - wavelengthB);
             var maxDist = 10;
 
-            log("R: " + distR);
-            log("G: " + distG);
-            log("B: " + distB);
-
             if (distR < maxDist) {
                 lineR.attr("stroke-width", 6);
             }
@@ -254,13 +261,13 @@ function drawLineChart() {
 }
 
 function drawRGBlines() {
-    colors = ["red", "green", "blue"];
+    colorsRGB = ["red", "green", "blue"];
 
     // Create the lines corresponding to RGB wavelengths
     lineR = svg
         .append('g')
         .append('line')
-        .style("stroke", colors[0])
+        .style("stroke", colorsRGB[0])
         .style("opacity", 0)
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthR))
@@ -271,7 +278,7 @@ function drawRGBlines() {
     lineG = svg
         .append('g')
         .append('line')
-        .style("stroke", colors[1])
+        .style("stroke", colorsRGB[1])
         .style("opacity", 0)
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthG))
@@ -282,7 +289,7 @@ function drawRGBlines() {
     lineB = svg
         .append('g')
         .append('line')
-        .style("stroke", colors[2])
+        .style("stroke", colorsEGB[2])
         .style("opacity", 0)
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthB))

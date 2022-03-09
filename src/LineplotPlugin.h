@@ -33,6 +33,7 @@ protected slots:
 
 private:
     void updateData();
+    void updateSelection(hdps::Dataset<Points> selection);
 
     hdps::Dataset<Points>              _points;        /** Currently loaded points dataset */
     hdps::Dataset<Clusters>            _clusters;      /** Currently loaded clusters dataset */

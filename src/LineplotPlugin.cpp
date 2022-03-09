@@ -73,7 +73,7 @@ void LineplotPlugin::init()
                 // Load as point positions when no dataset is currently loaded
                 dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
                     _points = candidateDataset;
-                    updateData();
+                    //updateData();
                     });
             }
             else {
@@ -133,6 +133,18 @@ void LineplotPlugin::init()
     //connect(_linePlotWidget, SIGNAL(clusterSelectionChanged(QList<int>)), SLOT(clusterSelected(QList<int>)));
     //connect(_linePlotWidget, SIGNAL(dataSetPicked(QString)), SLOT(dataSetPicked(QString)));
 
+    // Respond when the name of the dataset in the dataset reference changes
+    connect(&_points, &Dataset<Points>::dataGuiNameChanged, this, [this](const QString& oldDatasetName, const QString& newDatasetName) {
+
+        // Update the current dataset name label
+        //_linePlotWidget->setText(QString("Current points dataset: %1").arg(newDatasetName));
+
+        // Only show the drop indicator when nothing is loaded in the dataset reference
+        _dropWidget->setShowDropIndicator(newDatasetName.isEmpty());
+        });
+
+    registerDataEventByType(PointType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
+
     auto layout = new QVBoxLayout();
     layout->setMargin(0);
     layout->setSpacing(0);
@@ -143,16 +155,76 @@ void LineplotPlugin::init()
 
 void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
-    // Event which gets triggered when a dataset is added to the system.
-    if (dataEvent->getType() == EventType::DataAdded)
-    {
-        _linePlotWidget->addDataOption(dataEvent->getDataset()->getGuiName());
+    // Get smart pointer to dataset that changed
+    const auto changedDataSet = dataEvent->getDataset();
+
+    // Get GUI name of the dataset that changed
+    const auto datasetGuiName = changedDataSet->getGuiName();
+
+    switch (dataEvent->getType()) {
+
+        // Event which gets triggered when a dataset is added to the system.
+        case EventType::DataAdded:
+        {
+            _linePlotWidget->addDataOption(dataEvent->getDataset()->getGuiName());
+
+            // Cast the data event to a data added event
+            const auto dataAddedEvent = static_cast<DataAddedEvent*>(dataEvent);
+
+            // Get the GUI name of the added points dataset and print to the console
+            std::cout << datasetGuiName.toStdString() << "was added" << std::endl;
+
+            break;
+        }
+
+        // Event which gets triggered when the data contained in a dataset changes.
+        case EventType::DataChanged:
+        {
+            //updateData();
+
+            // Cast the data event to a data changed event
+            const auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
+
+            // Get the name of the points dataset of which the data changed and print to the console
+            std::cout << datasetGuiName.toStdString() << "data changed" << std::endl;
+
+            break;
+        }
+
+        // Points dataset data was removed
+        case EventType::DataRemoved:
+        {
+            // Cast the data event to a data removed event
+            const auto dataRemovedEvent = static_cast<DataRemovedEvent*>(dataEvent);
+
+            // Get the name of the removed points dataset and print to the console
+            std::cout << datasetGuiName.toStdString() << "was removed" << std::endl;
+
+            break;
+        }
+
+        // Points dataset selection has changed
+        case EventType::DataSelectionChanged:
+        {
+            // Cast the data event to a data selection changed event
+            const auto dataSelectionChangedEvent = static_cast<DataSelectionChangedEvent*>(dataEvent);
+
+            // Get the selection set that changed
+            const auto& selectionSet = changedDataSet->getSelection<Points>();
+
+            // Print to the console
+            std::cout << datasetGuiName.toStdString() << "selection has changed" << std::endl;
+
+            updateSelection(selectionSet);
+
+            break;
+        }
+
+        default:
+            break;
     }
-    // Event which gets triggered when the data contained in a dataset changes.
-    if (dataEvent->getType() == EventType::DataChanged)
-    {
-        updateData();
-    }
+
+
 }
 
 /*
@@ -193,7 +265,6 @@ void LineplotPlugin::updateData()
     auto numDimensions = source->getNumDimensions();
     int width = source->getProperty("width").toInt();
     int height = source->getProperty("height").toInt();
-    auto dimensions = source->getDimensionNames();
 
     std::vector<float> yVals;
 
@@ -213,6 +284,44 @@ void LineplotPlugin::updateData()
     }
 
     _linePlotWidget->setData(yVals, names, numDimensions);
+}
+
+void LineplotPlugin::updateSelection(Dataset<Points> selection) {
+
+    auto source = _points->getSourceDataset<Points>();
+    auto numDimensions = source->getNumDimensions();
+    int width = source->getProperty("width").toInt();
+    int height = source->getProperty("height").toInt();
+
+    auto selectedIndices = selection->indices;
+    auto noSelectedPoints = selection->getSelectionSize();
+
+    std::vector<float> averageSpectrum;
+    
+    for (int v = 0; v < numDimensions; v++) {
+
+        float sum = 0;
+
+        for (int i = 0; i < noSelectedPoints; i++) {
+            auto index = selectedIndices.at(i);
+            int x = index / width;
+            int y = index - (x * width);
+            sum = sum + source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+        }
+
+        averageSpectrum.push_back(sum / noSelectedPoints);
+    }
+
+    qDebug() << "Got average";
+
+    std::vector<QString> names;
+    if (source->getDimensionNames().size() == source->getNumDimensions()) {
+        names = source->getDimensionNames();
+    }
+
+    qDebug() << "Send data";
+
+    _linePlotWidget->setData(averageSpectrum, names, numDimensions);
 }
 
 

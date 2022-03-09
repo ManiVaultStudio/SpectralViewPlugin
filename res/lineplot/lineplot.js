@@ -41,7 +41,7 @@ function addAvailableData(name) {
 
     _availableDataSets.push(name);
 
-    updateAvailableDataSelectionBox();
+    //updateAvailableDataSelectionBox();
 }
 
 function setData(d) {
@@ -49,7 +49,7 @@ function setData(d) {
     log("setting data");
 
     _data = JSON.parse(d);
-    drawLineChart();
+    addData();
 
     log("Data set.");
 }
