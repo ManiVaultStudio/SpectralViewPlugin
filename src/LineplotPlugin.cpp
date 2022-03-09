@@ -288,40 +288,43 @@ void LineplotPlugin::updateData()
 
 void LineplotPlugin::updateSelection(Dataset<Points> selection) {
 
-    auto source = _points->getSourceDataset<Points>();
-    auto numDimensions = source->getNumDimensions();
-    int width = source->getProperty("width").toInt();
-    int height = source->getProperty("height").toInt();
+    if (selection.isValid()) {
 
-    auto selectedIndices = selection->indices;
-    auto noSelectedPoints = selection->getSelectionSize();
+        auto source = _points->getSourceDataset<Points>();
+        auto numDimensions = source->getNumDimensions();
+        int width = source->getProperty("width").toInt();
+        int height = source->getProperty("height").toInt();
 
-    std::vector<float> averageSpectrum;
-    
-    for (int v = 0; v < numDimensions; v++) {
+        auto selectedIndices = selection->indices;
+        auto noSelectedPoints = selection->getSelectionSize();
 
-        float sum = 0;
+        std::vector<float> averageSpectrum;
 
-        for (int i = 0; i < noSelectedPoints; i++) {
-            auto index = selectedIndices.at(i);
-            int x = index / width;
-            int y = index - (x * width);
-            sum = sum + source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+        for (int v = 0; v < numDimensions; v++) {
+
+            float sum = 0;
+
+            for (int i = 0; i < noSelectedPoints; i++) {
+                auto index = selectedIndices.at(i);
+                int x = index / width;
+                int y = index - (x * width);
+                sum = sum + source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+            }
+
+            averageSpectrum.push_back(sum / noSelectedPoints);
         }
 
-        averageSpectrum.push_back(sum / noSelectedPoints);
+        qDebug() << "Got average";
+
+        std::vector<QString> names;
+        if (source->getDimensionNames().size() == source->getNumDimensions()) {
+            names = source->getDimensionNames();
+        }
+
+        qDebug() << "Send data";
+
+        _linePlotWidget->setData(averageSpectrum, names, numDimensions);
     }
-
-    qDebug() << "Got average";
-
-    std::vector<QString> names;
-    if (source->getDimensionNames().size() == source->getNumDimensions()) {
-        names = source->getDimensionNames();
-    }
-
-    qDebug() << "Send data";
-
-    _linePlotWidget->setData(averageSpectrum, names, numDimensions);
 }
 
 

@@ -3,12 +3,13 @@ var margin = { top: 10, right: 80, bottom: 30, left: 60 },
     width = 800 - margin.left - margin.right,
     height = 700 - margin.top - margin.bottom;
 
-var x, y;
+var x, y, line;
 var lineR, lineG, lineB;
 var setRGBCheck, setRGBLabel, setRGB;
 var moveLine = "N";
 var spectrumNo = 0;
 var colorsRGB;
+var maxY = 0.1;
 var wavelengthR = 630;
 var wavelengthG = 532;
 var wavelengthB = 465;
@@ -33,7 +34,7 @@ function drawLineChart() {
 
     // Add X axis --> it is a date format
     x = d3.scaleLinear()
-        .domain(d3.range([400, 900]))
+        .domain([400, 900])
         .range([0, width]);
     svg.append("g")
         .attr("class", "xAxis")
@@ -50,9 +51,10 @@ function drawLineChart() {
 
     // Add Y axis
     y = d3.scaleLinear()
-        .domain([0, 1])
+        .domain([0, maxY])
         .range([height, 0]);
     svg.append("g")
+        .attr("class", "yAxis")
         .call(d3.axisLeft(y));
 
     // Y axis label
@@ -63,27 +65,57 @@ function drawLineChart() {
         .attr("dy", ".75em")
         .attr("transform", "rotate(-90)")
         .text("Value");
+
+    line = d3.line()
+        .x(function (d) { return x(d.x); })
+        .y(function (d) { return y(d.y); });
 }
 
 
 function addData() {
-
+    
     // Change axes domain
-    x.domain(d3.extent(_data, function (d) { return d.x; }));
-    y.domain([0, d3.max(_data, function (d) { return +d.y; })]);
+    if (spectrumNo == 0) {
+        x.domain(d3.extent(_data, function (d) { return d.x; }));
+
+        svg.selectAll("g.xAxis")
+            .transition().duration(1000)
+            .call(d3.axisBottom(x));
+
+        drawRGBlines();
+    }
+
+    var newYMax = d3.max(_data, function (d) { return +d.y; });
+
+    if (newYMax > maxY) {
+        maxY = newYMax;
+
+        y.domain([0, maxY]);
+
+        svg.selectAll("g.yAxis")
+            .transition().duration(2000)
+            .call(d3.axisLeft(y));
+
+        if (_spectra.length != 0) {
+
+            var paths = svg.selectAll(".lines").data(_spectra)
+                .transition().duration(2000)
+                .attr("d", line);
+        }
+    }
 
     // Add the line
     svg.append("path")
         .datum(_data)
+        .attr("class", "lines")
         .attr("fill", "none")
         .attr("stroke", colors[spectrumNo])
         .attr("stroke-width", 2)
-        .attr("d", d3.line()
-            .x(function (d) { return x(d.x) })
-            .y(function (d) { return y(d.y) })
-        )
+        .attr("d", line)
 
+    _spectra.push(_data);
     spectrumNo++;
+
     if (spectrumNo > colors.length) {
         spectrumNo = 0;
     }
@@ -289,7 +321,7 @@ function drawRGBlines() {
     lineB = svg
         .append('g')
         .append('line')
-        .style("stroke", colorsEGB[2])
+        .style("stroke", colorsRGB[2])
         .style("opacity", 0)
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthB))
