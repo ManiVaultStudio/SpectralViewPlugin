@@ -4,9 +4,6 @@
 
 #include "widgets/WebWidget.h"
 #include <QMouseEvent>
-#include <QComboBox>
-#include <QList>
-#include <QVariant>
 
 class QWebEngineView;
 class QWebEnginePage;
@@ -30,6 +27,7 @@ signals:
     //void qt_setMarkerSelection(QList<int> selection);
 
 public slots:
+    void js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
     //void js_selectData(QString text);
     //void js_selectionUpdated(QVariant selectedClusters);
     //void js_highlightUpdated(int highlightId);
@@ -58,10 +56,12 @@ protected:
 
 
 signals:
-    void clusterSelectionChanged(QList<int> selectedClusters);
+    //void clusterSelectionChanged(QList<int> selectedClusters);
    // void dataSetPicked(QString name);
+    void changeRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
 
 public:
+    void js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
    // void js_selectData(QString text);
    // void js_selectionUpdated(QVariant selectedClusters);
    // void js_highlightUpdated(int highlightId);

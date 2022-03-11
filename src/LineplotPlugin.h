@@ -2,9 +2,10 @@
 
 #include <ViewPlugin.h>
 
+#include "LineplotWidget.h"
+
 #include "Dataset.h"
 
-#include "LineplotWidget.h"
 #include "widgets/DropWidget.h"
 
 #include <QList>
@@ -14,6 +15,7 @@ using namespace hdps::util;
 
 class Points;
 class Clusters;
+class Images;
 
 class LineplotPlugin : public ViewPlugin
 {
@@ -28,15 +30,19 @@ public:
     void onDataEvent(hdps::DataEvent* dataEvent);
 
 protected slots:
+    void changeRGBWavelengths(const float wavelengthR, const float wavelengthG, const float wavelengthB);
    // void dataSetPicked(const QString& name);
    // void clusterSelected(QList<int> selectedClusters);
 
 private:
     void updateData();
     void updateSelection(hdps::Dataset<Points> selection);
+    void initializeImageRGB();
 
     hdps::Dataset<Points>              _points;        /** Currently loaded points dataset */
     hdps::Dataset<Clusters>            _clusters;      /** Currently loaded clusters dataset */
+    hdps::Dataset<Points>              _imageRGBPoints;
+    hdps::Dataset<Images>              _imageRGB;
 
     LineplotWidget* _linePlotWidget;       /** Heatmap widget displaying cluster data */
     hdps::gui::DropWidget* _dropWidget;    /** Widget allowing users to drop in data */

@@ -82,7 +82,7 @@ function addData() {
             .transition().duration(1000)
             .call(d3.axisBottom(x));
 
-        drawRGBlines();
+        updateRGBlines();
     }
 
     var newYMax = d3.max(_data, function (d) { return +d.y; });
@@ -264,6 +264,7 @@ function addData() {
         selectedData = _data[i];
         if (moveLine == "R") {
             wavelengthR = selectedData.x;
+            log("R: " + wavelengthR);
             lineR
                 .attr("x1", x(wavelengthR))
                 .attr("y1", y(0))
@@ -286,10 +287,34 @@ function addData() {
                 .attr("x2", x(wavelengthB))
                 .attr("y2", y(height - 10));
         }
-        moveLine = "N";
 
-        focusText.style("opacity", 0)
+        moveLine = "N";
+        focusText.style("opacity", 0);
+
+        // send RGB wavelength values to qt
+        sendRGBWavelengths();
     }
+}
+
+function updateRGBlines() {
+
+    lineR
+        .attr("x1", x(wavelengthR))
+        .attr("y1", y(0))
+        .attr("x2", x(wavelengthR))
+        .attr("y2", y(height - 10));
+
+    lineG
+        .attr("x1", x(wavelengthG))
+        .attr("y1", y(0))
+        .attr("x2", x(wavelengthG))
+        .attr("y2", y(height - 10));
+
+    lineB
+        .attr("x1", x(wavelengthB))
+        .attr("y1", y(0))
+        .attr("x2", x(wavelengthB))
+        .attr("y2", y(height - 10));
 }
 
 function drawRGBlines() {

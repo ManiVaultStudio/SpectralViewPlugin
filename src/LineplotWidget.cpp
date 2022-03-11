@@ -16,6 +16,11 @@ LinePlotCommunicationObject::LinePlotCommunicationObject(LineplotWidget* parent)
 
 }
 
+void LinePlotCommunicationObject::js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB)
+{
+    _parent->js_setRGBWavelengths(wavelengthR, wavelengthG, wavelengthB);
+}
+
 /*
 void LinePlotCommunicationObject::js_selectData(QString text)
 {
@@ -118,6 +123,12 @@ void LineplotWidget::initWebPage()
     }
     dataOptionBuffer.clear();
 }
+
+void LineplotWidget::js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB) {
+
+    emit changeRGBWavelengths(wavelengthR, wavelengthG, wavelengthB);
+}
+
 /*
 void LineplotWidget::js_selectData(QString name)
 {

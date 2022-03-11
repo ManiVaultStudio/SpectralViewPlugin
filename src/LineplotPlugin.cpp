@@ -1,10 +1,12 @@
 // Code based on HeatMapPlugin
+#pragma once
 
 #include "LineplotPlugin.h"
 
 #include "PointData.h"
 #include "ClusterData.h"
 #include "event/Event.h"
+#include "ImageData/Images.h"
 
 #include <QtCore>
 #include <QtDebug>
@@ -32,10 +34,10 @@ void LineplotPlugin::init()
 {
     _linePlotWidget->setPage(":/lineplot/lineplot.html", "qrc:/lineplot/");
     
-    setDockingLocation(DockableWidget::DockingLocation::Right);
-    setFocusPolicy(Qt::ClickFocus);
+    //setDockingLocation(DockableWidget::DockingLocation::Right);
+    getWidget().setFocusPolicy(Qt::ClickFocus);
 
-    _dropWidget->setDropIndicatorWidget(new DropWidget::DropIndicatorWidget(this, "No data loaded", "Drag an item from the data hierarchy and drop it here to visualize data..."));
+    _dropWidget->setDropIndicatorWidget(new DropWidget::DropIndicatorWidget(&getWidget(), "No data loaded", "Drag an item from the data hierarchy and drop it here to visualize data..."));
     
     _dropWidget->initialize([this](const QMimeData* mimeData) -> DropWidget::DropRegions {
         DropWidget::DropRegions dropRegions;
@@ -73,7 +75,7 @@ void LineplotPlugin::init()
                 // Load as point positions when no dataset is currently loaded
                 dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
                     _points = candidateDataset;
-                    //updateData();
+                    initializeImageRGB();
                     });
             }
             else {
@@ -111,9 +113,9 @@ void LineplotPlugin::init()
     
     const auto updateWindowTitle = [this]() -> void {
         if (!_points.isValid())
-            setWindowTitle(getGuiName());
+            getWidget().setWindowTitle(getGuiName());
         else
-            setWindowTitle(QString("%1: %2").arg(getGuiName(), _points->getGuiName()));
+            getWidget().setWindowTitle(QString("%1: %2").arg(getGuiName(), _points->getGuiName()));
     };
 
     // Load points when the dataset name of the points dataset reference changes
@@ -131,7 +133,7 @@ void LineplotPlugin::init()
         });
 
     //connect(_linePlotWidget, SIGNAL(clusterSelectionChanged(QList<int>)), SLOT(clusterSelected(QList<int>)));
-    //connect(_linePlotWidget, SIGNAL(dataSetPicked(QString)), SLOT(dataSetPicked(QString)));
+    connect(_linePlotWidget, SIGNAL(changeRGBWavelengths(float, float, float)), SLOT(changeRGBWavelengths(float, float, float)));
 
     // Respond when the name of the dataset in the dataset reference changes
     connect(&_points, &Dataset<Points>::dataGuiNameChanged, this, [this](const QString& oldDatasetName, const QString& newDatasetName) {
@@ -149,7 +151,7 @@ void LineplotPlugin::init()
     layout->setMargin(0);
     layout->setSpacing(0);
     layout->addWidget(_linePlotWidget);
-    setLayout(layout);
+    getWidget().setLayout(layout);
 }
 
 
@@ -223,9 +225,154 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
         default:
             break;
     }
-
-
 }
+
+void LineplotPlugin::initializeImageRGB() {
+
+    if (!_imageRGBPoints.isValid()) {
+        _imageRGBPoints = _core->addDataset<Points>("Points", "imageRGBData");
+        _imageRGB = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_imageRGBPoints));
+        _core->notifyDatasetAdded(_imageRGB);
+        _core->notifyDatasetAdded(_imageRGBPoints);
+
+        qDebug() << "Create image";
+
+        auto source = _points->getSourceDataset<Points>();
+        auto dimNames = _points->getDimensionNames();
+        unsigned int numDimensions = source->getNumDimensions();
+        int width = source->getProperty("width").toInt();
+        int height = source->getProperty("height").toInt();
+        int numPoints = width * height;
+
+        std::vector<float> imageRGBData(width * height * 3);
+        std::vector<QString> imageDim;
+
+        qDebug() << "Get source";
+
+        // needs to change
+        float wavelengthR = 630;
+        float wavelengthG = 532;
+        float wavelengthB = 465;
+
+        int dimR = 0;
+        int dimG = 0;
+        int dimB = 0;
+
+        for (int v = 0; v < numDimensions; v++) {
+            auto dimName = dimNames.at(v);
+            float dimValue = dimName.toFloat();
+      
+            if (abs(wavelengthR - dimValue) < 1) {
+                dimR = v;
+                imageDim.push_back(dimName);
+            }
+            else if (abs(wavelengthG - dimValue) < 1) {
+                dimG = v;
+                imageDim.push_back(dimName);
+            }
+            else if (abs(wavelengthB - dimValue) < 1) {
+                dimB = v;
+                imageDim.push_back(dimName);
+            }
+        }
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                imageRGBData[width * 3 * (height - y - 1) + 3 * x] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimR);
+            }
+        }
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                imageRGBData[width * 3 * (height - y - 1) + 3 * x + 1] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimG);
+            }
+        }
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                imageRGBData[width * 3 * (height - y - 1) + 3 * x + 2] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimB);
+            }
+        }
+
+        qDebug() << "Add points";
+
+        _imageRGBPoints->setData(imageRGBData.data(), numPoints, 3);
+        _imageRGBPoints->setDimensionNames(imageDim);
+        _imageRGBPoints->setProperty("width", width);
+        _imageRGBPoints->setProperty("height", height);
+
+        qDebug() << "Set points";
+
+        _core->notifyDatasetChanged(_imageRGBPoints);
+
+        _imageRGB->setGuiName("RGB Image");
+        _imageRGB->setType(ImageData::Type::Stack);
+        _imageRGB->setNumberOfImages(1);
+        _imageRGB->setImageSize(QSize(width, height));
+        _imageRGB->setNumberOfComponentsPerPixel(3);
+
+        _core->notifyDatasetChanged(_imageRGB);
+    }
+}
+
+void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float wavelengthG, const float wavelengthB) {
+
+    auto source = _points->getSourceDataset<Points>();
+    auto dimNames = _points->getDimensionNames();
+    auto numDimensions = source->getNumDimensions();
+    int width = source->getProperty("width").toInt();
+    int height = source->getProperty("height").toInt();
+    int numPoints = width * height;
+
+    std::vector<float> imageRGBData(width * height * 3);
+
+    int dimR = 0;
+    int dimG = 0;
+    int dimB = 0;
+
+    qDebug() << "start";
+
+    for (int v = 0; v < numDimensions; v++) {
+        float dimValue = dimNames.at(v).toFloat();
+        if (abs(wavelengthR - dimValue) < 0.001) {
+            dimR = v;
+        }
+        if (abs(wavelengthG - dimValue) < 0.001) {
+            dimG = v;
+        }
+        if (abs(wavelengthB - dimValue) < 0.001) {
+            dimB = v;
+        }
+    }
+
+    qDebug() << "Start adding points";
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            imageRGBData[width * 3 * (height - y - 1) + 3 * x] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimR);
+        }
+    }
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            imageRGBData[width * 3 * (height - y - 1) + 3 * x + 1] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimG);
+        }
+    }
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            imageRGBData[width * 3 * (height - y - 1) + 3 * x + 2] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimB);
+        }
+    }
+
+    qDebug() << "points added";
+
+    _imageRGBPoints->setData(imageRGBData.data(), numPoints, 3);
+    _core->notifyDatasetChanged(_imageRGBPoints);
+    _core->notifyDatasetChanged(_imageRGB);
+  
+}
+
 
 /*
 void LineplotPlugin::dataSetPicked(const QString& name)

@@ -54,3 +54,10 @@ function setData(d) {
 
     log("Data set.");
 }
+
+function sendRGBWavelengths() {
+
+    if (isQtAvailable) {
+        QtBridge.js_setRGBWavelengths(wavelengthR, wavelengthG, wavelengthB);
+    }
+}
