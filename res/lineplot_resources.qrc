@@ -4,6 +4,8 @@
         <file>lineplot/lineplot.css</file>
         <file>lineplot/lineplot.js</file>
         <file>lineplot/lineplot.ui.js</file>
+		<file>lineplot/endmembers.js</file>
+		<file>lineplot/linesRGB.js</file>
     </qresource>
  
     <qresource prefix="">

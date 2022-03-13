@@ -4,15 +4,9 @@ var margin = { top: 10, right: 80, bottom: 30, left: 60 },
     height = 700 - margin.top - margin.bottom;
 
 var x, y, line;
-var lineR, lineG, lineB;
-var setRGBCheck, setRGBLabel, setRGB;
 var moveLine = "N";
 var spectrumNo = 0;
-var colorsRGB;
 var maxY = 0.1;
-var wavelengthR = 630;
-var wavelengthG = 532;
-var wavelengthB = 465;
 var colors = ["gold", "blue", "green", "black", "grey", "darkblue", "darkgreen", "pink", "brown", "purple", "grey1", "orange"];
 
 // append the svg object to the body of the page
@@ -211,7 +205,7 @@ function addData() {
             var yValue = Number(selectedData.y).toFixed(3);
 
             focusText
-                .html("x:" + xValue + "<br>" + "y:" + yValue)
+                .html("x:" + xValue + ", " + "y:" + yValue)
                 .attr("x", x(selectedData.x) + width / 90)
                 .attr("y", 3 * height / 5)
                 .style("opacity", 1);
@@ -296,99 +290,3 @@ function addData() {
     }
 }
 
-function updateRGBlines() {
-
-    lineR
-        .attr("x1", x(wavelengthR))
-        .attr("y1", y(0))
-        .attr("x2", x(wavelengthR))
-        .attr("y2", y(height - 10));
-
-    lineG
-        .attr("x1", x(wavelengthG))
-        .attr("y1", y(0))
-        .attr("x2", x(wavelengthG))
-        .attr("y2", y(height - 10));
-
-    lineB
-        .attr("x1", x(wavelengthB))
-        .attr("y1", y(0))
-        .attr("x2", x(wavelengthB))
-        .attr("y2", y(height - 10));
-}
-
-function drawRGBlines() {
-    colorsRGB = ["red", "green", "blue"];
-
-    // Create the lines corresponding to RGB wavelengths
-    lineR = svg
-        .append('g')
-        .append('line')
-        .style("stroke", colorsRGB[0])
-        .style("opacity", 0)
-        .attr("stroke-width", 2)
-        .attr("x1", x(wavelengthR))
-        .attr("y1", y(0))
-        .attr("x2", x(wavelengthR))
-        .attr("y2", y(height - 10));
-
-    lineG = svg
-        .append('g')
-        .append('line')
-        .style("stroke", colorsRGB[1])
-        .style("opacity", 0)
-        .attr("stroke-width", 2)
-        .attr("x1", x(wavelengthG))
-        .attr("y1", y(0))
-        .attr("x2", x(wavelengthG))
-        .attr("y2", y(height - 10));
-
-    lineB = svg
-        .append('g')
-        .append('line')
-        .style("stroke", colorsRGB[2])
-        .style("opacity", 0)
-        .attr("stroke-width", 2)
-        .attr("x1", x(wavelengthB))
-        .attr("y1", y(0))
-        .attr("x2", x(wavelengthB))
-        .attr("y2", y(height - 10));
-}
-
-function showRGBlines() {
-
-    lineR.style("opacity", 1);
-    lineG.style("opacity", 1);
-    lineB.style("opacity", 1);
-}
-
-function removeRGBlines() {
-
-    lineR.style("opacity", 0);
-    lineG.style("opacity", 0);
-    lineB.style("opacity", 0);
-}
-
-function setRGBCheckbox() {
-
-    setRGBCheck = document.createElement('input');
-    setRGBCheck.type = 'checkbox';
-    setRGBCheck.id = 'setRGBCheck';
-
-    setRGBLabel = document.createElement('label');
-    setRGBLabel.append("Set RGB wavelength values");
-
-    setRGB = document.createElement('div');
-    setRGB.id = "setRGB";
-    setRGB.appendChild(setRGBCheck);
-    setRGB.appendChild(setRGBLabel);
-    document.getElementById("options").appendChild(setRGB);
-
-    setRGBCheck.addEventListener('change', (event) => {
-        if (event.currentTarget.checked) {
-            showRGBlines();
-        } else {
-            removeRGBlines();
-        }
-    })
-}

@@ -163,6 +163,8 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     // Get GUI name of the dataset that changed
     const auto datasetGuiName = changedDataSet->getGuiName();
 
+    const auto datasetGuid = changedDataSet->getGuid();
+
     switch (dataEvent->getType()) {
 
         // Event which gets triggered when a dataset is added to the system.
@@ -190,6 +192,9 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             // Get the name of the points dataset of which the data changed and print to the console
             std::cout << datasetGuiName.toStdString() << "data changed" << std::endl;
 
+            if (datasetGuiName == "onePixel" && _points.isValid()) {
+                updatePixel(datasetGuid);
+            }
             break;
         }
 
@@ -217,7 +222,8 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             // Print to the console
             std::cout << datasetGuiName.toStdString() << "selection has changed" << std::endl;
 
-            updateSelection(selectionSet);
+            if(_points.isValid())
+                updateSelection(selectionSet);
 
             break;
         }
@@ -238,7 +244,7 @@ void LineplotPlugin::initializeImageRGB() {
         qDebug() << "Create image";
 
         auto source = _points->getSourceDataset<Points>();
-        auto dimNames = _points->getDimensionNames();
+        auto dimNames = source->getDimensionNames();
         unsigned int numDimensions = source->getNumDimensions();
         int width = source->getProperty("width").toInt();
         int height = source->getProperty("height").toInt();
@@ -246,8 +252,6 @@ void LineplotPlugin::initializeImageRGB() {
 
         std::vector<float> imageRGBData(width * height * 3);
         std::vector<QString> imageDim;
-
-        qDebug() << "Get source";
 
         // needs to change
         float wavelengthR = 630;
@@ -279,29 +283,15 @@ void LineplotPlugin::initializeImageRGB() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 imageRGBData[width * 3 * (height - y - 1) + 3 * x] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimR);
-            }
-        }
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
                 imageRGBData[width * 3 * (height - y - 1) + 3 * x + 1] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimG);
-            }
-        }
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
                 imageRGBData[width * 3 * (height - y - 1) + 3 * x + 2] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimB);
             }
         }
-
-        qDebug() << "Add points";
 
         _imageRGBPoints->setData(imageRGBData.data(), numPoints, 3);
         _imageRGBPoints->setDimensionNames(imageDim);
         _imageRGBPoints->setProperty("width", width);
         _imageRGBPoints->setProperty("height", height);
-
-        qDebug() << "Set points";
 
         _core->notifyDatasetChanged(_imageRGBPoints);
 
@@ -330,8 +320,6 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float w
     int dimG = 0;
     int dimB = 0;
 
-    qDebug() << "start";
-
     for (int v = 0; v < numDimensions; v++) {
         float dimValue = dimNames.at(v).toFloat();
         if (abs(wavelengthR - dimValue) < 0.001) {
@@ -345,27 +333,13 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float w
         }
     }
 
-    qDebug() << "Start adding points";
-
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             imageRGBData[width * 3 * (height - y - 1) + 3 * x] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimR);
-        }
-    }
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
             imageRGBData[width * 3 * (height - y - 1) + 3 * x + 1] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimG);
-        }
-    }
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
             imageRGBData[width * 3 * (height - y - 1) + 3 * x + 2] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimB);
         }
     }
-
-    qDebug() << "points added";
 
     _imageRGBPoints->setData(imageRGBData.data(), numPoints, 3);
     _core->notifyDatasetChanged(_imageRGBPoints);
@@ -403,34 +377,22 @@ void LineplotPlugin::clusterSelected(QList<int> selectedClusters)
     }
 }
 */
-void LineplotPlugin::updateData()
+void LineplotPlugin::updatePixel(const QString datasetGuid)
 {
     if (!_points.isValid()) // && !_clusters.isValid())
         return;
 
-    auto source = _points->getSourceDataset<Points>();
-    auto numDimensions = source->getNumDimensions();
-    int width = source->getProperty("width").toInt();
-    int height = source->getProperty("height").toInt();
-
-    std::vector<float> yVals;
-
-    qDebug() << "Working on data: " << _points->getGuiName();
-
-    qDebug() << "Calculating data";
+    auto onePixelData = _core->requestDataset(datasetGuid);
+    auto onePixel = onePixelData->getSourceDataset<Points>();
+    auto numDimensions = onePixel->getNumDimensions();
+    auto names = onePixel->getDimensionNames();
+    std::vector<float> spectrum(numDimensions);
 
     for (int v = 0; v < numDimensions; v++) {
-        auto yVal = source->getValueAt(width * numDimensions * (height - 1000 - 1) + numDimensions * 1000 + v);
-        yVals.push_back(yVal);
+        spectrum.push_back(onePixel->getValueAt(v));
     }
 
-    qDebug() << "Done calculating data";
-    std::vector<QString> names;
-    if (source->getDimensionNames().size() == source->getNumDimensions()) {
-        names = source->getDimensionNames();
-    }
-
-    _linePlotWidget->setData(yVals, names, numDimensions);
+    _linePlotWidget->setData(spectrum, names, numDimensions);
 }
 
 void LineplotPlugin::updateSelection(Dataset<Points> selection) {

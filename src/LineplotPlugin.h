@@ -35,9 +35,10 @@ protected slots:
    // void clusterSelected(QList<int> selectedClusters);
 
 private:
-    void updateData();
+    void updatePixel(const QString datasetGuid);
     void updateSelection(hdps::Dataset<Points> selection);
     void initializeImageRGB();
+    //std::vector<float> createRGBImage(int dimR, int dimG, int dimB);
 
     hdps::Dataset<Points>              _points;        /** Currently loaded points dataset */
     hdps::Dataset<Clusters>            _clusters;      /** Currently loaded clusters dataset */
