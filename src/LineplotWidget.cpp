@@ -64,7 +64,7 @@ void LineplotWidget::addDataOption(const QString option)
         dataOptionBuffer.append(option);
 }
 
-void LineplotWidget::setData(std::vector<float>& yVals, std::vector<QString>& dimNames, const int numDimensions)
+void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions)
 {
     std::string _jsonObject = "";
 
@@ -74,7 +74,10 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<QString>& di
 
     for (int i = 0; i < numDimensions; i++) {
         std::string yVal = std::to_string(yVals.at(i));
-        spectra = spectra + "{ \"x\": " +  dimNames.at(i).toStdString() + ", \"y\": " +  yVal;
+        std::string ci_left = std::to_string(confIntervalLeft.at(i));
+        std::string ci_right = std::to_string(confIntervalRight.at(i));
+        spectra = spectra + "{ \"x\": " + dimNames.at(i).toStdString() + ", \"y\": " + yVal +
+                    ", \"CI_Left\": " + ci_left + ", \"CI_Right\": " + ci_right;
 
         if (i == numDimensions - 1)
             spectra = spectra + +" }";
@@ -84,7 +87,7 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<QString>& di
 
     _jsonObject = "[\n" + spectra + "\n]";
 
-    //qDebug() << _jsonObject.c_str();
+    qDebug() << _jsonObject.c_str();
 
     emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
 }

@@ -44,7 +44,7 @@ public:
     ~LineplotWidget() override;
     
     void addDataOption(const QString option);
-    void setData(std::vector<float>& yVals, std::vector<QString>& dimNames, const int numDimensions);
+    void setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions);
     
 protected:
     void mousePressEvent(QMouseEvent* event)   Q_DECL_OVERRIDE;

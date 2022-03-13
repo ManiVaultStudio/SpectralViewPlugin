@@ -193,7 +193,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             std::cout << datasetGuiName.toStdString() << "data changed" << std::endl;
 
             if (datasetGuiName == "onePixel" && _points.isValid()) {
-                updatePixel(datasetGuid);
+                //updatePixel(datasetGuid);
             }
             break;
         }
@@ -387,12 +387,15 @@ void LineplotPlugin::updatePixel(const QString datasetGuid)
     auto numDimensions = onePixel->getNumDimensions();
     auto names = onePixel->getDimensionNames();
     std::vector<float> spectrum(numDimensions);
+    std::vector<float> CI_R(numDimensions, 0);
+    std::vector<float> CI_L(numDimensions, 0);
 
     for (int v = 0; v < numDimensions; v++) {
         spectrum.push_back(onePixel->getValueAt(v));
     }
 
-    _linePlotWidget->setData(spectrum, names, numDimensions);
+    // need to compute confidence interval?
+    _linePlotWidget->setData(spectrum, CI_R, CI_L, names, numDimensions);
 }
 
 void LineplotPlugin::updateSelection(Dataset<Points> selection) {
@@ -407,7 +410,10 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
         auto selectedIndices = selection->indices;
         auto noSelectedPoints = selection->getSelectionSize();
 
-        std::vector<float> averageSpectrum;
+        std::vector<float> averageSpectrum(numDimensions);
+        std::vector<float> confIntervalLeft(numDimensions);
+        std::vector <float> confIntervalRight(numDimensions);
+        float confLevel = 0.95;
 
         for (int v = 0; v < numDimensions; v++) {
 
@@ -418,10 +424,29 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
                 int x = index / width;
                 int y = index - (x * width);
                 sum = sum + source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+            
             }
 
-            averageSpectrum.push_back(sum / noSelectedPoints);
-        }
+            float mean = sum / noSelectedPoints;
+            averageSpectrum.push_back(mean);
+
+            // compute confidence interval per dimension                
+            float std = 0;
+
+            for (int i = 0; i < noSelectedPoints; i++) {
+                auto index = selectedIndices.at(i);
+                int x = index / width;
+                int y = index - (x * width);
+                float value = source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+                std = std + (value - mean) * (value - mean);
+            }
+
+            std = sqrt(std / (noSelectedPoints - 1));
+
+            float term = confLevel * (std / sqrt(noSelectedPoints));
+            confIntervalRight.push_back(mean + term);
+            confIntervalLeft.push_back(mean - term);
+        }   
 
         qDebug() << "Got average";
 
@@ -432,7 +457,7 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
 
         qDebug() << "Send data";
 
-        _linePlotWidget->setData(averageSpectrum, names, numDimensions);
+        _linePlotWidget->setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions);
     }
 }
 
