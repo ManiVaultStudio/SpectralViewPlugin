@@ -87,7 +87,7 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
 
     _jsonObject = "[\n" + spectra + "\n]";
 
-    qDebug() << _jsonObject.c_str();
+    // qDebug() << _jsonObject.c_str();
 
     emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
 }

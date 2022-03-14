@@ -95,20 +95,30 @@ function addData() {
             var paths = svg.selectAll(".lines").data(_spectra)
                 .transition().duration(2000)
                 .attr("d", line);
+
+            var stdInterval = svg.selectAll(".stdInterval").data(_spectra)
+                .transition().duration(2000)
+                .attr("d", d3.area()
+                    .x(function (d) { return x(d.x) })
+                    .y0(function (d) { return y(d.CI_Right) })
+                    .y1(function (d) { return y(d.CI_Left) })
+                    )
         }
     }
-    /*
+    
     // Show confidence interval
     svg.append("path")
         .datum(_data)
-        .attr("fill", "#808080")
+        .attr("class", "stdInterval")
+        .attr("fill", colors[spectrumNo])
+        .attr("opacity", 0.1)
         .attr("stroke", "none")
         .attr("d", d3.area()
             .x(function (d) { return x(d.x) })
             .y0(function (d) { return y(d.CI_Right) })
             .y1(function (d) { return y(d.CI_Left) })
         )
-        */
+        
     // Add the line
     svg.append("path")
         .datum(_data)
