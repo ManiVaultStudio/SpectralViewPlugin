@@ -7,7 +7,10 @@ var x, y, line;
 var moveLine = "N";
 var spectrumNo = 0;
 var maxY = 0.1;
+var minY = 0;
 var colors = ["gold", "blue", "green", "black", "grey", "darkblue", "darkgreen", "pink", "brown", "purple", "grey1", "orange"];
+
+var setCICheck;
 
 // append the svg object to the body of the page
 var svg = d3.select("#line_chart")
@@ -23,6 +26,7 @@ drawLineChart();
 // Options menu
 drawRGBlines();
 setRGBCheckbox();
+setCICheckbox();
 
 function drawLineChart() {
 
@@ -45,7 +49,7 @@ function drawLineChart() {
 
     // Add Y axis
     y = d3.scaleLinear()
-        .domain([0, maxY])
+        .domain([minY, maxY])
         .range([height, 0]);
     svg.append("g")
         .attr("class", "yAxis")
@@ -63,6 +67,11 @@ function drawLineChart() {
     line = d3.line()
         .x(function (d) { return x(d.x); })
         .y(function (d) { return y(d.y); });
+
+    area = d3.area()
+        .x(function (d) { return x(d.x) })
+        .y0(function (d) { return y(d.CI_Right) })
+        .y1(function (d) { return y(d.CI_Left) });
 }
 
 
@@ -79,12 +88,19 @@ function addData() {
         updateRGBlines();
     }
 
-    var newYMax = d3.max(_data, function (d) { return +d.y; });
+    var newYMax = d3.max(_data, function (d) { return +d.CI_Right; });
+    var newYMin = d3.min(_data, function (d) { return +d.CI_Left; });
 
-    if (newYMax > maxY) {
-        maxY = newYMax;
+    if (newYMax > maxY || newYMin < minY) {
 
-        y.domain([0, maxY]);
+        if (newYMax > maxY) {
+            maxY = newYMax;
+        }
+        if (newYMin < minY) {
+            minY = newYMin;
+        }
+
+        y.domain([minY, maxY]);
 
         svg.selectAll("g.yAxis")
             .transition().duration(2000)
@@ -98,27 +114,26 @@ function addData() {
 
             var stdInterval = svg.selectAll(".stdInterval").data(_spectra)
                 .transition().duration(2000)
-                .attr("d", d3.area()
-                    .x(function (d) { return x(d.x) })
-                    .y0(function (d) { return y(d.CI_Right) })
-                    .y1(function (d) { return y(d.CI_Left) })
-                    )
+                .attr("d", area)
         }
     }
     
-    // Show confidence interval
+    // Set confidence interval
     svg.append("path")
         .datum(_data)
         .attr("class", "stdInterval")
         .attr("fill", colors[spectrumNo])
-        .attr("opacity", 0.1)
+        .attr("opacity", 0)
         .attr("stroke", "none")
-        .attr("d", d3.area()
-            .x(function (d) { return x(d.x) })
-            .y0(function (d) { return y(d.CI_Right) })
-            .y1(function (d) { return y(d.CI_Left) })
-        )
-        
+        .attr("d", area)
+
+    if (document.getElementById("setCICheck").checked) {
+        svg.selectAll(".stdInterval").attr("opacity", 0.1);
+    }
+    else {
+        svg.selectAll(".stdInterval").attr("opacity", 0);
+    }
+
     // Add the line
     svg.append("path")
         .datum(_data)
@@ -309,5 +324,39 @@ function addData() {
         // send RGB wavelength values to qt
         sendRGBWavelengths();
     }
+}
+
+function showElement(name, value) {
+
+    svg.selectAll(name).style("opacity", value);
+}
+
+function removeElement(name) {
+
+    svg.selectAll(name).style("opacity", 0);
+}
+
+function setCICheckbox() {
+
+    setCICheck = document.createElement('input');
+    setCICheck.type = 'checkbox';
+    setCICheck.id = 'setCICheck';
+
+    setCILabel = document.createElement('label');
+    setCILabel.append("Show standard deviation interval");
+
+    setCI = document.createElement('div');
+    setCI.id = "setCI";
+    setCI.appendChild(setCICheck);
+    setCI.appendChild(setCILabel);
+    document.getElementById("options").appendChild(setCI);
+
+    setCICheck.addEventListener('change', (event) => {
+        if (event.currentTarget.checked) {
+            showElement(".stdInterval", 0.1);
+        } else {
+            removeElement(".stdInterval");
+        }
+    })
 }
 

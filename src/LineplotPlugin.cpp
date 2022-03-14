@@ -386,7 +386,7 @@ void LineplotPlugin::updatePixel(const QString datasetGuid)
     auto onePixel = onePixelData->getSourceDataset<Points>();
     auto numDimensions = onePixel->getNumDimensions();
     auto names = onePixel->getDimensionNames();
-    std::vector<float> spectrum(numDimensions);
+    std::vector<float> spectrum;
     std::vector<float> CI_R(numDimensions, 0);
     std::vector<float> CI_L(numDimensions, 0);
 

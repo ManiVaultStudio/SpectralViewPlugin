@@ -14,6 +14,7 @@ function drawRGBlines() {
         .append('line')
         .style("stroke", colorsRGB[0])
         .style("opacity", 0)
+        .attr("class", "RGBLines")
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthR))
         .attr("y1", y(0))
@@ -25,6 +26,7 @@ function drawRGBlines() {
         .append('line')
         .style("stroke", colorsRGB[1])
         .style("opacity", 0)
+        .attr("class", "RGBLines")
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthG))
         .attr("y1", y(0))
@@ -36,6 +38,7 @@ function drawRGBlines() {
         .append('line')
         .style("stroke", colorsRGB[2])
         .style("opacity", 0)
+        .attr("class", "RGBLines")
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthB))
         .attr("y1", y(0))
@@ -65,20 +68,6 @@ function updateRGBlines() {
         .attr("y2", y(height - 10));
 }
 
-function showRGBlines() {
-
-    lineR.style("opacity", 1);
-    lineG.style("opacity", 1);
-    lineB.style("opacity", 1);
-}
-
-function removeRGBlines() {
-
-    lineR.style("opacity", 0);
-    lineG.style("opacity", 0);
-    lineB.style("opacity", 0);
-}
-
 function setRGBCheckbox() {
 
     setRGBCheck = document.createElement('input');
@@ -96,9 +85,9 @@ function setRGBCheckbox() {
 
     setRGBCheck.addEventListener('change', (event) => {
         if (event.currentTarget.checked) {
-            showRGBlines();
+            showElement(".RGBLines", 1);
         } else {
-            removeRGBlines();
+            removeElement(".RGBLines");
         }
     })
 }
