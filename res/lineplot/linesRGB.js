@@ -49,18 +49,21 @@ function drawRGBlines() {
 function updateRGBlines() {
 
     lineR
+        .transition().duration(1000)
         .attr("x1", x(wavelengthR))
         .attr("y1", y(minY))
         .attr("x2", x(wavelengthR))
         .attr("y2", y(maxY));
 
     lineG
+        .transition().duration(1000)
         .attr("x1", x(wavelengthG))
         .attr("y1", y(minY))
         .attr("x2", x(wavelengthG))
         .attr("y2", y(maxY));
 
     lineB
+        .transition().duration(1000)
         .attr("x1", x(wavelengthB))
         .attr("y1", y(minY))
         .attr("x2", x(wavelengthB))

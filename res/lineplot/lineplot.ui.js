@@ -35,7 +35,7 @@ function addData() {
         y.domain([minY, maxY]);
 
         _lineChart.selectAll("g.yAxis")
-            .transition().duration(2000)
+            .transition().duration(1000)
             .call(d3.axisLeft(y));
 
         if (_spectra.length != 0) {
@@ -46,8 +46,8 @@ function addData() {
     // Set confidence interval
     _stdArea
         .datum(_data)
-        .transition().duration(2000)
-        .attr("d", area)
+        .transition().duration(1000)
+        .attr("d", area);
 
     if (document.getElementById("setCICheck").checked) {
         _lineChart.selectAll(".stdInterval").attr("opacity", 0.1);
@@ -59,7 +59,7 @@ function addData() {
     // Add the line
     _selectionLine
         .datum(_data)
-        .transition().duration(2000)
+        .transition().duration(1000)
         .attr("d", line)
 
     _spectra.push(_data);
@@ -74,12 +74,11 @@ function mouseover() {
 
     if (!_data) return;
 
-    log("hellllllo");
     // recover coordinate we need
     var x0 = x.invert(d3.mouse(this)[0]);
     var i = bisect(_data, x0, 1);
     selectedData = _data[i];
-
+    log(selectedData.x);
     var distR = Math.abs(selectedData.x - wavelengthR);
     var distG = Math.abs(selectedData.x - wavelengthG);
     var distB = Math.abs(selectedData.x - wavelengthB);
@@ -198,6 +197,7 @@ function mouseup() {
     var x0 = x.invert(d3.mouse(this)[0]);
     var i = bisect(_data, x0, 1);
     selectedData = _data[i];
+
     if (moveLine == "R") {
         wavelengthR = selectedData.x;
 

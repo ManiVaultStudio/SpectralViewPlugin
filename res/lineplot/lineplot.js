@@ -98,6 +98,11 @@ var _selectionLine = _lineChart.append("path")
     .attr("stroke", "black")
     .attr("stroke-width", 2);
 
+
+drawRGBlines();
+setRGBCheckbox();
+setCICheckbox();
+
 // Create the text that travels along the curve of chart
 var focusText = _lineChart
     .append('g')
@@ -127,11 +132,7 @@ var area = d3.area()
     .y0(function (d) { return y(d.CI_Right) })
     .y1(function (d) { return y(d.CI_Left) });
 
-drawRGBlines();
-setRGBCheckbox();
-setCICheckbox();
-
-function drawLineChart() {
+function drawLineChart(dur) {
 
     // append the svg object to the body of the page
     _svgSelection
@@ -140,15 +141,18 @@ function drawLineChart() {
     
     x.range([0, _lineChartWidth]);
     _lineChart.select("g.xAxis")
+        .transition().duration(dur)
         .attr("transform", "translate(0," + _lineChartHeight + ")")
         .call(d3.axisBottom(x));
 
     xLabel
+        .transition().duration(dur)
         .attr("x", _lineChartWidth)
         .attr("y", _lineChartHeight - 6);
 
     y.range([_lineChartHeight, 0]);
     _lineChart.select("g.yAxis")
+        .transition().duration(dur)
         .call(d3.axisLeft(y));
 
     topRect
@@ -156,6 +160,19 @@ function drawLineChart() {
         .attr('height', _lineChartHeight);
 
     updateRGBlines();
+
+    if (_data) {
+
+        _stdArea
+            .datum(_data)
+            .transition().duration(dur)
+            .attr("d", area);
+
+        _selectionLine
+            .datum(_data)
+            .transition().duration(dur)
+            .attr("d", line);
+    }
 }
 
 // =============================================================================
@@ -208,7 +225,7 @@ function resize() {
     else
         _lineChartHeight = 50;
     
-    drawLineChart();
+    drawLineChart(1000);
 }
 
 resize();
