@@ -9,7 +9,7 @@ function drawRGBlines() {
     colorsRGB = ["red", "green", "blue"];
 
     // Create the lines corresponding to RGB wavelengths
-    lineR = svg
+    lineR = _lineChart
         .append('g')
         .append('line')
         .style("stroke", colorsRGB[0])
@@ -17,11 +17,11 @@ function drawRGBlines() {
         .attr("class", "RGBLines")
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthR))
-        .attr("y1", y(0))
+        .attr("y1", y(minY))
         .attr("x2", x(wavelengthR))
-        .attr("y2", y(height - 10));
+        .attr("y2", y(maxY));
 
-    lineG = svg
+    lineG = _lineChart
         .append('g')
         .append('line')
         .style("stroke", colorsRGB[1])
@@ -29,11 +29,11 @@ function drawRGBlines() {
         .attr("class", "RGBLines")
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthG))
-        .attr("y1", y(0))
+        .attr("y1", y(minY))
         .attr("x2", x(wavelengthG))
-        .attr("y2", y(height - 10));
+        .attr("y2", y(maxY));
 
-    lineB = svg
+    lineB = _lineChart
         .append('g')
         .append('line')
         .style("stroke", colorsRGB[2])
@@ -41,31 +41,30 @@ function drawRGBlines() {
         .attr("class", "RGBLines")
         .attr("stroke-width", 2)
         .attr("x1", x(wavelengthB))
-        .attr("y1", y(0))
+        .attr("y1", y(minY))
         .attr("x2", x(wavelengthB))
-        .attr("y2", y(height - 10));
+        .attr("y2", y(maxY));
 }
-
 
 function updateRGBlines() {
 
     lineR
         .attr("x1", x(wavelengthR))
-        .attr("y1", y(0))
+        .attr("y1", y(minY))
         .attr("x2", x(wavelengthR))
-        .attr("y2", y(height - 10));
+        .attr("y2", y(maxY));
 
     lineG
         .attr("x1", x(wavelengthG))
-        .attr("y1", y(0))
+        .attr("y1", y(minY))
         .attr("x2", x(wavelengthG))
-        .attr("y2", y(height - 10));
+        .attr("y2", y(maxY));
 
     lineB
         .attr("x1", x(wavelengthB))
-        .attr("y1", y(0))
+        .attr("y1", y(minY))
         .attr("x2", x(wavelengthB))
-        .attr("y2", y(height - 10));
+        .attr("y2", y(maxY));
 }
 
 function setRGBCheckbox() {

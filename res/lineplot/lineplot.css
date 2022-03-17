@@ -8,7 +8,7 @@ body {
 	user-select: none;
 }
 
-svg {
+_lineChart {
 	/*background-color: rgb(237,237,237);*/
 	background-color: #fcfcfc;
 }

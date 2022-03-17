@@ -1,6 +1,4 @@
 ﻿var isQtAvailable = true;
 
-var circ = 2 * Math.PI;
-
-var width = 500;
-var height = 500;
+var width = 800;
+var height = 700;
