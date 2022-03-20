@@ -3,12 +3,15 @@
 #include <ViewPlugin.h>
 
 #include "LineplotWidget.h"
+#include "MainToolbarAction.h"
+//#include "SettingsAction.h"
 
 #include "Dataset.h"
 
-#include "widgets/DropWidget.h"
+#include <widgets/DropWidget.h>
 
 #include <QList>
+#include <QSplitter>
 
 using namespace hdps::plugin;
 using namespace hdps::util;
@@ -29,13 +32,19 @@ public:
 
     void onDataEvent(hdps::DataEvent* dataEvent);
 
+public:
+    /** Get reference to the lineplot widget */
+    LineplotWidget& getLineplotWidget() {
+        return _linePlotWidget;
+    }
+
 protected slots:
     void changeRGBWavelengths(const float wavelengthR, const float wavelengthG, const float wavelengthB);
-   // void dataSetPicked(const QString& name);
-   // void clusterSelected(QList<int> selectedClusters);
+    // void dataSetPicked(const QString& name);
+    // void clusterSelected(QList<int> selectedClusters);
 
 private:
-    void updatePixel(const QString datasetGuid);
+    void importEndmembersCSV(const QString datasetGuid);
     void updateSelection(hdps::Dataset<Points> selection);
     void initializeImageRGB();
     //std::vector<float> createRGBImage(int dimR, int dimG, int dimB);
@@ -45,9 +54,13 @@ private:
     hdps::Dataset<Points>              _imageRGBPoints;
     hdps::Dataset<Images>              _imageRGB;
 
-    LineplotWidget* _linePlotWidget;       /** Heatmap widget displaying cluster data */
-    hdps::gui::DropWidget* _dropWidget;    /** Widget allowing users to drop in data */
+    LineplotWidget       _linePlotWidget;       /** Heatmap widget displaying cluster data */
+    QSplitter               _splitter;             /** Splitter which divides the lineplot view and editor */
+    hdps::gui::DropWidget   _dropWidget;            /** Widget allowing users to drop in data */
+    MainToolbarAction       _mainToolbarAction;     /** Main toolbar action */
+  //  SettingsAction          _settingsAction;        /** Line chart settings action */
 };
+
 
 // =============================================================================
 // Factory

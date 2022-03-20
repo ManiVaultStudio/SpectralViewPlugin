@@ -38,7 +38,7 @@ void LinePlotCommunicationObject::js_highlightUpdated(int highlightId)
 }
 */
 
-LineplotWidget::LineplotWidget() :
+LineplotWidget::LineplotWidget(LineplotPlugin& lineplotPlugin) :
     loaded(false)
 {
     Q_INIT_RESOURCE(lineplot_resources);
@@ -54,7 +54,6 @@ LineplotWidget::LineplotWidget() :
 LineplotWidget::~LineplotWidget() {
 
 }
-
 
 void LineplotWidget::addDataOption(const QString option)
 {
@@ -90,6 +89,14 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
     // qDebug() << _jsonObject.c_str();
 
     emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
+}
+
+void LineplotWidget::enableRGBWavelengths(bool checkedRGB) {
+    emit _communicationObject->qt_enableRGBWavelengths(checkedRGB);
+}
+
+void LineplotWidget::enableStdArea(bool checkedStd) {
+    emit _communicationObject->qt_enableStdArea(checkedStd);
 }
 
 void LineplotWidget::mousePressEvent(QMouseEvent* event)

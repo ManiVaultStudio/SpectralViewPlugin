@@ -8,8 +8,8 @@ try {
         QtBridge = channel.objects.QtBridge;
 
         QtBridge.qt_setData.connect(function () { setData(arguments[0]); });
-        //QtBridge.qt_setSelection.connect(function () { setSelection(arguments[0]); });
-        //QtBridge.qt_setHighlight.connect(function () { setHighlight(arguments[0]); });
+        QtBridge.qt_enableRGBWavelengths.connect(function () { enableRGBLines(arguments[0]); });
+        QtBridge.qt_enableStdArea.connect(function () { enableStdArea(arguments[0]); });
         QtBridge.qt_addAvailableData.connect(function () { addAvailableData(arguments[0]); });
         //QtBridge.qt_setMarkerSelection.connect(function () { initMarkerSelection(arguments[0]); });
 
@@ -30,6 +30,8 @@ var _spectra = [];
 var _availableDataSets = [];
 var maxY = 0.1;
 var minY = 0;
+var checkedRGB = false;
+var checkedStd = false;
 
 // sizes =======================================================================
 var _lineChartWidth;
@@ -88,7 +90,8 @@ var yLabel = _lineChart.append("text")
 var _stdArea = _lineChart.append("path")
     .attr("class", "stdInterval")
     .attr("fill", "black")
-    .attr("stroke", "none");
+    .attr("stroke", "none")
+    .attr("opacity", 0);
 
 // Add the line for the selection
 var _selectionLine = _lineChart.append("path")
@@ -100,8 +103,6 @@ var _selectionLine = _lineChart.append("path")
 
 
 drawRGBlines();
-setRGBCheckbox();
-setCICheckbox();
 
 // Create the text that travels along the curve of chart
 var focusText = _lineChart
@@ -197,6 +198,27 @@ function setData(d) {
     addData();
 
     log("Data set.");
+}
+
+function enableRGBLines(c) {
+    checkedRGB = c;
+
+    if (checkedRGB) {
+        showElement(".RGBLines", 1);
+    } else {
+        removeElement(".RGBLines");
+    }
+}
+
+function enableStdArea(c) {
+    checkedStd = c;
+
+    if (checkedStd) {
+        showElement(".stdInterval", 0.1);
+    }
+    else {
+        removeElement(".stdInterval");
+    }
 }
 
 function sendRGBWavelengths() {

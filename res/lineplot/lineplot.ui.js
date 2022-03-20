@@ -2,8 +2,6 @@ var moveLine = "N";
 var spectrumNo = 0;
 var colors = ["gold", "blue", "green", "black", "grey", "darkblue", "darkgreen", "pink", "brown", "purple", "grey1", "orange"];
 
-var setCICheck;
-
 // This allows to find the closest X index of the mouse:
 var bisect = d3.bisector(function (d) { return d.x; }).left;
 
@@ -48,13 +46,6 @@ function addData() {
         .datum(_data)
         .transition().duration(1000)
         .attr("d", area);
-
-    if (document.getElementById("setCICheck").checked) {
-        _lineChart.selectAll(".stdInterval").attr("opacity", 0.1);
-    }
-    else {
-        _lineChart.selectAll(".stdInterval").attr("opacity", 0);
-    }
 
     // Add the line
     _selectionLine
@@ -240,28 +231,3 @@ function removeElement(name) {
 
     _lineChart.selectAll(name).style("opacity", 0);
 }
-
-function setCICheckbox() {
-
-    setCICheck = document.createElement('input');
-    setCICheck.type = 'checkbox';
-    setCICheck.id = 'setCICheck';
-
-    setCILabel = document.createElement('label');
-    setCILabel.append("Show standard deviation interval");
-
-    setCI = document.createElement('div');
-    setCI.id = "setCI";
-    setCI.appendChild(setCICheck);
-    setCI.appendChild(setCILabel);
-    document.getElementById("options").appendChild(setCI);
-
-    setCICheck.addEventListener('change', (event) => {
-        if (event.currentTarget.checked) {
-            showElement(".stdInterval", 0.1);
-        } else {
-            removeElement(".stdInterval");
-        }
-    })
-}
-

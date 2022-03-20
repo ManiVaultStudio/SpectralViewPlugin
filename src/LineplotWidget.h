@@ -11,6 +11,7 @@ class QWebChannel;
 
 class Cluster;
 
+class LineplotPlugin;
 class LineplotWidget;
 
 class LinePlotCommunicationObject : public hdps::gui::WebCommunicationObject
@@ -22,6 +23,8 @@ public:
 signals:
     void qt_setData(QString data);
     void qt_addAvailableData(QString name);
+    void qt_enableRGBWavelengths(bool checkedRGB);
+    void qt_enableStdArea(bool checkedStd);
     //void qt_setSelection(QList<int> selection);
     //void qt_setHighlight(int highlightId);
     //void qt_setMarkerSelection(QList<int> selection);
@@ -40,12 +43,14 @@ class LineplotWidget : public hdps::gui::WebWidget
 {
     Q_OBJECT
 public:
-    LineplotWidget();
+    LineplotWidget(LineplotPlugin& lineplotPlugin);
     ~LineplotWidget() override;
     
     void addDataOption(const QString option);
     void setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions);
-    
+    void enableRGBWavelengths(bool checkedRGB);
+    void enableStdArea(bool checkedStd);
+
 protected:
     void mousePressEvent(QMouseEvent* event)   Q_DECL_OVERRIDE;
     void mouseMoveEvent(QMouseEvent* event)    Q_DECL_OVERRIDE;
