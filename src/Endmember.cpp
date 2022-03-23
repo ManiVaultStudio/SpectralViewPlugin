@@ -46,7 +46,7 @@ void Endmember::sendData(hdps::Dataset<hdps::DatasetImpl>& dataset) {
         auto noPoints = source->getNumPoints();
         auto indices = source->indices;
 
-        _lineplotPlugin.computeAverageSpectrum(parentPoints, noPoints, indices);
+        _lineplotPlugin.computeAverageSpectrum(parentPoints, noPoints, indices, "subset");
     }
 }
 

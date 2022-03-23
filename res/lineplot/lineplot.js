@@ -8,6 +8,7 @@ try {
         QtBridge = channel.objects.QtBridge;
 
         QtBridge.qt_setData.connect(function () { setData(arguments[0]); });
+        QtBridge.qt_setEndmember.connect(function () { setEndmember(arguments[0]); });
         QtBridge.qt_enableRGBWavelengths.connect(function () { enableRGBLines(arguments[0]); });
         QtBridge.qt_enableStdArea.connect(function () { enableStdArea(arguments[0]); });
         QtBridge.qt_addAvailableData.connect(function () { addAvailableData(arguments[0]); });
@@ -26,7 +27,7 @@ try {
 
 // data ========================================================================
 var _data = null;
-var _spectra = [];
+var _endmembers = [];
 var _availableDataSets = [];
 var maxY = 0.1;
 var minY = 0;
@@ -39,6 +40,8 @@ var _lineChartHeight;
 
 
 // UI ==========================================================================
+var _endmemberLines, _stdAreas;
+
 var _margin = { top: 10, right: 80, bottom: 30, left: 60 },
     _lineChartWidth = width - _margin.left - _margin.right,
     _lineChartHeight = height - _margin.top - _margin.bottom;
@@ -174,6 +177,20 @@ function drawLineChart(dur) {
             .transition().duration(dur)
             .attr("d", line);
     }
+
+    if (_endmembers.length > 0) {
+
+        _stdAreas
+            .data(_endmembers)
+            .transition().duration(dur)
+            .attr("d", area);
+
+        _endmemberLines
+            .data(_endmembers)
+            .transition().duration(dur)
+            .attr("d", line);
+            
+    }
 }
 
 // =============================================================================
@@ -191,13 +208,22 @@ function addAvailableData(name) {
 }
 
 function setData(d) {
-
-   // log("setting data");
-
     _data = JSON.parse(d);
     addData();
+}
 
-   // log("Data set.");
+function setEndmember(d) {
+    endmember = JSON.parse(d);
+
+    _endmembers.push(endmember);
+
+    // Add the lines for the endmembers
+    _endmemberLines = _lineChart.selectAll(".endmembers").data(_endmembers);
+
+    // Set confidence interval for the selection
+    _stdAreas = _lineChart.selectAll(".endmembersStd").data(_endmembers);
+
+    addEndmembers();
 }
 
 function enableRGBLines(c) {
@@ -215,9 +241,11 @@ function enableStdArea(c) {
 
     if (checkedStd) {
         showElement(".stdInterval", 0.1);
+        showElement(".endmembersStd", 0.1);
     }
     else {
         removeElement(".stdInterval");
+        removeElement(".endmembersStd");
     }
 }
 

@@ -46,7 +46,7 @@ void LineplotWidget::addDataOption(const QString option)
         dataOptionBuffer.append(option);
 }
 
-void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions)
+void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions, std::string dataOrigin)
 {
     std::string _jsonObject = "";
 
@@ -71,7 +71,12 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
 
     //qDebug() << _jsonObject.c_str();
 
-    emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
+    if (dataOrigin == "selection") {
+        emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
+    }
+    else if (dataOrigin == "subset") {
+        emit _communicationObject->qt_setEndmember(QString(_jsonObject.c_str()));
+    }
 }
 
 void LineplotWidget::enableRGBWavelengths(bool checkedRGB) {

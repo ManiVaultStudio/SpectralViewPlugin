@@ -449,33 +449,21 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
         auto noSelectedPoints = selection->getSelectionSize();
 
         if (noSelectedPoints > 0) {
-            computeAverageSpectrum(_points, noSelectedPoints, selectedIndices);
+            computeAverageSpectrum(_points, noSelectedPoints, selectedIndices, "selection");
         }
         
     }
 }
 
-void LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices) {
-
-    qDebug() << "Source " << source->getGuiName();
-
+void LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
 
     auto numDimensions = source->getNumDimensions();
-
-    qDebug() << "DIm " << numDimensions;
-
     auto children = source->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
     auto images = _core->requestDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
-    int height = imageSize.height();
-
-    qDebug() << "W " << width;
-    qDebug() << "H " << height;
-    
-    
-
+    int height = imageSize.height();  
 
     std::vector<float> averageSpectrum;
     std::vector<float> confIntervalLeft(numDimensions);
@@ -520,7 +508,7 @@ void LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints
         names = source->getDimensionNames();
     }
 
-    _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions);
+    _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions, dataOrigin);
 }
 
 

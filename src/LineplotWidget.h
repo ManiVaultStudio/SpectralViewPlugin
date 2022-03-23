@@ -23,6 +23,7 @@ public:
 
 signals:
     void qt_setData(QString data);
+    void qt_setEndmember(QString data);
     void qt_addAvailableData(QString name);
     void qt_enableRGBWavelengths(bool checkedRGB);
     void qt_enableStdArea(bool checkedStd);
@@ -42,7 +43,7 @@ public:
     ~LineplotWidget() override;
     
     void addDataOption(const QString option);
-    void setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions);
+    void setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions, std::string dataOrigin);
     void enableRGBWavelengths(bool checkedRGB);
     void enableStdArea(bool checkedStd);
 
