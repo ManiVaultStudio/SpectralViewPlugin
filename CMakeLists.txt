@@ -25,6 +25,20 @@ set(SOURCES
     src/LineplotPlugin.cpp
     src/LineplotWidget.h
     src/LineplotWidget.cpp
+    src/SettingsAction.h
+    src/SettingsAction.cpp
+    src/MainToolbarAction.h
+    src/MainToolbarAction.cpp
+    src/GlobalSettingsAction.h
+    src/GlobalSettingsAction.cpp
+    src/EndmembersAction.cpp
+    src/EndmembersAction.h
+    src/EndmembersModel.cpp
+    src/EndmembersModel.h
+    src/Endmember.cpp
+    src/Endmember.h
+    src/GeneralAction.cpp
+    src/GeneralAction.h
     src/LineplotPlugin.json
 )
 
