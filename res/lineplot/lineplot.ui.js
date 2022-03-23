@@ -18,8 +18,16 @@ function addData() {
         updateRGBlines();
     }
 
+    var max1 = d3.max(_data, function (d) { return +d.y; });
+    var min1 = d3.min(_data, function (d) { return +d.y; });
+
     var newYMax = d3.max(_data, function (d) { return +d.CI_Right; });
     var newYMin = d3.min(_data, function (d) { return +d.CI_Left; });
+
+    if (max1 > newYMax) {
+        newYMax = max1;
+        newYMin = min1;
+    }
 
     if (newYMax > maxY || newYMin < minY) {
 

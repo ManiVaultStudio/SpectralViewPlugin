@@ -192,12 +192,12 @@ function addAvailableData(name) {
 
 function setData(d) {
 
-    log("setting data");
+   // log("setting data");
 
     _data = JSON.parse(d);
     addData();
 
-    log("Data set.");
+   // log("Data set.");
 }
 
 function enableRGBLines(c) {
