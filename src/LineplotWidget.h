@@ -2,6 +2,7 @@
 
 #include "SelectionListener.h"
 
+#include "EndmembersModel.h"
 #include "widgets/WebWidget.h"
 #include <QMouseEvent>
 
@@ -25,15 +26,9 @@ signals:
     void qt_addAvailableData(QString name);
     void qt_enableRGBWavelengths(bool checkedRGB);
     void qt_enableStdArea(bool checkedStd);
-    //void qt_setSelection(QList<int> selection);
-    //void qt_setHighlight(int highlightId);
-    //void qt_setMarkerSelection(QList<int> selection);
 
 public slots:
     void js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
-    //void js_selectData(QString text);
-    //void js_selectionUpdated(QVariant selectedClusters);
-    //void js_highlightUpdated(int highlightId);
  
 private:
     LineplotWidget* _parent;
@@ -61,23 +56,16 @@ protected:
 
 
 signals:
-    //void clusterSelectionChanged(QList<int> selectedClusters);
-   // void dataSetPicked(QString name);
     void changeRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
 
 public:
     void js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
-   // void js_selectData(QString text);
-   // void js_selectionUpdated(QVariant selectedClusters);
-   // void js_highlightUpdated(int highlightId);
   
 private slots:
     void initWebPage() override;
 
 private:
     LinePlotCommunicationObject* _communicationObject;
-
-    //unsigned int _numClusters;
 
     /** Whether the web view has loaded and web-functions are ready to be called. */
     bool loaded;

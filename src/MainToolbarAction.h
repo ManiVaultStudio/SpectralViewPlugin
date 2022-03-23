@@ -1,11 +1,6 @@
 #pragma once
 
 #include <actions/WidgetAction.h>
-//#include <actions/TriggerAction.h>
-//#include <actions/DecimalAction.h>
-//#include <actions/ToggleAction.h>
-
-//#include "SubsetAction.h"
 #include "GlobalSettingsAction.h"
 
 class LineplotPlugin;
@@ -15,8 +10,9 @@ class LineplotWidget;
  * Main toolbar action class
  *
  * Action class for main toolbar
- *
- * @author Thomas Kroes
+ * 
+ * MainToolbarAction, SettingsAction and GlobalSettingsAction 
+ * based on the implementations in ImageViewerPlugin
  */
 class MainToolbarAction : public WidgetAction
 {

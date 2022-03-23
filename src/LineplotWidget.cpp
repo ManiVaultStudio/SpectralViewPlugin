@@ -21,23 +21,6 @@ void LinePlotCommunicationObject::js_setRGBWavelengths(float wavelengthR, float 
     _parent->js_setRGBWavelengths(wavelengthR, wavelengthG, wavelengthB);
 }
 
-/*
-void LinePlotCommunicationObject::js_selectData(QString text)
-{
-    _parent->js_selectData(text);
-}
-
-void LinePlotCommunicationObject::js_selectionUpdated(QVariant selectedClusters)
-{
-    _parent->js_selectionUpdated(selectedClusters);
-}
-
-void LinePlotCommunicationObject::js_highlightUpdated(int highlightId)
-{
-    _parent->js_highlightUpdated(highlightId);
-}
-*/
-
 LineplotWidget::LineplotWidget(LineplotPlugin& lineplotPlugin) :
     loaded(false)
 {
@@ -67,7 +50,7 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
 {
     std::string _jsonObject = "";
 
-    qDebug() << "Setting data";
+    //qDebug() << "Setting data";
 
     std::string spectra;
 
@@ -86,7 +69,7 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
 
     _jsonObject = "[\n" + spectra + "\n]";
 
-    // qDebug() << _jsonObject.c_str();
+    //qDebug() << _jsonObject.c_str();
 
     emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
 }
@@ -138,36 +121,3 @@ void LineplotWidget::js_setRGBWavelengths(float wavelengthR, float wavelengthG, 
 
     emit changeRGBWavelengths(wavelengthR, wavelengthG, wavelengthB);
 }
-
-/*
-void LineplotWidget::js_selectData(QString name)
-{
-    emit dataSetPicked(name);
-}
-
-void LineplotWidget::js_highlightUpdated(int highlightId)
-{
-    QList<int> selectedClusters;
-
-    for (int i = 0; i < _numClusters; i++) {
-        selectedClusters.append(i == highlightId ? 1 : 0);
-    }
-
-    selectedClusters.append(highlightId);
-
-    //emit clusterSelectionChanged(selectedClusters);
-}
-
-void LineplotWidget::js_selectionUpdated(QVariant selectedClusters)
-{
-    QList<QVariant> selectedClustersList = selectedClusters.toList();
-
-    QList<int> selectedIndices;
-    for (const QVariant& variant : selectedClustersList)
-    {
-        selectedIndices.push_back(variant.toInt());
-    }
-
-    emit clusterSelectionChanged(selectedIndices);
-}
-*/

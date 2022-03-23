@@ -8,6 +8,8 @@
 #include "event/Event.h"
 #include "ImageData/Images.h"
 
+#include "DataHierarchyItem.h"
+
 #include <QtCore>
 #include <QtDebug>
 #include <iostream>
@@ -20,19 +22,20 @@ using namespace hdps::gui;
 
 LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     ViewPlugin(factory),
+    _model(this),
+    _selectionModel(&_model),
     _splitter(Qt::Horizontal, &getWidget()),
     _linePlotWidget(*this),
     _dropWidget(&_linePlotWidget),
-    _mainToolbarAction(*this)
-   // _settingsAction(*this)
+    _mainToolbarAction(*this),
+    _settingsAction(*this),
+    _childrenLen()
 {
     setObjectName("Line Plot");
 
     getWidget().setContextMenuPolicy(Qt::CustomContextMenu);
     getWidget().setFocusPolicy(Qt::ClickFocus);
 
-    //_linePlotWidget = new LineplotWidget();
-    //_dropWidget = new DropWidget(_linePlotWidget);
     _mainToolbarAction.setEnabled(false);
 }
 
@@ -71,12 +74,12 @@ void LineplotPlugin::init()
 
     // Add viewer widget and settings panel to the splitter
     _splitter.addWidget(mainWidget);
-    //_splitter.addWidget(_settingsAction.createWidget(&getWidget()));
+    _splitter.addWidget(_settingsAction.createWidget(&getWidget()));
 
     // Configure splitter
     _splitter.setStretchFactor(0, 1);
-    //_splitter.setStretchFactor(1, 0);
-    //_splitter.setCollapsible(1, true);
+    _splitter.setStretchFactor(1, 0);
+    _splitter.setCollapsible(1, true);
 
     // Add splitter to the main layout
     mainLayout->addWidget(&_splitter);
@@ -86,6 +89,8 @@ void LineplotPlugin::init()
 
         const auto mimeText = mimeData->text();
         const auto tokens = mimeText.split("\n");
+
+        _childrenLen = 0;
 
         if (tokens.count() == 1)
             return dropRegions;
@@ -104,10 +109,7 @@ void LineplotPlugin::init()
         if (dataType == PointType) {
 
             // Get points dataset from the core
-            hdps::Dataset<Points>  candidateDataset = _core->requestDataset<Points>(datasetId);
-            int numDimensions = candidateDataset->getNumDimensions();
-            auto dimensions = candidateDataset->getDimensionNames();
-               
+            hdps::Dataset<Points>  candidateDataset = _core->requestDataset<Points>(datasetId);               
                
             // Establish drop region description
             const auto description = QString("Visualize %1 as line plot").arg(datasetGuiName);
@@ -166,26 +168,22 @@ void LineplotPlugin::init()
 
     // Load points when the dataset name of the points dataset reference changes
     connect(&_points, &Dataset<Points>::changed, this, [this, updateWindowTitle]() {
-        //loadPoints(newDatasetName);
         _dropWidget.setShowDropIndicator(false);
         updateWindowTitle();
         });
 
     // Load clusters when the dataset name of the clusters dataset reference changes
     connect(&_clusters, &Dataset<Clusters>::changed, this, [this, updateWindowTitle]() {
-        //loadPoints(newDatasetName);
         updateWindowTitle();
-        //updateData();
         });
 
-    //connect(_linePlotWidget, SIGNAL(clusterSelectionChanged(QList<int>)), SLOT(clusterSelected(QList<int>)));
     connect(&_linePlotWidget, SIGNAL(changeRGBWavelengths(float, float, float)), SLOT(changeRGBWavelengths(float, float, float)));
 
     // Respond when the name of the dataset in the dataset reference changes
     connect(&_points, &Dataset<Points>::dataGuiNameChanged, this, [this](const QString& oldDatasetName, const QString& newDatasetName) {
 
         // Update the current dataset name label
-        //_linePlotWidget->setText(QString("Current points dataset: %1").arg(newDatasetName));
+        //_linePlotWidget.set(QString("Current points dataset: %1").arg(newDatasetName));
 
         // Only show the drop indicator when nothing is loaded in the dataset reference
         _dropWidget.setShowDropIndicator(newDatasetName.isEmpty());
@@ -216,13 +214,21 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             const auto dataAddedEvent = static_cast<DataAddedEvent*>(dataEvent);
 
             // Get the GUI name of the added points dataset and print to the console
-            std::cout << datasetGuiName.toStdString() << " was added" << std::endl;
+            //std::cout << datasetGuiName.toStdString() << " was added" << std::endl;
 
+            if (_points.isValid()) {
+                auto children = _points->getChildren({ PointType, ClusterType});
+                auto childrenLen = children.length();
+
+                if (childrenLen > _childrenLen) {
+                    _childrenLen = childrenLen;
+                    addDataset(children[childrenLen-1]);
+                }
+            }
+            
             if (datasetGuiName == "endmemberList") {
                 importEndmembersCSV(datasetGuid);
             }
-            break;
-
             break;
         }
 
@@ -233,7 +239,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             const auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
 
             // Get the name of the points dataset of which the data changed and print to the console
-            std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
+            //std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
         }
 
         // Points dataset data was removed
@@ -258,7 +264,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             const auto& selectionSet = changedDataSet->getSelection<Points>();
 
             // Print to the console
-            std::cout << datasetGuiName.toStdString() << "selection has changed" << std::endl;
+            std::cout << datasetGuiName.toStdString() << " selection has changed" << std::endl;
 
             if(_points.isValid())
                 updateSelection(selectionSet);
@@ -269,6 +275,13 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
         default:
             break;
     }
+}
+
+void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
+    
+    auto endmember = new Endmember(*this, dataset);
+
+    _model.addEndmember(endmember);
 }
 
 void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
@@ -309,21 +322,20 @@ void LineplotPlugin::initializeImageRGB() {
     if (!_imageRGBPoints.isValid()) {
         _imageRGBPoints = _core->addDataset<Points>("Points", "imageRGBData");
         _imageRGB = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_imageRGBPoints));
-        //_core->notifyDatasetAdded(_imageRGB);
-        //_core->notifyDatasetAdded(_imageRGBPoints);
 
-        qDebug() << "Create image";
+       // qDebug() << "Create image";
 
         auto source = _points->getSourceDataset<Points>();
         auto dimNames = _points->getDimensionNames();
         unsigned int numDimensions = _points->getNumDimensions();
-       // auto images = _points->getSourceDataset<Images>();
-        //auto images = _points->getDataHierarchyItem().getChildren();
-       // auto imageSize = images->getImageSize(); //source->getProperty("width").toInt();
-       // int width = imageSize.width();
-       // int height = imageSize.height();
-        int width = source->getProperty("width").toInt();
-        int height = source->getProperty("height").toInt();
+
+        auto children = source->getChildren({ ImageType });
+        auto imagesId = children[0].getDatasetGuid();
+        auto images = _core->requestDataset<Images>(imagesId);
+        auto imageSize = images->getImageSize();
+        int width = imageSize.width();
+        int height = imageSize.height();
+
         int numPoints = width * height;
 
         std::vector<float> imageRGBData(width * height * 3);
@@ -386,8 +398,14 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float w
     auto source = _points->getSourceDataset<Points>();
     auto dimNames = _points->getDimensionNames();
     auto numDimensions = _points->getNumDimensions();
-    int width = _points->getProperty("width").toInt();
-    int height = _points->getProperty("height").toInt();
+    
+    auto children = source->getChildren({ ImageType });
+    auto imagesId = children[0].getDatasetGuid();
+    auto images = _core->requestDataset<Images>(imagesId);
+    auto imageSize = images->getImageSize();
+    int width = imageSize.width();
+    int height = imageSize.height();
+
     int numPoints = width * height;
 
     std::vector<float> imageRGBData(width * height * 3);
@@ -426,64 +444,83 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float w
 void LineplotPlugin::updateSelection(Dataset<Points> selection) {
 
     if (selection.isValid()) {
-
-        auto source = _points->getSourceDataset<Points>();
-        auto numDimensions = source->getNumDimensions();
-        int width = source->getProperty("width").toInt();
-        int height = source->getProperty("height").toInt();
-
+       
         auto selectedIndices = selection->indices;
         auto noSelectedPoints = selection->getSelectionSize();
 
-        std::vector<float> averageSpectrum;
-        std::vector<float> confIntervalLeft(numDimensions);
-        std::vector <float> confIntervalRight(numDimensions);
+        if (noSelectedPoints > 0) {
+            computeAverageSpectrum(_points, noSelectedPoints, selectedIndices);
+        }
+        
+    }
+}
 
-        for (int v = 0; v < numDimensions; v++) {
+void LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices) {
 
-            float sum = 0;
+    qDebug() << "Source " << source->getGuiName();
 
-            for (int i = 0; i < noSelectedPoints; i++) {
-                auto index = selectedIndices.at(i);
-                int x = index / width;
-                int y = index - (x * width);
-                sum = sum + source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+
+    auto numDimensions = source->getNumDimensions();
+
+    qDebug() << "DIm " << numDimensions;
+
+    auto children = source->getChildren({ ImageType });
+    auto imagesId = children[0].getDatasetGuid();
+    auto images = _core->requestDataset<Images>(imagesId);
+    auto imageSize = images->getImageSize();
+    int width = imageSize.width();
+    int height = imageSize.height();
+
+    qDebug() << "W " << width;
+    qDebug() << "H " << height;
+    
+    
+
+
+    std::vector<float> averageSpectrum;
+    std::vector<float> confIntervalLeft(numDimensions);
+    std::vector <float> confIntervalRight(numDimensions);
+
+    for (int v = 0; v < numDimensions; v++) {
+        float sum = 0;
+
+        for (int i = 0; i < noPoints; i++) {
             
-            }
+            auto index = indices.at(i);
+            int x = index / width;
+            int y = index - (x * width);
+            sum = sum + source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
 
-            float mean = sum / noSelectedPoints;
-            averageSpectrum.push_back(mean);
-            
-            if (noSelectedPoints > 1) {
-                // compute standard deviation per dimension                
-                float std = 0;
-
-                for (int i = 0; i < noSelectedPoints; i++) {
-                    auto index = selectedIndices.at(i);
-                    int x = index / width;
-                    int y = index - (x * width);
-                    float value = source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
-                    std = std + (value - mean) * (value - mean);
-                }
-
-                std = sqrt(std / noSelectedPoints);
-
-                confIntervalRight[v] = mean + std;
-                confIntervalLeft[v] = mean - std;
-            }
-        }   
-
-        qDebug() << "Got average";
-
-        std::vector<QString> names;
-        if (source->getDimensionNames().size() == source->getNumDimensions()) {
-            names = source->getDimensionNames();
         }
 
-        qDebug() << "Send data";
+        float mean = noPoints == 0 ? 0 : sum / noPoints;
+        averageSpectrum.push_back(mean);
 
-        _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions);
+        if (noPoints > 1) {
+            // compute standard deviation per dimension                
+            float std = 0;
+
+            for (int i = 0; i < noPoints; i++) {
+                auto index = indices.at(i);
+                int x = index / width;
+                int y = index - (x * width);
+                float value = source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+                std = std + (value - mean) * (value - mean);
+            }
+
+            std = sqrt(std / noPoints);
+
+            confIntervalRight[v] = mean + std;
+            confIntervalLeft[v] = mean - std;
+        }
     }
+
+    std::vector<QString> names;
+    if (source->getDimensionNames().size() == source->getNumDimensions()) {
+        names = source->getDimensionNames();
+    }
+
+    _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions);
 }
 
 

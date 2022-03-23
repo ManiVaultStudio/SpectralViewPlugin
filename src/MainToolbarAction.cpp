@@ -33,3 +33,8 @@ MainToolbarAction::Widget::Widget(QWidget* parent, MainToolbarAction* interactio
 
     setLayout(layout);
 }
+
+LineplotWidget& MainToolbarAction::getLineplotWidget()
+{
+    return _lineplotPlugin.getLineplotWidget();
+}
