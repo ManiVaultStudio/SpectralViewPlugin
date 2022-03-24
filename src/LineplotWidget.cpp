@@ -74,7 +74,7 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
     if (dataOrigin == "selection") {
         emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
     }
-    else if (dataOrigin == "subset") {
+    else if (dataOrigin == "subset" || dataOrigin == "list") {
         emit _communicationObject->qt_setEndmember(QString(_jsonObject.c_str()));
     }
 }

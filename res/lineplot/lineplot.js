@@ -59,7 +59,7 @@ var _lineChart = _svgSelection
 
 // Add X axis
 var x = d3.scaleLinear()
-    .domain([400, 900])
+    .domain([400, 1000])
     .range([0, _lineChartWidth]);
 _lineChart.append("g")
     .attr("class", "xAxis")

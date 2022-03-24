@@ -222,13 +222,15 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 
                 if (childrenLen > _childrenLen) {
                     _childrenLen = childrenLen;
+
                     addDataset(children[childrenLen-1]);
                 }
             }
-            
+
             if (datasetGuiName == "endmemberList") {
                 importEndmembersCSV(datasetGuid);
-            }
+            }            
+
             break;
         }
 
@@ -277,11 +279,11 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
-void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
+void LineplotPlugin::addDataset(const Dataset<Points>& dataset) {
     
     auto endmember = new Endmember(*this, dataset);
 
-    _model.addEndmember(endmember);
+    _model.addEndmember(endmember, "subset");
 }
 
 void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
@@ -292,7 +294,8 @@ void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
     auto endmembersNo = endmemberPoints->getNumPoints();
 
     std::vector<QString> dimNames;
-    std::vector<float> endmember;
+    std::vector<float> endmemberData;
+
 
     for (int v = 0; v < numDimensions; v++) {
         auto value = endmemberPoints->getValueAt(v);
@@ -301,20 +304,24 @@ void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
 
     for (int i = 1; i < endmembersNo; i++) {
 
-        //endmember.clear();
+        QString endmemberName = "endmember" + QString::number(i);
+        auto endmemberDataset = _core->addDataset<Points>("Points", endmemberName);
+        endmemberDataset->makeSubsetOf(endmembers);
+
+        endmemberData.clear();
 
         for (int v = 0; v < numDimensions; v++) {
-            endmember.push_back(endmemberPoints->getValueAt(i * numDimensions + v));
+            endmemberData.push_back(endmemberPoints->getValueAt(i * numDimensions + v));
         }
 
-        // pass the endmemeber
+        endmemberDataset->setData(endmemberData.data(), 1, numDimensions);
+        endmemberDataset->setDimensionNames(dimNames);
+        _core->notifyDatasetAdded(endmemberDataset);
+
+        auto endmember = new Endmember(*this, endmemberDataset);
+
+        _model.addEndmember(endmember, "list");
     }
-
-    endmemberPoints->setData(endmember.data(), endmembersNo - 1, numDimensions);
-    endmemberPoints->setDimensionNames(dimNames);
-    _core->notifyDatasetChanged(endmemberPoints);
-
-
 }
 
 void LineplotPlugin::initializeImageRGB() {

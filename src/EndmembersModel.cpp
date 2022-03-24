@@ -61,7 +61,7 @@ EndmembersModel::~EndmembersModel()
         removeEndmember(row);
 }
 
-void EndmembersModel::addEndmember(Endmember* endmember) {
+void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin) {
     
     try
     {
@@ -95,7 +95,7 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
         endmember->sendColor(endmemberColor);
 
         auto dataset = endmember->getDataset();
-        endmember->sendData(dataset);
+        endmember->sendData(dataset, dataOrigin);
         
         
 

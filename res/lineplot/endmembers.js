@@ -1,11 +1,23 @@
 function addEndmembers(endmember, index) {
 
+    var newYMax = d3.max(endmember, function (d) { return +d.y; });
+
+    if (newYMax > maxY) {
+
+        maxY = newYMax;
+
+        y.domain([minY, maxY]);
+
+        _lineChart.selectAll("g.yAxis")
+            .transition().duration(1000)
+            .call(d3.axisLeft(y));
+
+        updateRGBlines();
+    }
+
     var r = _endmemberColors[index][0];
     var g = _endmemberColors[index][1];
     var b = _endmemberColors[index][2];
-
-    log(r);
-    log(g);
 
     var newEndmemberStd = _lineChart.append("path")
         .datum(endmember)
