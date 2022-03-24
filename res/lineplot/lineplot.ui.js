@@ -1,22 +1,9 @@
 var moveLine = "N";
-var spectrumNo = 0;
-var colors = ["gold", "blue", "green", "black", "grey", "darkblue", "darkgreen", "pink", "brown", "purple", "grey1", "orange"];
 
 // This allows to find the closest X index of the mouse:
 var bisect = d3.bisector(function (d) { return d.x; }).left;
 
 function addData() {
-
-    // Change axes domain
-    if (spectrumNo == 0) {
-        x.domain(d3.extent(_data, function (d) { return d.x; }));
-
-        _lineChart.selectAll("g.xAxis")
-            .transition().duration(1000)
-            .call(d3.axisBottom(x));
-
-        updateRGBlines();
-    }
 
     var max1 = d3.max(_data, function (d) { return +d.y; });
     var min1 = d3.min(_data, function (d) { return +d.y; });
@@ -30,21 +17,14 @@ function addData() {
     }
 
     if (newYMax > maxY || newYMin < minY) {
+        updateYAxis(newYMax, newYMin);
+    }
 
-        if (newYMax > maxY) {
-            maxY = newYMax;
-        }
-        if (newYMin < minY) {
-            minY = newYMin;
-        }
+    var newXMax = d3.max(_data, function (d) { return +d.x; });
+    var newXMin = d3.min(_data, function (d) { return +d.x; });
 
-        y.domain([minY, maxY]);
-
-        _lineChart.selectAll("g.yAxis")
-            .transition().duration(1000)
-            .call(d3.axisLeft(y));
-
-        updateRGBlines();
+    if (newXMax > maxX || newXMin < minX) {
+        updateXAxis(newXMax, newXMin);
     }
 
     // Set confidence interval
@@ -58,12 +38,6 @@ function addData() {
         .datum(_data)
         .transition().duration(1000)
         .attr("d", line)
-
-    spectrumNo++;
-
-    if (spectrumNo > colors.length) {
-        spectrumNo = 0;
-    }
 }
 
 function mouseover() {
@@ -235,4 +209,41 @@ function showElement(name, value) {
 function removeElement(name) {
 
     _lineChart.selectAll(name).style("opacity", 0);
+}
+
+function updateXAxis(newXMax, newXMin) {
+
+    if (newXMax > maxX) {
+        maxX = newXMax;
+    }
+
+    if (newXMin < minX) {
+        minX = newXMin;
+    }
+
+    x.domain([minX, maxX]);
+
+    _lineChart.selectAll("g.xAxis")
+        .transition().duration(1000)
+        .call(d3.axisBottom(x));
+
+    updateRGBlines();
+}
+
+function updateYAxis(newYMax, newYMin) {
+
+    if (newYMax > maxY) {
+        maxY = newYMax;
+    }
+    if (newYMin < minY) {
+        minY = newYMin;
+    }
+
+    y.domain([minY, maxY]);
+
+    _lineChart.selectAll("g.yAxis")
+        .transition().duration(1000)
+        .call(d3.axisLeft(y));
+
+    updateRGBlines();
 }

@@ -1,18 +1,17 @@
 function addEndmembers(endmember, index) {
 
     var newYMax = d3.max(endmember, function (d) { return +d.y; });
+    var newYMin = d3.max(endmember, function (d) { return +d.y; });
 
-    if (newYMax > maxY) {
+    if (newYMax > maxY || newYMin < minY) {
+        updateYAxis(newYMax, newYMin);
+    }
 
-        maxY = newYMax;
+    var newXMax = d3.max(endmember, function (d) { return +d.x; });
+    var newXMin = d3.min(endmember, function (d) { return +d.x; });
 
-        y.domain([minY, maxY]);
-
-        _lineChart.selectAll("g.yAxis")
-            .transition().duration(1000)
-            .call(d3.axisLeft(y));
-
-        updateRGBlines();
+    if (newXMax > maxX || newXMin < minX) {
+        updateXAxis(newXMax, newXMin);
     }
 
     var r = _endmemberColors[index][0];

@@ -32,6 +32,8 @@ var _endmembers = [];
 var _availableDataSets = [];
 var maxY = 0.1;
 var minY = 0;
+var maxX = 900;
+var minX = 400;
 var checkedRGB = false;
 var _checkedStd = false;
 var _endmemberColors = [];
@@ -59,7 +61,7 @@ var _lineChart = _svgSelection
 
 // Add X axis
 var x = d3.scaleLinear()
-    .domain([400, 1000])
+    .domain([minX, maxX])
     .range([0, _lineChartWidth]);
 _lineChart.append("g")
     .attr("class", "xAxis")

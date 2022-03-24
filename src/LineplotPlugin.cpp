@@ -306,7 +306,7 @@ void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
 
         QString endmemberName = "endmember" + QString::number(i);
         auto endmemberDataset = _core->addDataset<Points>("Points", endmemberName);
-        endmemberDataset->makeSubsetOf(endmembers);
+        //endmemberDataset->makeSubsetOf(endmembers);
 
         endmemberData.clear();
 
