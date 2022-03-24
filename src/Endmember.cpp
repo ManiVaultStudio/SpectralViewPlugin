@@ -73,6 +73,9 @@ void Endmember::sendColor(QColor endmemberColor) {
     _lineplotPlugin.getLineplotWidget().setEndmemberColor(endmemberColor);
 }
 
+void Endmember::updateVisibility(bool toggled, int row) {
+    _lineplotPlugin.getLineplotWidget().setEndmemberVisibility(toggled, row);
+}
 
 EndmembersAction& Endmember::getEndmembersAction()
 {

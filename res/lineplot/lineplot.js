@@ -13,6 +13,7 @@ try {
         QtBridge.qt_enableRGBWavelengths.connect(function () { enableRGBLines(arguments[0]); });
         QtBridge.qt_enableStdArea.connect(function () { enableStdArea(arguments[0]); });
         QtBridge.qt_addAvailableData.connect(function () { addAvailableData(arguments[0]); });
+        QtBridge.qt_setEndmemberVisibility.connect(function () { setEndmemberVisibility(arguments[0], arguments[1]); });
 
 
         notifyBridgeAvailable();
@@ -220,6 +221,18 @@ function setEndmemberColor(r, g, b) {
     var color = [r, g, b];
 
     _endmemberColors.push(color);
+}
+
+function setEndmemberVisibility(toggled, row) {
+
+    if (toggled) {
+        showElement("#area" + row, 0.1);
+        showElement("#line" + row, 1)
+    }
+    else {
+        removeElement("#area" + row);
+        removeElement("#line" + row);
+    }
 }
 
 function setEndmember(d) {

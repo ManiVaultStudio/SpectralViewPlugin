@@ -5,6 +5,7 @@
 #include <event/Event.h>
 #include <PointData.h>
 #include <ImageData/ImageData.h>
+#include "LineplotPlugin.h"
 
 #include <QMessageBox>
 #include <QPainter>
@@ -65,16 +66,20 @@ void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin)
     
     try
     {
-        // Insert the layer action at the beginning
+        // Insert the endmember action at the beginning
         beginInsertRows(QModelIndex(), 0, 0);
         {
-            // Insert the endmember at the beginning (endmember will be added on top of all other endmembers)
-            _endmembers.insert(0, endmember);
+            int noEndmembers = _endmembers.length();
+
+            // Insert the endmember at the end (endmember will be added after all other endmembers)
+            _endmembers.insert(noEndmembers, endmember);
 
             // Inform views that the endmember visibility has changed when it is changed in the action
             connect(&endmember->getGeneralAction().getVisibleAction(), &ToggleAction::toggled, this, [this, endmember](bool toggled) {
                 const auto changedCell = index(_endmembers.indexOf(endmember), Column::Name);
                 emit dataChanged(changedCell, changedCell.siblingAtColumn(Column::Last));
+                endmember->updateVisibility(toggled, _endmembers.indexOf(endmember));
+                
                 });
 
             // Inform views that the endmember color has changed when it is changed in the action

@@ -35,22 +35,17 @@ GeneralAction::GeneralAction(Endmember& endmember) :
     // Set layer name and default name
     _nameAction.setString(guiName);
     _nameAction.setDefaultString(guiName);
-    /*
-    const auto render = [this]() {
-        _layer.getImageViewerPlugin().getImageViewerWidget().update();
+    
+    const auto updateColor = [this]() {
+       // _endmember.getLineplotPlugin().getLineplotWidget().updateColor();
 
     };
-    const auto updateBounds = [this]() {
-        _layer.getImageViewerPlugin().getImageViewerWidget().updateWorldBoundingRectangle();
+    const auto updateVisibility = [this]() {
+       // _endmember.getLineplotPlugin().getLineplotWidget().updateVisibility();
     };
 
-    connect(&_nameAction, &StringAction::stringChanged, this, render);
-    connect(&_visibleAction, &ToggleAction::toggled, this, updateBounds);
-    connect(&_positionAction, &PositionAction::changed, this, updateBounds);
-    connect(&_scaleAction, &DecimalAction::valueChanged, this, updateBounds);
-    connect(&_colorAction, &ColorAction::colorChanged, this, updateBounds);
-    connect(&_colorAction, &ColorAction::colorChanged, this, render);
-
-    updateBounds();
-    */
+    //connect(&_nameAction, &StringAction::stringChanged, this, render);
+    //connect(&_visibleAction, &ToggleAction::toggled, this, updateVisibility);
+    //connect(&_colorAction, &ColorAction::colorChanged, this, updateColor);
+    //connect(&_colorAction, &ColorAction::colorChanged, this, render);
 }

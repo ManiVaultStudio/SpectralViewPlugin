@@ -36,6 +36,7 @@ public:
 
     void sendData(hdps::Dataset<Points>& dataset, std::string dataOrigin);
     void sendColor(QColor endmemberColor);
+    void updateVisibility(bool toggled, int row);
 
     /**
      * Get the context menu

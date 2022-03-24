@@ -23,6 +23,7 @@ function addEndmembers(endmember, index) {
         .attr("class", "endmembersStd")
         .attr("fill", d3.rgb(r, g, b))
         .attr("stroke", "none")
+        .attr("id", "area" + index)
         .attr("d", area);
 
     var newEndmember = _lineChart.append("path")
@@ -32,6 +33,7 @@ function addEndmembers(endmember, index) {
         .attr("fill", "none")
         .attr("stroke", d3.rgb(r, g, b))
         .attr("stroke-width", 2)
+        .attr("id", "line" + index)
         .attr("d", line);
 
     if (_checkedStd) {

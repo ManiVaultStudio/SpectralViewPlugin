@@ -88,6 +88,10 @@ void LineplotWidget::setEndmemberColor(QColor endmemberColor) {
     emit _communicationObject->qt_setEndmemberColor(r, g, b);
 }
 
+void LineplotWidget::setEndmemberVisibility(bool toggled, int row) {
+    emit _communicationObject->qt_setEndmemberVisibility(toggled, row);
+}
+
 void LineplotWidget::enableRGBWavelengths(bool checkedRGB) {
     emit _communicationObject->qt_enableRGBWavelengths(checkedRGB);
 }
