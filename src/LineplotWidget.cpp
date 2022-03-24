@@ -79,6 +79,15 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
     }
 }
 
+void LineplotWidget::setEndmemberColor(QColor endmemberColor) {
+
+    int r = endmemberColor.red();
+    int g = endmemberColor.green();
+    int b = endmemberColor.blue();
+
+    emit _communicationObject->qt_setEndmemberColor(r, g, b);
+}
+
 void LineplotWidget::enableRGBWavelengths(bool checkedRGB) {
     emit _communicationObject->qt_enableRGBWavelengths(checkedRGB);
 }

@@ -8,11 +8,12 @@ try {
         QtBridge = channel.objects.QtBridge;
 
         QtBridge.qt_setData.connect(function () { setData(arguments[0]); });
+        QtBridge.qt_setEndmemberColor.connect(function () { setEndmemberColor(arguments[0], arguments[1], arguments[2]); });
         QtBridge.qt_setEndmember.connect(function () { setEndmember(arguments[0]); });
         QtBridge.qt_enableRGBWavelengths.connect(function () { enableRGBLines(arguments[0]); });
         QtBridge.qt_enableStdArea.connect(function () { enableStdArea(arguments[0]); });
         QtBridge.qt_addAvailableData.connect(function () { addAvailableData(arguments[0]); });
-        //QtBridge.qt_setMarkerSelection.connect(function () { initMarkerSelection(arguments[0]); });
+
 
         notifyBridgeAvailable();
     });
@@ -32,7 +33,8 @@ var _availableDataSets = [];
 var maxY = 0.1;
 var minY = 0;
 var checkedRGB = false;
-var checkedStd = false;
+var _checkedStd = false;
+var _endmemberColors = [];
 
 // sizes =======================================================================
 var _lineChartWidth;
@@ -212,18 +214,18 @@ function setData(d) {
     addData();
 }
 
+function setEndmemberColor(r, g, b) {
+    var color = [r, g, b];
+
+    _endmemberColors.push(color);
+}
+
 function setEndmember(d) {
     endmember = JSON.parse(d);
 
     _endmembers.push(endmember);
 
-    // Add the lines for the endmembers
-    _endmemberLines = _lineChart.selectAll(".endmembers").data(_endmembers);
-
-    // Set confidence interval for the selection
-    _stdAreas = _lineChart.selectAll(".endmembersStd").data(_endmembers);
-
-    addEndmembers();
+    addEndmembers(endmember, (_endmembers.length - 1));
 }
 
 function enableRGBLines(c) {
@@ -237,9 +239,9 @@ function enableRGBLines(c) {
 }
 
 function enableStdArea(c) {
-    checkedStd = c;
+    _checkedStd = c;
 
-    if (checkedStd) {
+    if (_checkedStd) {
         showElement(".stdInterval", 0.1);
         showElement(".endmembersStd", 0.1);
     }

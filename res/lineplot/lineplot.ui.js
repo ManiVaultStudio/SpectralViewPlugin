@@ -5,30 +5,6 @@ var colors = ["gold", "blue", "green", "black", "grey", "darkblue", "darkgreen",
 // This allows to find the closest X index of the mouse:
 var bisect = d3.bisector(function (d) { return d.x; }).left;
 
-function addEndmembers() {
-    
-    _stdAreas.exit();
-
-    _stdAreas.enter()
-        .append("path")
-        .attr("class", "endmembersStd")
-        .attr("fill", "red")
-        .attr("stroke", "none")
-        .attr("opacity", 0)
-        .attr("d", area);
-
-    _endmemberLines.exit();
-
-    _endmemberLines.enter()
-        .append("path")
-        .attr("class", "endmembers")
-        .attr("opacity", 1)
-        .attr("fill", "none")
-        .attr("stroke", "red")
-        .attr("stroke-width", 2)
-        .attr("d", line);
-}
-
 function addData() {
 
     // Change axes domain
@@ -98,7 +74,7 @@ function mouseover() {
     var x0 = x.invert(d3.mouse(this)[0]);
     var i = bisect(_data, x0, 1);
     selectedData = _data[i];
-    log(selectedData.x);
+
     var distR = Math.abs(selectedData.x - wavelengthR);
     var distG = Math.abs(selectedData.x - wavelengthG);
     var distB = Math.abs(selectedData.x - wavelengthB);

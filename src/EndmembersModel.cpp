@@ -91,9 +91,14 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
         }
         endInsertRows();   
 
-        auto dataset = endmember->getDataset();
+        auto endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
+        endmember->sendColor(endmemberColor);
 
+        auto dataset = endmember->getDataset();
         endmember->sendData(dataset);
+        
+        
+
     }
     catch (std::exception& e)
     {

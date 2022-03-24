@@ -50,6 +50,11 @@ void Endmember::sendData(hdps::Dataset<hdps::DatasetImpl>& dataset) {
     }
 }
 
+void Endmember::sendColor(QColor endmemberColor) {
+    
+    _lineplotPlugin.getLineplotWidget().setEndmemberColor(endmemberColor);
+}
+
 
 EndmembersAction& Endmember::getEndmembersAction()
 {

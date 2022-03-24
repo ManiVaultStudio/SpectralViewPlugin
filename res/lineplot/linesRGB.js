@@ -69,27 +69,3 @@ function updateRGBlines() {
         .attr("x2", x(wavelengthB))
         .attr("y2", y(maxY));
 }
-
-function setRGBCheckbox() {
-
-    setRGBCheck = document.createElement('input');
-    setRGBCheck.type = 'checkbox';
-    setRGBCheck.id = 'setRGBCheck';
-
-    setRGBLabel = document.createElement('label');
-    setRGBLabel.append("Set RGB wavelength values");
-
-    setRGB = document.createElement('div');
-    setRGB.id = "setRGB";
-    setRGB.appendChild(setRGBCheck);
-    setRGB.appendChild(setRGBLabel);
-    document.getElementById("options").appendChild(setRGB);
-
-    setRGBCheck.addEventListener('change', (event) => {
-        if (event.currentTarget.checked) {
-            showElement(".RGBLines", 1);
-        } else {
-            removeElement(".RGBLines");
-        }
-    })
-}

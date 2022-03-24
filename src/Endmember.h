@@ -34,6 +34,7 @@ public:
     LineplotPlugin& getLineplotPlugin();
 
     void sendData(hdps::Dataset<hdps::DatasetImpl>& dataset);
+    void sendColor(QColor endmemberColor);
 
     /**
      * Get the context menu
