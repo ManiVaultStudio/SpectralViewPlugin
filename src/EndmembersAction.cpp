@@ -127,9 +127,6 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
         // Get model of inserted endmember
         const auto index = treeView->model()->index(first, 0);
 
-        qDebug() << "first: " << first;
-        qDebug() << "last: " << last;
-
         // Select the layer if the index is valid
         if (index.isValid())
             lineplotPlugin.getSelectionModel().select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);

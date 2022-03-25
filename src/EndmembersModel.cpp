@@ -78,8 +78,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin)
             connect(&endmember->getGeneralAction().getVisibleAction(), &ToggleAction::toggled, this, [this, endmember](bool toggled) {
                 const auto changedCell = index(_endmembers.indexOf(endmember), Column::Name);
                 emit dataChanged(changedCell, changedCell.siblingAtColumn(Column::Last));
-                endmember->updateVisibility(toggled, _endmembers.indexOf(endmember));
-                
+                endmember->updateVisibility(toggled, _endmembers.indexOf(endmember));                
                 });
 
             // Inform views that the endmember color has changed when it is changed in the action

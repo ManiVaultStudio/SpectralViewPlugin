@@ -222,7 +222,6 @@ function setEndmemberColor(r, g, b, row) {
     var color = [r, g, b];
 
     _endmemberColors[row] = color;
-    log("Row: " + row);
 
     if (_endmembers.length > 0) {
         _lineChart.select("#area" + row).attr("fill", d3.rgb(r, g, b));
@@ -255,8 +254,8 @@ function setEndmember(d) {
 
 function setEndmemberRemoved(row) {
 
-    var a = _lineChart.select("#area" + row+1).attr("fill");
-    log(a);
+    //var a = _lineChart.select("#line" + row+1).attr("stroke");
+    //log(a);
 
     _lineChart.select("#area" + row).remove();
     _lineChart.select("#line" + row).remove();
@@ -264,6 +263,8 @@ function setEndmemberRemoved(row) {
     _endmemberColors.splice(row, 1);
 
     var noEndmembers = _endmembers.length;
+    log("No endmembers: " + noEndmembers);
+    log("Row removed: " + row);
 
     if (noEndmembers > 1) {
 
@@ -272,12 +273,12 @@ function setEndmemberRemoved(row) {
             var newIndex = i - 1;
 
             _lineChart.select("#area" + i).attr("id", "area" + newIndex);
-            _lineChart.select("#line" + i).attr("id", "area" + newIndex);
+            _lineChart.select("#line" + i).attr("id", "line" + newIndex);
         }
     }
 
-    a = _lineChart.select("#area" + row).attr("fill");
-    log(a);
+    //a = _lineChart.select("#line" + row).attr("stroke");
+    //log(a);
 
     _endmembers.splice(row, 1);
 
