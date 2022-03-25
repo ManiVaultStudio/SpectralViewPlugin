@@ -33,7 +33,7 @@ public:
         Widget(QWidget* parent, EndmembersAction* endmembersAction);
 
     protected:
-      //  TriggerAction   _removeLayerAction;         /** Remove layer action */
+        TriggerAction   _removeEndmemberAction;         /** Remove endmember action */
       //  TriggerAction   _duplicateLayerAction;      /** Duplicate layer action */
       //  TriggerAction   _moveLayerToTopAction;      /** Move layer to top action */
       //  TriggerAction   _moveLayerUpAction;         /** Move layer up action */
@@ -68,10 +68,10 @@ public:
 public: // Action getters
 
     SettingsAction& getSettingsAction() { return _settingsAction; }
-    //GroupsAction& getCurrentEndmemberAction() { return _currentEndmemberAction; }
+    GroupsAction& getCurrentEndmemberAction() { return _currentEndmemberAction; }
 
 protected:
     SettingsAction& _settingsAction;        /** Reference to settings action */
-   // GroupsAction        _currentLayerAction;    /** Current layer action */
+    GroupsAction        _currentEndmemberAction;    /** Current endmember action */
     QRandomGenerator    _rng;                   /** Random number generator for pseudo-random colors */
 };

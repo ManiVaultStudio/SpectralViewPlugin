@@ -66,11 +66,11 @@ void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin)
     
     try
     {
+        int noEndmembers = _endmembers.length();
+
         // Insert the endmember action at the beginning
         beginInsertRows(QModelIndex(), 0, 0);
         {
-            int noEndmembers = _endmembers.length();
-
             // Insert the endmember at the end (endmember will be added after all other endmembers)
             _endmembers.insert(noEndmembers, endmember);
 
@@ -86,6 +86,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin)
             connect(&endmember->getGeneralAction().getColorAction(), &ColorAction::colorChanged, this, [this, endmember](const QColor& color) {
                 const auto changedCell = index(_endmembers.indexOf(endmember), Column::Color);
                 emit dataChanged(changedCell, changedCell);
+                endmember->sendColor(color, _endmembers.indexOf(endmember));
                 });
 
             // Inform views that the layer name has changed when it is changed in the action
@@ -97,7 +98,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin)
         endInsertRows();   
 
         auto endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
-        endmember->sendColor(endmemberColor);
+        endmember->sendColor(endmemberColor, noEndmembers);
 
         auto dataset = endmember->getDataset();
         endmember->sendData(dataset, dataOrigin);
@@ -392,7 +393,7 @@ void EndmembersModel::removeEndmember(const std::uint32_t& row)
     {
         // Get pointer to layer which needs to be removed
         auto removeEndmember = _endmembers[row];
-
+        removeEndmember->sendEndmemberRemoved(row);
         qDebug() << "Remove endmember:" << removeEndmember->getGeneralAction().getNameAction().getString();
 
         // Remove the row from the model

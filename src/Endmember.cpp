@@ -68,14 +68,20 @@ void Endmember::sendData(hdps::Dataset<Points>& dataset, std::string dataOrigin)
     }
 }
 
-void Endmember::sendColor(QColor endmemberColor) {
+void Endmember::sendColor(QColor endmemberColor, int row) {
     
-    _lineplotPlugin.getLineplotWidget().setEndmemberColor(endmemberColor);
+    _lineplotPlugin.getLineplotWidget().setEndmemberColor(endmemberColor, row);
 }
 
 void Endmember::updateVisibility(bool toggled, int row) {
     _lineplotPlugin.getLineplotWidget().setEndmemberVisibility(toggled, row);
 }
+
+void Endmember::sendEndmemberRemoved(int row) {
+    _lineplotPlugin.getLineplotWidget().setEndmemberRemoved(row);
+}
+
+
 
 EndmembersAction& Endmember::getEndmembersAction()
 {

@@ -77,7 +77,7 @@ void LineplotPlugin::init()
     _splitter.addWidget(_settingsAction.createWidget(&getWidget()));
 
     // Configure splitter
-    _splitter.setStretchFactor(0, 1);
+    //_splitter.setStretchFactor(0, 1);
     _splitter.setStretchFactor(1, 0);
     _splitter.setCollapsible(1, true);
 
@@ -190,6 +190,21 @@ void LineplotPlugin::init()
         });
 
     registerDataEventByType(PointType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
+
+    const auto endmembersInsertedRemovedChanged = [this]() {
+        _dropWidget.setShowDropIndicator(_model.rowCount() == 0);
+
+        // Establish the number of visible layers
+        const auto hasVisibleEndmemberss = _model.rowCount() == 0 ? false : !_model.match(_model.index(0, EndmembersModel::Visible), Qt::EditRole, true, -1).isEmpty();
+
+        // Enabled/disable navigation tool bar
+        _mainToolbarAction.setEnabled(hasVisibleEndmemberss);
+    };
+
+    // Enable/disable the navigation action when rows are inserted/removed
+    connect(&_model, &EndmembersModel::rowsInserted, this, endmembersInsertedRemovedChanged);
+    connect(&_model, &EndmembersModel::rowsRemoved, this, endmembersInsertedRemovedChanged);
+    connect(&_model, &EndmembersModel::dataChanged, this, endmembersInsertedRemovedChanged);
 }
 
 

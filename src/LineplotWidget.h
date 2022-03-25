@@ -24,8 +24,9 @@ public:
 signals:
     void qt_setData(QString data);
     void qt_setEndmember(QString data);
-    void qt_setEndmemberColor(int r, int g, int b);
+    void qt_setEndmemberColor(int r, int g, int b, int row);
     void qt_setEndmemberVisibility(bool toggled, int row);
+    void qt_setEndmemberRemoved(int row);
     void qt_addAvailableData(QString name);
     void qt_enableRGBWavelengths(bool checkedRGB);
     void qt_enableStdArea(bool checkedStd);
@@ -46,8 +47,9 @@ public:
     
     void addDataOption(const QString option);
     void setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions, std::string dataOrigin);
-    void setEndmemberColor(QColor endmemberColor);
+    void setEndmemberColor(QColor endmemberColor, int row);
     void setEndmemberVisibility(bool toggled, int row);
+    void setEndmemberRemoved(int row);
     void enableRGBWavelengths(bool checkedRGB);
     void enableStdArea(bool checkedStd);
 

@@ -79,17 +79,21 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
     }
 }
 
-void LineplotWidget::setEndmemberColor(QColor endmemberColor) {
+void LineplotWidget::setEndmemberColor(QColor endmemberColor, int row) {
 
     int r = endmemberColor.red();
     int g = endmemberColor.green();
     int b = endmemberColor.blue();
 
-    emit _communicationObject->qt_setEndmemberColor(r, g, b);
+    emit _communicationObject->qt_setEndmemberColor(r, g, b, row);
 }
 
 void LineplotWidget::setEndmemberVisibility(bool toggled, int row) {
     emit _communicationObject->qt_setEndmemberVisibility(toggled, row);
+}
+
+void LineplotWidget::setEndmemberRemoved(int row) {
+    emit _communicationObject->qt_setEndmemberRemoved(row);
 }
 
 void LineplotWidget::enableRGBWavelengths(bool checkedRGB) {

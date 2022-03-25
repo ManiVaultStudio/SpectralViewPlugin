@@ -8,8 +8,9 @@ try {
         QtBridge = channel.objects.QtBridge;
 
         QtBridge.qt_setData.connect(function () { setData(arguments[0]); });
-        QtBridge.qt_setEndmemberColor.connect(function () { setEndmemberColor(arguments[0], arguments[1], arguments[2]); });
+        QtBridge.qt_setEndmemberColor.connect(function () { setEndmemberColor(arguments[0], arguments[1], arguments[2], arguments[3]); });
         QtBridge.qt_setEndmember.connect(function () { setEndmember(arguments[0]); });
+        QtBridge.qt_setEndmemberRemoved.connect(function () { setEndmemberRemoved(arguments[0]); });
         QtBridge.qt_enableRGBWavelengths.connect(function () { enableRGBLines(arguments[0]); });
         QtBridge.qt_enableStdArea.connect(function () { enableStdArea(arguments[0]); });
         QtBridge.qt_addAvailableData.connect(function () { addAvailableData(arguments[0]); });
@@ -217,17 +218,26 @@ function setData(d) {
     addData();
 }
 
-function setEndmemberColor(r, g, b) {
+function setEndmemberColor(r, g, b, row) {
     var color = [r, g, b];
 
-    _endmemberColors.push(color);
+    _endmemberColors[row] = color;
+    log("Row: " + row);
+
+    if (_endmembers.length > 0) {
+        _lineChart.select("#area" + row).attr("fill", d3.rgb(r, g, b));
+        _lineChart.select("#line" + row).attr("stroke", d3.rgb(r, g, b));
+    }
 }
 
 function setEndmemberVisibility(toggled, row) {
 
     if (toggled) {
-        showElement("#area" + row, 0.1);
-        showElement("#line" + row, 1)
+        showElement("#line" + row, 1);
+
+        if (_checkedStd) {
+            showElement("#area" + row, 0.1);
+        }
     }
     else {
         removeElement("#area" + row);
@@ -241,6 +251,36 @@ function setEndmember(d) {
     _endmembers.push(endmember);
 
     addEndmembers(endmember, (_endmembers.length - 1));
+}
+
+function setEndmemberRemoved(row) {
+
+    var a = _lineChart.select("#area" + row+1).attr("fill");
+    log(a);
+
+    _lineChart.select("#area" + row).remove();
+    _lineChart.select("#line" + row).remove();
+
+    _endmemberColors.splice(row, 1);
+
+    var noEndmembers = _endmembers.length;
+
+    if (noEndmembers > 1) {
+
+        // Update all remaining indices
+        for (var i = row + 1; i < noEndmembers; i++) {
+            var newIndex = i - 1;
+
+            _lineChart.select("#area" + i).attr("id", "area" + newIndex);
+            _lineChart.select("#line" + i).attr("id", "area" + newIndex);
+        }
+    }
+
+    a = _lineChart.select("#area" + row).attr("fill");
+    log(a);
+
+    _endmembers.splice(row, 1);
+
 }
 
 function enableRGBLines(c) {

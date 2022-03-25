@@ -16,7 +16,7 @@ using namespace hdps::gui;
 EndmembersAction::EndmembersAction(SettingsAction& settingsAction) :
     WidgetAction(reinterpret_cast<QObject*>(&settingsAction)),
     _settingsAction(settingsAction),
-    //_currentLayerAction(this),
+    _currentEndmemberAction(this),
     _rng(0)
 {
     setText("Endmembers");
@@ -34,14 +34,21 @@ QColor EndmembersAction::getRandomLayerColor()
 }
 
 EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAction) :
-    WidgetActionWidget(parent, endmembersAction)
+    WidgetActionWidget(parent, endmembersAction),
+    _removeEndmemberAction(this, "")
 {
     auto& lineplotPlugin = endmembersAction->getSettingsAction().getLineplotPlugin();
+
+    _removeEndmemberAction.setToolTip("Remove the selected endmember");
+
+    auto& fontAwesome = Application::getIconFont("FontAwesome");
+
+    _removeEndmemberAction.setIcon(fontAwesome.getIcon("trash-alt"));
 
     auto layout = new QVBoxLayout();
     auto treeView = new QTreeView();
 
-    treeView->setFixedHeight(500);
+    treeView->setFixedHeight(300);
     treeView->setModel(&lineplotPlugin.getModel());
     treeView->setRootIsDecorated(false);
     treeView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -68,5 +75,83 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     layout->setMargin(0);
     layout->addWidget(treeView);
 
+    auto toolbarLayout = new QHBoxLayout();
+
+    toolbarLayout->setSpacing(3);
+
+    toolbarLayout->addWidget(_removeEndmemberAction.createWidget(this, TriggerAction::Icon));
+
+    layout->addLayout(toolbarLayout);
+
+    auto currentEndmemberWidget = endmembersAction->getCurrentEndmemberAction().createWidget(this);
+
+    layout->addWidget(createHorizontalDivider());
+    layout->addWidget(currentEndmemberWidget);
+
     setLayout(layout);
+
+    const auto modelSelectionChanged = [this, endmembersAction, &lineplotPlugin, treeView, layout]() -> void {
+        const auto selectedRows = lineplotPlugin.getSelectionModel().selectedRows();
+        const auto hasSelection = !selectedRows.isEmpty();
+
+        GroupsAction::GroupActions groupActions;
+
+        if (hasSelection) {
+            auto endmember = static_cast<Endmember*>(selectedRows.first().internalPointer());
+
+            groupActions << &endmember->getGeneralAction();
+        }
+
+        endmembersAction->getCurrentEndmemberAction().setGroupActions(groupActions);
+    };
+
+    // Update various actions when the model is somehow changed (rows added/removed etc.)
+    const auto updateButtons = [this, &lineplotPlugin, treeView, layout]() -> void {
+        const auto selectedRows = lineplotPlugin.getSelectionModel().selectedRows();
+        const auto hasSelection = !selectedRows.isEmpty();
+
+        _removeEndmemberAction.setEnabled(hasSelection);
+
+        // Render
+        lineplotPlugin.getLineplotWidget().update();
+
+    };
+
+    connect(&lineplotPlugin.getSelectionModel(), &QItemSelectionModel::selectionChanged, this, modelSelectionChanged);
+    connect(&lineplotPlugin.getSelectionModel(), &QItemSelectionModel::selectionChanged, this, updateButtons);
+    connect(treeView->model(), &QAbstractListModel::rowsRemoved, updateButtons);
+
+    // Select an endmember when it is inserted into the model
+    const auto onRowsInserted = [treeView, &lineplotPlugin, updateButtons](const QModelIndex& parent, int first, int last) {
+
+        // Get model of inserted endmember
+        const auto index = treeView->model()->index(first, 0);
+
+        qDebug() << "first: " << first;
+        qDebug() << "last: " << last;
+
+        // Select the layer if the index is valid
+        if (index.isValid())
+            lineplotPlugin.getSelectionModel().select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+
+        // Update endmember position buttons
+        updateButtons();
+    };
+
+    // Special behavior when a row is inserted into the model
+    connect(treeView->model(), &QAbstractListModel::rowsInserted, this, onRowsInserted);
+
+    // Remove the layer when the corresponding action is triggered
+    connect(&_removeEndmemberAction, &TriggerAction::triggered, this, [this, &lineplotPlugin, treeView]() {
+        const auto selectedRows = lineplotPlugin.getSelectionModel().selectedRows();
+
+        if (selectedRows.isEmpty())
+            return;
+
+        lineplotPlugin.getModel().removeEndmember(selectedRows.first());
+        });
+
+    updateButtons();
+    modelSelectionChanged();
+
 }

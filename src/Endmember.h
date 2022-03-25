@@ -35,8 +35,9 @@ public:
     LineplotPlugin& getLineplotPlugin();
 
     void sendData(hdps::Dataset<Points>& dataset, std::string dataOrigin);
-    void sendColor(QColor endmemberColor);
+    void sendColor(QColor endmemberColor, int row);
     void updateVisibility(bool toggled, int row);
+    void sendEndmemberRemoved(int row);
 
     /**
      * Get the context menu

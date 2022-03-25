@@ -36,16 +36,16 @@ GeneralAction::GeneralAction(Endmember& endmember) :
     _nameAction.setString(guiName);
     _nameAction.setDefaultString(guiName);
     
-    const auto updateColor = [this]() {
-       // _endmember.getLineplotPlugin().getLineplotWidget().updateColor();
+    const auto render = [this]() {
+        _endmember.getLineplotPlugin().getLineplotWidget().update();
 
     };
-    const auto updateVisibility = [this]() {
-       // _endmember.getLineplotPlugin().getLineplotWidget().updateVisibility();
-    };
+   // const auto updateBounds = [this]() {
+   //     _layer.getImageViewerPlugin().getImageViewerWidget().updateWorldBoundingRectangle();
+   // };
 
-    //connect(&_nameAction, &StringAction::stringChanged, this, render);
-    //connect(&_visibleAction, &ToggleAction::toggled, this, updateVisibility);
-    //connect(&_colorAction, &ColorAction::colorChanged, this, updateColor);
-    //connect(&_colorAction, &ColorAction::colorChanged, this, render);
+    connect(&_nameAction, &StringAction::stringChanged, this, render);
+    //connect(&_visibleAction, &ToggleAction::toggled, this, render);
+    //connect(&_colorAction, &ColorAction::colorChanged, this, updateBounds);
+    connect(&_colorAction, &ColorAction::colorChanged, this, render);
 }
