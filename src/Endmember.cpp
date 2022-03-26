@@ -29,8 +29,6 @@ Endmember::Endmember(LineplotPlugin& lineplotPlugin, const hdps::Dataset<Points>
         throw std::runtime_error("The dataset is not valid after initialization");
     }
 
-    connect(&_generalAction.getVisibleAction(), &ToggleAction::toggled, this, &Endmember::invalidate);
-
     // Update dataset name action when the images dataset GUI name changes
     connect(&_dataset, &Dataset<Points>::dataGuiNameChanged, this, [this](const QString& oldGuiName, const QString& newGuiName) {
         _generalAction.getDatasetNameAction().setString(newGuiName);
@@ -88,11 +86,6 @@ void Endmember::updateVisibility(bool toggled, int row) {
 
 void Endmember::sendEndmemberRemoved(int row) {
     _lineplotPlugin.getLineplotWidget().setEndmemberRemoved(row);
-}
-
-void Endmember::invalidate()
-{
-    _lineplotPlugin.getLineplotWidget().update();
 }
 
 EndmembersAction& Endmember::getEndmembersAction()

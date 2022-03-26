@@ -118,8 +118,10 @@ void LineplotPlugin::init()
             try {
 
                 if (noPointsCandiateData == 1) {
-                    auto endmember = new Endmember(*this, candidateDataset);
-                    _model.addEndmember(endmember, "list");
+                    dropRegions << new DropWidget::DropRegion(this, "Endmember", description, "map-marker-alt", true, [this, candidateDataset]() {
+                        auto endmember = new Endmember(*this, candidateDataset);
+                        _model.addEndmember(endmember, "list");
+                        });
                 }
 
                 else if (!_points.isValid()) {
@@ -140,7 +142,9 @@ void LineplotPlugin::init()
                     else {
 
                         if (candidateDataset->getParent() == _points) {
-                            addDataset(candidateDataset);
+                            dropRegions << new DropWidget::DropRegion(this, "Endmember", description, "map-marker-alt", true, [this, candidateDataset]() {
+                                addDataset(candidateDataset);
+                                });
                         }
                         else {
                             dropRegions << new DropWidget::DropRegion(this, "Points", description, "map-marker-alt", true, [this, candidateDataset]() {

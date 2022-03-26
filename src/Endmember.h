@@ -55,9 +55,6 @@ public:
     /** Get whether the layer is active or not */
     bool isActive() const;
 
-    /** Invalidates the prop (triggers a re-draw of all endmembers) */
-    void invalidate();
-
 public: /** Action getters */
 
     EndmembersAction& getEndmembersAction();
