@@ -44,7 +44,6 @@ var _endmemberColors = [];
 var _lineChartWidth;
 var _lineChartHeight;
 
-
 // UI ==========================================================================
 var _endmemberLines, _stdAreas;
 
@@ -110,6 +109,18 @@ var _selectionLine = _lineChart.append("path")
     .attr("stroke", "black")
     .attr("stroke-width", 2);
 
+// Create a rect on top of the svg area: this rectangle recovers mouse position
+var _topRect = _lineChart
+    .append('rect')
+    .style("fill", "none")
+    .style("pointer-events", "all")
+    .attr('width', _lineChartWidth)
+    .attr('height', _lineChartHeight)
+    .on('mouseover', mouseover)
+    .on('mousemove', mousemove)
+    .on('mousedown', mousedown)
+    .on('mouseup', mouseup);
+
 
 drawRGBlines();
 
@@ -120,18 +131,6 @@ var focusText = _lineChart
     .style("opacity", 1)
     .attr("text-anchor", "left")
     .attr("alignment-baseline", "middle");
-
-// Create a rect on top of the svg area: this rectangle recovers mouse position
-var topRect = _lineChart
-    .append('rect')
-    .style("fill", "none")
-    .style("pointer-events", "all")
-    .attr('width', _lineChartWidth)
-    .attr('height', _lineChartHeight)
-    .on('mouseover', mouseover)
-    .on('mousemove', mousemove)
-    .on('mousedown', mousedown)
-    .on('mouseup', mouseup);
 
 var line = d3.line()
     .x(function (d) { return x(d.x); })
@@ -165,7 +164,7 @@ function drawLineChart(dur) {
         .transition().duration(dur)
         .call(d3.axisLeft(y));
 
-    topRect
+    _topRect
         .attr('width', _lineChartWidth)
         .attr('height', _lineChartHeight);
 
@@ -196,6 +195,194 @@ function drawLineChart(dur) {
             .transition().duration(dur)
             .attr("d", line);
             
+    }
+}
+
+function mouseover() {
+
+    if (!_data) return;
+
+    _topRect.raise();
+
+    // recover coordinate we need
+    var x0 = x.invert(d3.mouse(this)[0]);
+    var i = bisect(_data, x0, 1);
+
+    if (_data[i]) {
+
+        selectedData = _data[i];
+
+        var distR = Math.abs(selectedData.x - wavelengthR);
+        var distG = Math.abs(selectedData.x - wavelengthG);
+        var distB = Math.abs(selectedData.x - wavelengthB);
+        var maxDist = 10;
+
+
+        if (distR < maxDist) {
+            lineR.attr("stroke-width", 6);
+        }
+        else if (distG < maxDist) {
+            lineG.attr("stroke-width", 6);
+        }
+        else if (distB < maxDist) {
+            lineB.attr("stroke-width", 6);
+        }
+    }
+}
+
+function mousedown() {
+
+    if (!_data) return;
+
+    _topRect.raise();
+
+    // recover coordinate we need
+    var x0 = x.invert(d3.mouse(this)[0]);
+    var i = bisect(_data, x0, 1);
+
+    if (_data[i]) {
+
+        selectedData = _data[i];
+
+        var distR = Math.abs(selectedData.x - wavelengthR);
+        var distG = Math.abs(selectedData.x - wavelengthG);
+        var distB = Math.abs(selectedData.x - wavelengthB);
+        var maxDist = 10;
+
+
+        if (distR < maxDist) {
+            moveLine = "R";
+            lineR.attr("stroke-width", 2);
+        }
+        else if (distG < maxDist) {
+            moveLine = "G";
+            lineG.attr("stroke-width", 2);
+        }
+        else if (distB < maxDist) {
+            moveLine = "B";
+            lineB.attr("stroke-width", 2);
+        }
+    }
+}
+
+function mousemove() {
+
+    if (!_data) return;
+
+    _topRect.raise();
+
+    lineR.attr("stroke-width", 2);
+    lineG.attr("stroke-width", 2);
+    lineB.attr("stroke-width", 2);
+
+    // recover coordinate we need
+    var x0 = x.invert(d3.mouse(this)[0]);
+    var i = bisect(_data, x0, 1);
+
+    if (_data[i]) {
+        selectedData = _data[i];
+
+        if (moveLine != "N") {
+            var xValue = Number(selectedData.x).toFixed(0);
+            var yValue = Number(selectedData.y).toFixed(3);
+
+            focusText
+                .html("x:" + xValue + ", " + "y:" + yValue)
+                .attr("x", x(selectedData.x) + _lineChartWidth / 90)
+                .attr("y", 3 * _lineChartHeight / 5)
+                .style("opacity", 1);
+
+            if (moveLine == "R") {
+                lineR
+                    .attr("x1", x(selectedData.x))
+                    .attr("y1", y(minY))
+                    .attr("x2", x(selectedData.x))
+                    .attr("y2", y(maxY));
+            }
+            else if (moveLine == "G") {
+                lineG
+                    .attr("x1", x(selectedData.x))
+                    .attr("y1", y(minY))
+                    .attr("x2", x(selectedData.x))
+                    .attr("y2", y(maxY));
+            }
+            else if (moveLine == "B") {
+                lineB
+                    .attr("x1", x(selectedData.x))
+                    .attr("y1", y(minY))
+                    .attr("x2", x(selectedData.x))
+                    .attr("y2", y(maxY));
+            }
+        }
+        else {
+            var distR = Math.abs(selectedData.x - wavelengthR);
+            var distG = Math.abs(selectedData.x - wavelengthG);
+            var distB = Math.abs(selectedData.x - wavelengthB);
+            var maxDist = 10;
+
+            if (distR < maxDist) {
+                lineR.attr("stroke-width", 6);
+            }
+            else if (distG < maxDist) {
+                lineG.attr("stroke-width", 6);
+            }
+            else if (distB < maxDist) {
+                lineB.attr("stroke-width", 6);
+            }
+        }
+    }
+}
+
+function mouseup() {
+
+    if (!_data) return;
+
+    _topRect.raise();
+
+    // recover coordinate we need
+    var x0 = x.invert(d3.mouse(this)[0]);
+    var i = bisect(_data, x0, 1);
+
+    if (_data[i]) {
+        selectedData = _data[i];
+
+        if (moveLine == "R") {
+            wavelengthR = selectedData.x;
+
+            lineR
+                .attr("x1", x(wavelengthR))
+                .attr("y1", y(minY))
+                .attr("x2", x(wavelengthR))
+                .attr("y2", y(maxY));
+
+            // send RGB wavelength values to qt
+            sendRGBWavelengths();
+        }
+        else if (moveLine == "G") {
+            wavelengthG = selectedData.x;
+            lineG
+                .attr("x1", x(wavelengthG))
+                .attr("y1", y(minY))
+                .attr("x2", x(wavelengthG))
+                .attr("y2", y(maxY));
+
+            // send RGB wavelength values to qt
+            sendRGBWavelengths();
+        }
+        else if (moveLine == "B") {
+            wavelengthB = selectedData.x;
+            lineB
+                .attr("x1", x(wavelengthB))
+                .attr("y1", y(minY))
+                .attr("x2", x(wavelengthB))
+                .attr("y2", y(maxY));
+
+            // send RGB wavelength values to qt
+            sendRGBWavelengths();
+        }
+
+        moveLine = "N";
+        focusText.style("opacity", 0);
     }
 }
 
@@ -254,9 +441,6 @@ function setEndmember(d) {
 
 function setEndmemberRemoved(row) {
 
-    //var a = _lineChart.select("#line" + row+1).attr("stroke");
-    //log(a);
-
     _lineChart.select("#area" + row).remove();
     _lineChart.select("#line" + row).remove();
 
@@ -276,9 +460,6 @@ function setEndmemberRemoved(row) {
             _lineChart.select("#line" + i).attr("id", "line" + newIndex);
         }
     }
-
-    //a = _lineChart.select("#line" + row).attr("stroke");
-    //log(a);
 
     _endmembers.splice(row, 1);
 
