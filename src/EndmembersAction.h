@@ -34,7 +34,7 @@ public:
 
     protected:
         TriggerAction   _removeEndmemberAction;         /** Remove endmember action */
-      //  TriggerAction   _duplicateLayerAction;      /** Duplicate layer action */
+        TriggerAction   _saveEndmembersAction;      /** Save endmembers action */
       //  TriggerAction   _moveLayerToTopAction;      /** Move layer to top action */
       //  TriggerAction   _moveLayerUpAction;         /** Move layer up action */
       //  TriggerAction   _moveLayerDownAction;       /** Move layer down action */

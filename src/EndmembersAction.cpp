@@ -35,15 +35,18 @@ QColor EndmembersAction::getRandomLayerColor()
 
 EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAction) :
     WidgetActionWidget(parent, endmembersAction),
-    _removeEndmemberAction(this, "")
+    _removeEndmemberAction(this, ""),
+    _saveEndmembersAction(this, "")
 {
     auto& lineplotPlugin = endmembersAction->getSettingsAction().getLineplotPlugin();
 
     _removeEndmemberAction.setToolTip("Remove the selected endmember");
+    _saveEndmembersAction.setToolTip("Save the endmembers in the list");
 
     auto& fontAwesome = Application::getIconFont("FontAwesome");
 
     _removeEndmemberAction.setIcon(fontAwesome.getIcon("trash-alt"));
+    _saveEndmembersAction.setIcon(fontAwesome.getIcon("save"));
 
     auto layout = new QVBoxLayout();
     auto treeView = new QTreeView();
@@ -80,6 +83,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     toolbarLayout->setSpacing(3);
 
     toolbarLayout->addWidget(_removeEndmemberAction.createWidget(this, TriggerAction::Icon));
+    toolbarLayout->addWidget(_saveEndmembersAction.createWidget(this, TriggerAction::Icon));
 
     layout->addLayout(toolbarLayout);
 
@@ -111,6 +115,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
         const auto hasSelection = !selectedRows.isEmpty();
 
         _removeEndmemberAction.setEnabled(hasSelection);
+        _saveEndmembersAction.setEnabled(hasSelection);
 
         // Render
         lineplotPlugin.getLineplotWidget().update();

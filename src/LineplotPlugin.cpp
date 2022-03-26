@@ -109,36 +109,58 @@ void LineplotPlugin::init()
         if (dataType == PointType) {
 
             // Get points dataset from the core
-            hdps::Dataset<Points>  candidateDataset = _core->requestDataset<Points>(datasetId);               
-               
+            hdps::Dataset<Points>  candidateDataset = _core->requestDataset<Points>(datasetId);
+            auto noPointsCandiateData = candidateDataset->getNumPoints();
+
             // Establish drop region description
             const auto description = QString("Visualize %1 as line plot").arg(datasetGuiName);
 
-            if (!_points.isValid()) {
-                //_points = candidateDataset;
-                // Load as point positions when no dataset is currently loaded
-                dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
-                    _points = candidateDataset;
-                    
-                    initializeImageRGB();
+            try {
 
-                    _mainToolbarAction.setEnabled(true);
-
-                    });
-            }
-            else {
-                if (_points == candidateDataset) {
-                    // already loaded
-                    dropRegions << new DropWidget::DropRegion(this, "Warning", "Data already loaded", "exclamation-circle", false);
+                if (noPointsCandiateData == 1) {
+                    auto endmember = new Endmember(*this, candidateDataset);
+                    _model.addEndmember(endmember, "list");
                 }
-                else {
-                    dropRegions << new DropWidget::DropRegion(this, "Points", description, "map-marker-alt", true, [this, candidateDataset]() {
+
+                else if (!_points.isValid()) {
+                    
+                    // Load as point positions when no dataset is currently loaded
+                    dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
                         _points = candidateDataset;
+
+                        initializeImageRGB();
+                        _mainToolbarAction.setEnabled(true);
                         });
                 }
+                else {
+                    if (_points == candidateDataset) {
+                        // already loaded
+                        dropRegions << new DropWidget::DropRegion(this, "Warning", "Data already loaded", "exclamation-circle", false);
+                    }
+                    else {
+
+                        if (candidateDataset->getParent() == _points) {
+                            addDataset(candidateDataset);
+                        }
+                        else {
+                            dropRegions << new DropWidget::DropRegion(this, "Points", description, "map-marker-alt", true, [this, candidateDataset]() {
+                                _points = candidateDataset;
+
+                                initializeImageRGB();
+                                });
+                        }
+                    }
+                }
+            }
+            catch (std::exception& e)
+            {
+                exceptionMessageBox(QString("Unable to load '%1'").arg(datasetGuiName), e);
+            }
+            catch (...) {
+                exceptionMessageBox(QString("Unable to load '%1'").arg(datasetGuiName));
             }
         }
-        
+
         if (dataType == ClusterType) {
             const auto candidateDataset = _core->requestDataset<Clusters>(datasetId);
             const auto description = QString("Clusters points by %1").arg(candidateDataset->getGuiName());
@@ -153,7 +175,7 @@ void LineplotPlugin::init()
                         });
                 }
             }
-        } 
+        }
 
         return dropRegions;
     });
@@ -192,13 +214,13 @@ void LineplotPlugin::init()
     registerDataEventByType(PointType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
 
     const auto endmembersInsertedRemovedChanged = [this]() {
-        _dropWidget.setShowDropIndicator(_model.rowCount() == 0);
+       // _dropWidget.setShowDropIndicator(_model.rowCount() == 0);
 
         // Establish the number of visible layers
-        const auto hasVisibleEndmemberss = _model.rowCount() == 0 ? false : !_model.match(_model.index(0, EndmembersModel::Visible), Qt::EditRole, true, -1).isEmpty();
+        const auto hasVisibleEndmembers = _model.rowCount() == 0 ? false : !_model.match(_model.index(0, EndmembersModel::Visible), Qt::EditRole, true, -1).isEmpty();
 
         // Enabled/disable navigation tool bar
-        _mainToolbarAction.setEnabled(hasVisibleEndmemberss);
+        _mainToolbarAction.setEnabled(hasVisibleEndmembers || _points.isValid());
     };
 
     // Enable/disable the navigation action when rows are inserted/removed
@@ -321,7 +343,6 @@ void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
 
         QString endmemberName = "endmember" + QString::number(i);
         auto endmemberDataset = _core->addDataset<Points>("Points", endmemberName);
-        //endmemberDataset->makeSubsetOf(endmembers);
 
         endmemberData.clear();
 
