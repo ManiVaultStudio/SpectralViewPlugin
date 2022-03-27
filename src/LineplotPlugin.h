@@ -9,6 +9,7 @@
 
 #include "Dataset.h"
 #include "PointData.h"
+#include "Set.h"
 
 #include <widgets/DropWidget.h>
 
@@ -39,7 +40,7 @@ public:
      * Add dataset to the viewer
      * @param dataset Smart pointer to dataset
      */
-    void addDataset(const hdps::Dataset<Points>& dataset);
+    void addDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
 
     void computeAverageSpectrum(hdps::Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
 

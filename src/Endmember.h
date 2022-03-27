@@ -8,6 +8,7 @@
 #include <actions/WidgetAction.h>
 #include <Set.h>
 #include <ImageData/Images.h>
+
 #include "PointData.h"
 #include <QMenu>
 
@@ -26,7 +27,7 @@ public:
      * @param lineplotPlugin Reference to line plot plugin
      * @param dataset Smart pointer to dataset
      */
-    Endmember(LineplotPlugin& lineplotPlugin, const hdps::Dataset<Points>& dataset);
+    Endmember(LineplotPlugin& lineplotPlugin, const hdps::Dataset<hdps::DatasetImpl>& dataset);
 
     /** Destructor */
     virtual ~Endmember();
@@ -34,7 +35,7 @@ public:
     /** Get reference to image viewer plugin */
     LineplotPlugin& getLineplotPlugin();
 
-    void sendData(hdps::Dataset<Points>& dataset, std::string dataOrigin);
+    void sendData(hdps::Dataset<hdps::DatasetImpl>& dataset, std::string dataOrigin);
     void sendColor(QColor endmemberColor, int row);
     void updateVisibility(bool toggled, int row);
     void sendEndmemberRemoved(int row);
@@ -58,13 +59,13 @@ public:
 public: /** Action getters */
 
     EndmembersAction& getEndmembersAction();
-    hdps::Dataset<Points>& getDataset() { return _dataset; }
+    hdps::Dataset<hdps::DatasetImpl>& getDataset() { return _dataset; }
     GeneralAction& getGeneralAction() { return _generalAction; }
 
 protected:
     LineplotPlugin& _lineplotPlugin;             /** Reference to image viewer plugin */
     bool                                _active;                        /** Whether the layer is active (editable) */                /** Smart pointer to images dataset */
-    hdps::Dataset<Points>    _dataset;                 /** Smart pointer to source dataset of the images */
+    hdps::Dataset<hdps::DatasetImpl>    _dataset;                 /** Smart pointer to source dataset of the images */
     GeneralAction _generalAction;
 
     friend class LineplotWidget;

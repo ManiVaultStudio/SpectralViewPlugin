@@ -4,7 +4,6 @@
 #include "DataHierarchyItem.h"
 
 #include <util/Exception.h>
-#include <PointData.h>
 #include <ClusterData.h>
 
 #include <QPainter>
@@ -13,7 +12,7 @@
 
 #include <set>
 
-Endmember::Endmember(LineplotPlugin& lineplotPlugin, const hdps::Dataset<Points>& dataset) :
+Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>& dataset) :
     WidgetAction(&lineplotPlugin),
     EventListener(),
     _lineplotPlugin(lineplotPlugin),
@@ -42,35 +41,49 @@ Endmember::~Endmember()
 
 }
 
-void Endmember::sendData(hdps::Dataset<Points>& dataset, std::string dataOrigin) {
+void Endmember::sendData(hdps::Dataset<DatasetImpl>& dataset, std::string dataOrigin) {
 
     auto type = dataset->getDataType();
 
     if (type == PointType) {
+        auto points = dataset.get<Points>();
 
         if (dataOrigin == "subset") {
             auto parent = dataset->getParent();
             auto parentPoints = parent->getSourceDataset<Points>();
             //auto source = dataset->getSourceDataset<Points>();
-            auto noPoints = dataset->getNumPoints();
-            auto indices = dataset->indices;
+            auto noPoints = points->getNumPoints();
+            auto indices = points->indices;
 
             _lineplotPlugin.computeAverageSpectrum(parentPoints, noPoints, indices, "subset");
         }
         else if (dataOrigin == "list") {
 
-            auto numDimensions = dataset->getNumDimensions();
-            auto names = dataset->getDimensionNames();
+            auto numDimensions = points->getNumDimensions();
+            auto names = points->getDimensionNames();
             std::vector<float> spectrum;
 
             for (int v = 0; v < numDimensions; v++) {
-                spectrum.push_back(dataset->getValueAt(v));
+                spectrum.push_back(points->getValueAt(v));
             }
 
             std::vector<float> confIntervalLeft(numDimensions);
             std::vector <float> confIntervalRight(numDimensions);
 
             _lineplotPlugin.getLineplotWidget().setData(spectrum, confIntervalLeft, confIntervalRight, names, numDimensions, "list");
+        }
+    }
+    else if (type == ClusterType) {
+
+        auto parent = dataset->getParent();
+        auto clusters = dataset.get<Clusters>()->getClusters();
+        auto noClusters = clusters.length();
+
+        for (int i = 0; i < noClusters; i++) {
+             auto indices = clusters[i].getIndices();
+             auto noPoints = clusters[i].getNumberOfIndices();
+
+             _lineplotPlugin.computeAverageSpectrum(parent, noPoints, indices, "cluster");
         }
     }
 }

@@ -4,6 +4,7 @@
 #include <util/Exception.h>
 #include <event/Event.h>
 #include <PointData.h>
+#include "ClusterData.h"
 #include <ImageData/ImageData.h>
 #include "LineplotPlugin.h"
 
@@ -96,10 +97,25 @@ void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin)
         }
         endInsertRows();   
 
-        auto endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
-        endmember->sendColor(endmemberColor, noEndmembers);
-
         auto dataset = endmember->getDataset();
+
+        auto type = dataset->getDataType();
+
+        if (type == PointType) {
+            auto endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
+            endmember->sendColor(endmemberColor, noEndmembers);
+        }
+        else if (type == ClusterType) {
+            auto clusters = dataset.get<Clusters>()->getClusters();
+            auto abc = dataset.get<Clusters>();
+            auto noClusters = clusters.length();
+
+            for (int i = 0; i < noClusters; i++) {
+                auto endmemberColor = clusters[i].getColor();
+                endmember->sendColor(endmemberColor, noEndmembers);
+            }
+        }
+        
         endmember->sendData(dataset, dataOrigin);
         
         

@@ -100,6 +100,9 @@ void LineplotPlugin::init()
         const auto dataType = DataType(tokens[2]);
         const auto dataTypes = DataTypes({ PointType, ClusterType });
 
+        // Get points dataset from the core
+        auto candidateDataset = _core->requestDataset(datasetId);
+
         // Check if the data type can be dropped
         if (!dataTypes.contains(dataType)) {
             dropRegions << new DropWidget::DropRegion(this, "Incompatible data", "This type of data is not supported", "exclamation-circle", false);
@@ -107,10 +110,7 @@ void LineplotPlugin::init()
     
         // Points dataset is about to be dropped
         if (dataType == PointType) {
-
-            // Get points dataset from the core
-            hdps::Dataset<Points>  candidateDataset = _core->requestDataset<Points>(datasetId);
-            auto noPointsCandiateData = candidateDataset->getNumPoints();
+            auto noPointsCandiateData = candidateDataset.get<Points>()->getNumPoints();
 
             // Establish drop region description
             const auto description = QString("Visualize %1 as line plot").arg(datasetGuiName);
@@ -128,7 +128,7 @@ void LineplotPlugin::init()
                     
                     // Load as point positions when no dataset is currently loaded
                     dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
-                        _points = candidateDataset;
+                        _points = candidateDataset.get<Points>();
 
                         initializeImageRGB();
                         _mainToolbarAction.setEnabled(true);
@@ -166,7 +166,7 @@ void LineplotPlugin::init()
         }
 
         if (dataType == ClusterType) {
-            const auto candidateDataset = _core->requestDataset<Clusters>(datasetId);
+           // const auto candidateDataset = _core->requestDataset<Clusters>(datasetId);
             const auto description = QString("Clusters points by %1").arg(candidateDataset->getGuiName());
 
             if (_points.isValid()) {
@@ -176,8 +176,15 @@ void LineplotPlugin::init()
                 else {
                     dropRegions << new gui::DropWidget::DropRegion(this, "Clusters", description, "th-large", true, [this, candidateDataset]() {
                         _clusters = candidateDataset;
+                        addDataset(candidateDataset);
+                        
                         });
                 }
+            }
+            else {
+                // Only allow user to visualize clusters as lines when there is a points dataset loaded
+                dropRegions << new DropWidget::DropRegion(this, "No points data loaded", "Clusters can only be visualized in concert with points data", "exclamation-circle", false);
+
             }
         }
 
@@ -262,8 +269,8 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
                 auto childrenLen = children.length();
 
                 if (childrenLen > _childrenLen) {
-                    _childrenLen = childrenLen;
 
+                    _childrenLen = childrenLen;
                     addDataset(children[childrenLen-1]);
                 }
             }
@@ -320,11 +327,18 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
-void LineplotPlugin::addDataset(const Dataset<Points>& dataset) {
+void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
     
     auto endmember = new Endmember(*this, dataset);
 
-    _model.addEndmember(endmember, "subset");
+    auto type = dataset->getDataType();
+
+    if (type == PointType) {
+        _model.addEndmember(endmember, "subset");
+    }
+    else if (type == ClusterType) {
+        _model.addEndmember(endmember, "cluster");
+    }    
 }
 
 void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
@@ -487,6 +501,8 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float w
     _core->notifyDatasetChanged(_imageRGB);
   
 }
+
+// DatasetImpl : Points, CLusters
 
 void LineplotPlugin::updateSelection(Dataset<Points> selection) {
 
