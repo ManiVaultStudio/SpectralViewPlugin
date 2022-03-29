@@ -96,7 +96,7 @@ public: // Endmember operations
      * Add a layer to the model
      * @param layer Pointer to layer
      */
-    void addEndmember(Endmember* endmember, std::string dataOrigin);
+    void addEndmember(Endmember* endmember, int clusterIndex);
 
     /**
      * Remove a layer from the model by row index

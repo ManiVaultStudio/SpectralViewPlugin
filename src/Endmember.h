@@ -35,7 +35,6 @@ public:
     /** Get reference to image viewer plugin */
     LineplotPlugin& getLineplotPlugin();
 
-    void sendData(hdps::Dataset<hdps::DatasetImpl>& dataset, std::string dataOrigin);
     void sendColor(QColor endmemberColor, int row);
     void updateVisibility(bool toggled, int row);
     void sendEndmemberRemoved(int row);

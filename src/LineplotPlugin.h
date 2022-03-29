@@ -41,6 +41,8 @@ public:
      * @param dataset Smart pointer to dataset
      */
     void addDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
+    void addAverageDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
+
 
     void computeAverageSpectrum(hdps::Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
 

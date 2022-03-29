@@ -2,6 +2,7 @@
 #include "Endmember.h"
 #include "EndmembersAction.h"
 #include "LineplotPlugin.h"
+#include "ClusterData.h"
 
 GeneralAction::GeneralAction(Endmember& endmember) :
     GroupAction(&endmember, true),

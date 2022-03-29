@@ -63,11 +63,12 @@ EndmembersModel::~EndmembersModel()
         removeEndmember(row);
 }
 
-void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin) {
+void EndmembersModel::addEndmember(Endmember* endmember, int clusterIndex) {
     
     try
     {
         int noEndmembers = _endmembers.length();
+        qDebug() << "Endmem: " << noEndmembers;
 
         // Insert the endmember action at the beginning
         beginInsertRows(QModelIndex(), 0, 0);
@@ -98,28 +99,25 @@ void EndmembersModel::addEndmember(Endmember* endmember, std::string dataOrigin)
         endInsertRows();   
 
         auto dataset = endmember->getDataset();
-
         auto type = dataset->getDataType();
+        QColor endmemberColor;
 
         if (type == PointType) {
-            auto endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
-            endmember->sendColor(endmemberColor, noEndmembers);
+            // set name with avg
+            endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
+            
         }
         else if (type == ClusterType) {
             auto clusters = dataset.get<Clusters>()->getClusters();
-            auto abc = dataset.get<Clusters>();
             auto noClusters = clusters.length();
 
-            for (int i = 0; i < noClusters; i++) {
-                auto endmemberColor = clusters[i].getColor();
-                endmember->sendColor(endmemberColor, noEndmembers);
-            }
+            endmemberColor = clusters[clusterIndex].getColor();
+            auto endmemberName = clusters[clusterIndex].getName();
+            endmember->getGeneralAction().getColorAction().setColor(endmemberColor);
+            endmember->getGeneralAction().getNameAction().setString(endmemberName);
         }
-        
-        endmember->sendData(dataset, dataOrigin);
-        
-        
 
+        endmember->sendColor(endmemberColor, noEndmembers);
     }
     catch (std::exception& e)
     {
