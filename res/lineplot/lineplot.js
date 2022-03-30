@@ -468,9 +468,11 @@ function setEndmemberRemoved(row) {
 
 function setHighlightSelection(row) {
 
-    log(row);
     _lineChart.selectAll(".endmembers").attr("stroke-width", 2);
-    _lineChart.select("#line" + row).attr("stroke-width", 4);
+
+    if (row != -1) {
+        _lineChart.select("#line" + row).attr("stroke-width", 4);
+    }
 }
 
 function enableRGBLines(c) {

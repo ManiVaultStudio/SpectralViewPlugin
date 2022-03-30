@@ -69,6 +69,33 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
     {
         int noEndmembers = _endmembers.length();
 
+        auto dataset = endmember->getDataset();
+        auto type = dataset->getDataType();
+        QColor endmemberColor;
+        QVector<Cluster> clusters;
+
+        if (type == PointType) {
+            // set name with avg
+            if (decisionIndex == 0) {
+                auto currentName = endmember->getGeneralAction().getNameAction().getString();
+                endmember->getGeneralAction().getNameAction().setString(currentName + " average");
+            }
+
+            endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
+
+        }
+        else if (type == ClusterType) {
+            clusters = dataset.get<Clusters>()->getClusters();
+            auto noClusters = clusters.length();
+           
+            endmemberColor = clusters[decisionIndex].getColor();
+            auto endmemberName = clusters[decisionIndex].getName();
+            endmember->getGeneralAction().getColorAction().setColor(endmemberColor);
+            endmember->getGeneralAction().getNameAction().setString(endmemberName);
+        }
+
+        endmember->sendColor(endmemberColor, noEndmembers);
+
         // Insert the endmember action at the beginning
         beginInsertRows(QModelIndex(), 0, 0);
         {
@@ -96,32 +123,6 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 });
         }
         endInsertRows();   
-
-        auto dataset = endmember->getDataset();
-        auto type = dataset->getDataType();
-        QColor endmemberColor;
-
-        if (type == PointType) {
-            // set name with avg
-            if (decisionIndex == 0) {
-                auto currentName = endmember->getGeneralAction().getNameAction().getString();
-                endmember->getGeneralAction().getNameAction().setString(currentName + " average");
-            }
-
-            endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
-            
-        }
-        else if (type == ClusterType) {
-            auto clusters = dataset.get<Clusters>()->getClusters();
-            auto noClusters = clusters.length();
-
-            endmemberColor = clusters[decisionIndex].getColor();
-            auto endmemberName = clusters[decisionIndex].getName();
-            endmember->getGeneralAction().getColorAction().setColor(endmemberColor);
-            endmember->getGeneralAction().getNameAction().setString(endmemberName);
-        }
-
-        endmember->sendColor(endmemberColor, noEndmembers);
     }
     catch (std::exception& e)
     {

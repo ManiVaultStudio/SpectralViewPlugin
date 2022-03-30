@@ -108,6 +108,9 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
 
             groupActions << &endmember->getGeneralAction();
         }
+        else {
+            lineplotPlugin.getLineplotWidget().setHighlightSelection(-1);
+        }
 
         endmembersAction->getCurrentEndmemberAction().setGroupActions(groupActions);
     };
@@ -135,7 +138,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
         // Get model of inserted endmember
         const auto index = treeView->model()->index(first, 0);
 
-        // Select the layer if the index is valid
+        // Select the endmember if the index is valid
         if (index.isValid())
             lineplotPlugin.getSelectionModel().select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 
@@ -153,7 +156,14 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
         if (selectedRows.isEmpty())
             return;
 
-        lineplotPlugin.getModel().removeEndmember(selectedRows.first());
+        auto rowIndex = selectedRows.first();
+
+        lineplotPlugin.getModel().removeEndmember(rowIndex);
+
+        if (selectedRows.length() > 1) {
+            lineplotPlugin.getLineplotWidget().setHighlightSelection(rowIndex.row());
+        }
+
         });
 
     updateButtons();

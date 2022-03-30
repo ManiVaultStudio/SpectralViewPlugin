@@ -272,8 +272,8 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             const auto dataAddedEvent = static_cast<DataAddedEvent*>(dataEvent);
 
             // Get the GUI name of the added points dataset and print to the console
-            //std::cout << datasetGuiName.toStdString() << " was added" << std::endl;
-
+            std::cout << datasetGuiName.toStdString() << " was added" << std::endl;
+            
 //            if (_points.isValid()) {
               //  auto children = _points->getChildren({ PointType, ClusterType});
               //  auto childrenLen = children.length();
@@ -299,7 +299,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             const auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
 
             // Get the name of the points dataset of which the data changed and print to the console
-            //std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
+            std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
         }
 
         // Points dataset data was removed
@@ -324,7 +324,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             const auto& selectionSet = changedDataSet->getSelection<Points>();
 
             // Print to the console
-            std::cout << datasetGuiName.toStdString() << " selection has changed" << std::endl;
+            //std::cout << datasetGuiName.toStdString() << " selection has changed" << std::endl;
 
             if(_points.isValid())
                 updateSelection(selectionSet);
