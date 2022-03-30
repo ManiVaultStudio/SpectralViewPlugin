@@ -38,6 +38,7 @@ public:
     void sendColor(QColor endmemberColor, int row);
     void updateVisibility(bool toggled, int row);
     void sendEndmemberRemoved(int row);
+    void highlightSelection(int row);
 
     /**
      * Get the context menu

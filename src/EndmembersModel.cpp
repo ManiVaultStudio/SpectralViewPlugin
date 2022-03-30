@@ -63,12 +63,11 @@ EndmembersModel::~EndmembersModel()
         removeEndmember(row);
 }
 
-void EndmembersModel::addEndmember(Endmember* endmember, int clusterIndex) {
+void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
     
     try
     {
         int noEndmembers = _endmembers.length();
-        qDebug() << "Endmem: " << noEndmembers;
 
         // Insert the endmember action at the beginning
         beginInsertRows(QModelIndex(), 0, 0);
@@ -104,6 +103,11 @@ void EndmembersModel::addEndmember(Endmember* endmember, int clusterIndex) {
 
         if (type == PointType) {
             // set name with avg
+            if (decisionIndex == 0) {
+                auto currentName = endmember->getGeneralAction().getNameAction().getString();
+                endmember->getGeneralAction().getNameAction().setString(currentName + " average");
+            }
+
             endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
             
         }
@@ -111,8 +115,8 @@ void EndmembersModel::addEndmember(Endmember* endmember, int clusterIndex) {
             auto clusters = dataset.get<Clusters>()->getClusters();
             auto noClusters = clusters.length();
 
-            endmemberColor = clusters[clusterIndex].getColor();
-            auto endmemberName = clusters[clusterIndex].getName();
+            endmemberColor = clusters[decisionIndex].getColor();
+            auto endmemberName = clusters[decisionIndex].getName();
             endmember->getGeneralAction().getColorAction().setColor(endmemberColor);
             endmember->getGeneralAction().getNameAction().setString(endmemberName);
         }

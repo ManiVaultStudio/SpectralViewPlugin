@@ -27,6 +27,7 @@ signals:
     void qt_setEndmemberColor(int r, int g, int b, int row);
     void qt_setEndmemberVisibility(bool toggled, int row);
     void qt_setEndmemberRemoved(int row);
+    void qt_setHighlightSelection(int row);
     void qt_addAvailableData(QString name);
     void qt_enableRGBWavelengths(bool checkedRGB);
     void qt_enableStdArea(bool checkedStd);
@@ -50,6 +51,7 @@ public:
     void setEndmemberColor(QColor endmemberColor, int row);
     void setEndmemberVisibility(bool toggled, int row);
     void setEndmemberRemoved(int row);
+    void setHighlightSelection(int row);
     void enableRGBWavelengths(bool checkedRGB);
     void enableStdArea(bool checkedStd);
 

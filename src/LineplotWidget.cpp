@@ -96,6 +96,10 @@ void LineplotWidget::setEndmemberRemoved(int row) {
     emit _communicationObject->qt_setEndmemberRemoved(row);
 }
 
+void LineplotWidget::setHighlightSelection(int row) {
+    emit _communicationObject->qt_setHighlightSelection(row);
+}
+
 void LineplotWidget::enableRGBWavelengths(bool checkedRGB) {
     emit _communicationObject->qt_enableRGBWavelengths(checkedRGB);
 }

@@ -103,6 +103,9 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
         if (hasSelection) {
             auto endmember = static_cast<Endmember*>(selectedRows.first().internalPointer());
 
+            int row = selectedRows.first().row();
+            endmember->highlightSelection(row);
+
             groupActions << &endmember->getGeneralAction();
         }
 

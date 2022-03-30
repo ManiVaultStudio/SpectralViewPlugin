@@ -377,7 +377,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
 
     auto endmember = new Endmember(*this, dataset);
-    _model.addEndmember(endmember, -1);
+    _model.addEndmember(endmember, 0);
 
     auto type = dataset->getDataType();
     auto parent = dataset->getParent();
@@ -418,9 +418,9 @@ void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
     endmemberPoints->setData(endmemberData.data(), endmembersNo - 1, numDimensions);
     _core->notifyDatasetChanged(endmemberPoints);
 
-    //if (_points.isValid()) {
-    //    endmembers->makeSubsetOf(_points);
-    //}
+    if (_points.isValid()) {
+        
+    }
 }
 
 void LineplotPlugin::initializeImageRGB() {

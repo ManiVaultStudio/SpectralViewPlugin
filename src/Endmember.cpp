@@ -54,6 +54,10 @@ void Endmember::sendEndmemberRemoved(int row) {
     _lineplotPlugin.getLineplotWidget().setEndmemberRemoved(row);
 }
 
+void Endmember::highlightSelection(int row) {
+    _lineplotPlugin.getLineplotWidget().setHighlightSelection(row);
+}
+
 EndmembersAction& Endmember::getEndmembersAction()
 {
     return _lineplotPlugin.getSettingsAction().getEndmembersAction();

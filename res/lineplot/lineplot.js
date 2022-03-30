@@ -11,6 +11,7 @@ try {
         QtBridge.qt_setEndmemberColor.connect(function () { setEndmemberColor(arguments[0], arguments[1], arguments[2], arguments[3]); });
         QtBridge.qt_setEndmember.connect(function () { setEndmember(arguments[0]); });
         QtBridge.qt_setEndmemberRemoved.connect(function () { setEndmemberRemoved(arguments[0]); });
+        QtBridge.qt_setHighlightSelection.connect(function () { setHighlightSelection(arguments[0]); });
         QtBridge.qt_enableRGBWavelengths.connect(function () { enableRGBLines(arguments[0]); });
         QtBridge.qt_enableStdArea.connect(function () { enableStdArea(arguments[0]); });
         QtBridge.qt_addAvailableData.connect(function () { addAvailableData(arguments[0]); });
@@ -463,6 +464,13 @@ function setEndmemberRemoved(row) {
 
     _endmembers.splice(row, 1);
 
+}
+
+function setHighlightSelection(row) {
+
+    log(row);
+    _lineChart.selectAll(".endmembers").attr("stroke-width", 2);
+    _lineChart.select("#line" + row).attr("stroke-width", 4);
 }
 
 function enableRGBLines(c) {
