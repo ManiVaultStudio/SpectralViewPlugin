@@ -393,9 +393,17 @@ void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
 
 void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
 
+    hdps::Dataset<Points> derivedEndmembers;
+
     auto endmembers = _core->requestDataset(datasetGuid);
     auto endmemberPoints = endmembers->getSourceDataset<Points>();
     auto guiName = endmembers->getGuiName();
+
+    if (_points.isValid()) {
+        derivedEndmembers = _core->createDerivedDataset(guiName, _points, _points);
+       // _core->removeDataset(endmembers);
+    }
+
     auto numDimensions = endmemberPoints->getNumDimensions();
     auto endmembersNo = endmemberPoints->getNumPoints();
 
@@ -416,18 +424,18 @@ void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
 
     endmemberPoints->setDimensionNames(dimNames);
     endmemberPoints->setData(endmemberData.data(), endmembersNo - 1, numDimensions);
+    //derivedEndmembers->setDimensionNames(dimNames);
+    //derivedEndmembers->setData(endmemberData.data(), endmembersNo - 1, numDimensions);
+   // _core->notifyDatasetAdded(derivedEndmembers);
     _core->notifyDatasetChanged(endmemberPoints);
-
-    if (_points.isValid()) {
-        
-    }
 }
 
 void LineplotPlugin::initializeImageRGB() {
 
     if (!_imageRGBPoints.isValid()) {
-        _imageRGBPoints = _core->addDataset<Points>("Points", "imageRGBData");
+        _imageRGBPoints = _core->createDerivedDataset("imageRGBData", _points, _points);
         _imageRGB = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_imageRGBPoints));
+        
 
        // qDebug() << "Create image";
 
@@ -445,12 +453,12 @@ void LineplotPlugin::initializeImageRGB() {
         int numPoints = width * height;
 
         std::vector<float> imageRGBData(width * height * 3);
-        std::vector<QString> imageDim;
+        std::vector<QString> imageDim(3);
 
         // needs to change
         float wavelengthR = 630;
         float wavelengthG = 532;
-        float wavelengthB = 465;
+        float wavelengthB = 464;
 
         int dimR = 0;
         int dimG = 0;
@@ -459,18 +467,18 @@ void LineplotPlugin::initializeImageRGB() {
         for (int v = 0; v < numDimensions; v++) {
             auto dimName = dimNames.at(v);
             float dimValue = dimName.toFloat();
-      
+
             if (abs(wavelengthR - dimValue) < 1) {
                 dimR = v;
-                imageDim.push_back(dimName);
+                imageDim[0] = dimName;
             }
             else if (abs(wavelengthG - dimValue) < 1) {
                 dimG = v;
-                imageDim.push_back(dimName);
+                imageDim[1] = dimName;
             }
             else if (abs(wavelengthB - dimValue) < 1) {
                 dimB = v;
-                imageDim.push_back(dimName);
+                imageDim[2] = dimName;
             }
         }
 
@@ -484,8 +492,6 @@ void LineplotPlugin::initializeImageRGB() {
 
         _imageRGBPoints->setData(imageRGBData.data(), numPoints, 3);
         _imageRGBPoints->setDimensionNames(imageDim);
-        _imageRGBPoints->setProperty("width", width);
-        _imageRGBPoints->setProperty("height", height);
 
         _core->notifyDatasetAdded(_imageRGBPoints);
 
@@ -499,6 +505,7 @@ void LineplotPlugin::initializeImageRGB() {
     }
 }
 
+// improve: change one wavelength at a time
 void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float wavelengthG, const float wavelengthB) {
 
     auto source = _points->getSourceDataset<Points>();
@@ -515,21 +522,26 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float w
     int numPoints = width * height;
 
     std::vector<float> imageRGBData(width * height * 3);
+    std::vector<QString> imageDim(3);
 
     int dimR = 0;
     int dimG = 0;
     int dimB = 0;
 
     for (int v = 0; v < numDimensions; v++) {
-        float dimValue = dimNames.at(v).toFloat();
-        if (abs(wavelengthR - dimValue) < 0.001) {
+        auto dimName = dimNames.at(v);
+        float dimValue = dimName.toFloat();
+        if (abs(wavelengthR - dimValue) < 1) {
             dimR = v;
+            imageDim[0] = dimName;
         }
-        if (abs(wavelengthG - dimValue) < 0.001) {
+        if (abs(wavelengthG - dimValue) < 1) {
             dimG = v;
+            imageDim[1] = dimName;
         }
-        if (abs(wavelengthB - dimValue) < 0.001) {
+        if (abs(wavelengthB - dimValue) < 1) {
             dimB = v;
+            imageDim[2] = dimName;
         }
     }
 
@@ -542,6 +554,7 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float w
     }
 
     _imageRGBPoints->setData(imageRGBData.data(), numPoints, 3);
+    _imageRGBPoints->setDimensionNames(imageDim);
     _core->notifyDatasetChanged(_imageRGBPoints);
     _core->notifyDatasetChanged(_imageRGB);
   
