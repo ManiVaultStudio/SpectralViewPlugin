@@ -341,10 +341,12 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 
         if (indices.size() != 0) {
             for (int i = 0; i < noPoints; i++) {
+
                 auto endmember = new Endmember(*this, dataset);
                 _model.addEndmember(endmember, -1);
 
-                computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
+                auto endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
+                endmember->setData(endmemberData);
             }
         }
         else {
@@ -355,13 +357,16 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             std::vector<float> confInterval(numDimensions);
 
             for (int i = 0; i < noPoints; i++) {
-                auto endmember = new Endmember(*this, dataset);
-                _model.addEndmember(endmember, -1);
-
+                
                 for (int v = 0; v < numDimensions; v++) {
                     endmemberData[v] = points->getValueAt(i * numDimensions + v);
                 }
+
+                auto endmember = new Endmember(*this, dataset);
+                _model.addEndmember(endmember, -1);
+
                 _linePlotWidget.setData(endmemberData, confInterval, confInterval, dimNames, numDimensions, "endmember");
+                endmember->setData(endmemberData);
                 
             }
         }
@@ -381,7 +386,8 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             auto endmember = new Endmember(*this, dataset);
             _model.addEndmember(endmember, i);
 
-            computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+            auto averageSpectrum = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+            endmember->setData(averageSpectrum);
         }
     }
 }
@@ -397,10 +403,12 @@ void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
         auto indices = points->indices;
 
         if (indices.size() != 0) {
+
             auto endmember = new Endmember(*this, dataset);
             _model.addEndmember(endmember, 0);
 
-            computeAverageSpectrum(parent, noPoints, indices, "endmember");
+            auto averageSpectrum = computeAverageSpectrum(parent, noPoints, indices, "endmember");
+            endmember->setData(averageSpectrum);
         }
     }
 }
@@ -588,7 +596,7 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
     }
 }
 
-void LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
+std::vector<float> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
 
     auto numDimensions = source->getNumDimensions();
     auto children = source->getChildren({ ImageType });
@@ -642,6 +650,16 @@ void LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints
     }
 
     _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions, dataOrigin);
+
+    return averageSpectrum;
+}
+
+QString LineplotPlugin::getDatasetName() {
+    if (_points.isValid()) {
+        return _points->getGuiName();
+    }
+    else
+        return "";
 }
 
 

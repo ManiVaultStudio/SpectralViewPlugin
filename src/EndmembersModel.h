@@ -93,10 +93,16 @@ public:
 public: // Endmember operations
 
     /**
-     * Add a layer to the model
-     * @param layer Pointer to layer
+     * Add an endmember to the model
+     * @param endmember Pointer to endmember
+     * @param decision index for colour/name selection
      */
-    void addEndmember(Endmember* endmember, int clusterIndex);
+    void addEndmember(Endmember* endmember, int decisionIndex);
+
+    /**
+    * Save all endmembers to a .txt file
+    */
+    void saveEndmembers(QString name);
 
     /**
      * Remove a layer from the model by row index

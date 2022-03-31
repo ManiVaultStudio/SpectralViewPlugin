@@ -41,7 +41,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     auto& lineplotPlugin = endmembersAction->getSettingsAction().getLineplotPlugin();
 
     _removeEndmemberAction.setToolTip("Remove the selected endmember");
-    _saveEndmembersAction.setToolTip("Save the endmembers in the list");
+    _saveEndmembersAction.setToolTip("Save the checked endmembers in the list");
 
     auto& fontAwesome = Application::getIconFont("FontAwesome");
 
@@ -121,7 +121,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
         const auto hasSelection = !selectedRows.isEmpty();
 
         _removeEndmemberAction.setEnabled(hasSelection);
-        _saveEndmembersAction.setEnabled(hasSelection);
+        _saveEndmembersAction.setEnabled(lineplotPlugin.getModel().rowCount() > 0);
 
         // Render
         lineplotPlugin.getLineplotWidget().update();
@@ -149,7 +149,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     // Special behavior when a row is inserted into the model
     connect(treeView->model(), &QAbstractListModel::rowsInserted, this, onRowsInserted);
 
-    // Remove the layer when the corresponding action is triggered
+    // Remove the endmember when the corresponding action is triggered
     connect(&_removeEndmemberAction, &TriggerAction::triggered, this, [this, &lineplotPlugin, treeView]() {
         const auto selectedRows = lineplotPlugin.getSelectionModel().selectedRows();
 
@@ -164,6 +164,13 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
             lineplotPlugin.getLineplotWidget().setHighlightSelection(rowIndex.row());
         }
 
+        });
+
+    // Save the endmembers in the list when the corresponding action is triggered
+    connect(&_saveEndmembersAction, &TriggerAction::triggered, this, [this, &lineplotPlugin, treeView]() {
+        auto name = lineplotPlugin.getDatasetName();
+
+        lineplotPlugin.getModel().saveEndmembers(name);
         });
 
     updateButtons();

@@ -18,6 +18,7 @@ Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>&
     _lineplotPlugin(lineplotPlugin),
     _active(false),
     _dataset(dataset),
+    _data(),
     _generalAction(*this)
 {
     setText("Endmember");
@@ -39,6 +40,10 @@ Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>&
 Endmember::~Endmember()
 {
 
+}
+
+void Endmember::setData(std::vector<float> data) {
+    _data = data;
 }
 
 void Endmember::sendColor(QColor endmemberColor, int row) {

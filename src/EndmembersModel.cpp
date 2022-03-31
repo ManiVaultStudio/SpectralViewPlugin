@@ -10,8 +10,10 @@
 
 #include <QMessageBox>
 #include <QPainter>
+#include <QFileDialog>
 
 #include <stdexcept>
+#include <iomanip>
 
 
 using namespace hdps;
@@ -130,6 +132,75 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
     }
     catch (...) {
         exceptionMessageBox("Unable to add endmember to the endmembers model");
+    }
+}
+
+void EndmembersModel::saveEndmembers(QString name) {
+
+    // Create a txt file
+    //QString filename = "Endmembers_" + name + ".txt";
+    //QFile file(filename);
+
+    // resample before saving
+
+    auto parent = _endmembers[0]->getDataset()->getParent();
+    auto points = parent.get<Points>();
+    auto dimNames = points->getDimensionNames();
+    auto noDim = points->getNumDimensions();
+
+    // Open dialog for saving location
+    QString fileName = QFileDialog::getSaveFileName(nullptr, 
+        tr("Save Selected Endmembers"), "",
+        tr("Txt files (*.txt); "));
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+    else {
+        QFile file(fileName);
+        if (!file.open(QIODevice::WriteOnly)) {
+            QMessageBox::information(nullptr, tr("Unable to open file"),
+                file.errorString());
+            return;
+        }
+
+        QTextStream stream(&file);
+        stream << "Endmembers for " << name << " dataset" << endl;
+        stream << "Column 1: Wavelength" << endl;
+        
+        stream.setRealNumberNotation(QTextStream::FixedNotation);
+        stream.setRealNumberPrecision(6);
+
+        int noEndmembers = _endmembers.length();
+        int columnNo = 2;
+        int lastIndex = 0;
+
+        for (int i = 0; i < noEndmembers; i++) {
+            // set the right name
+            auto visible = _endmembers[i]->getGeneralAction().getVisibleAction().isChecked();
+            if (visible) {
+                stream << "Column: " << columnNo << ": " << "name" << endl;
+                qDebug() << "Endmember: " << columnNo;
+                columnNo++;
+                lastIndex = i;
+            }
+        }
+
+        qDebug() << "Last index: " << lastIndex;
+        for (int v = 0; v < noDim; v++) {
+
+            stream << "  " << dimNames[v];
+
+            for (int i = 0; i < lastIndex; i++) {
+   
+                auto visible = _endmembers[i]->getGeneralAction().getVisibleAction().isChecked();
+                if (visible) {
+                    stream << "  " << _endmembers[i]->getData().at(v);
+                }
+            }
+
+            stream << "  " << _endmembers[lastIndex]->getData().at(v) << endl;
+        }
     }
 }
 

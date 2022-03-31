@@ -39,6 +39,7 @@ public:
     void updateVisibility(bool toggled, int row);
     void sendEndmemberRemoved(int row);
     void highlightSelection(int row);
+    void setData(std::vector<float>);
 
     /**
      * Get the context menu
@@ -60,13 +61,15 @@ public: /** Action getters */
 
     EndmembersAction& getEndmembersAction();
     hdps::Dataset<hdps::DatasetImpl>& getDataset() { return _dataset; }
+    std::vector<float> getData() { return _data;  }
     GeneralAction& getGeneralAction() { return _generalAction; }
 
 protected:
-    LineplotPlugin& _lineplotPlugin;             /** Reference to image viewer plugin */
-    bool                                _active;                        /** Whether the layer is active (editable) */                /** Smart pointer to images dataset */
-    hdps::Dataset<hdps::DatasetImpl>    _dataset;                 /** Smart pointer to source dataset of the images */
-    GeneralAction _generalAction;
+    LineplotPlugin& _lineplotPlugin;                              /** Reference to line plot plugin */
+    bool                                _active;                  /** Whether the layer is active (editable) */  
+    hdps::Dataset<hdps::DatasetImpl>    _dataset;                 /** Smart pointer to endmember dataset */
+    GeneralAction                       _generalAction;
+    std::vector<float>                  _data;                    /** Smart pointer to endmember data */
 
     friend class LineplotWidget;
 
