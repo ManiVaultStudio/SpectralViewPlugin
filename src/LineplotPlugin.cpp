@@ -117,13 +117,6 @@ void LineplotPlugin::init()
 
             try {
 
-            //    if (noPointsCandiateData == 1) {
-            //        dropRegions << new DropWidget::DropRegion(this, "Endmember", description, "map-marker-alt", true, [this, candidateDataset]() {
-            //            auto endmember = new Endmember(*this, candidateDataset);
-            //            _model.addEndmember(endmember);
-            //            });
-            //    }
-
                 if (!_points.isValid()) {
                     
                     // Load as point positions when no dataset is currently loaded
@@ -140,12 +133,11 @@ void LineplotPlugin::init()
                         dropRegions << new DropWidget::DropRegion(this, "Warning", "Data already loaded", "exclamation-circle", false);
                     }
                     else {
-
                         // Establish drop region description
                         const auto description1 = QString("Visualize every point in %1 as one line").arg(datasetGuiName);
-                        const auto description2 = QString("Visualize the points in %1 as an average line").arg(datasetGuiName);
+                        const auto description2 = QString("Visaualize the points in %1 as an average line").arg(datasetGuiName);
 
-                        if (candidateDataset->getParent() == _points) {
+                        if ((!candidateDataset->isFull() || candidateDataset->isDerivedData()) && candidateDataset->getParent() == _points) {
                             dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
                                 addDataset(candidateDataset);
                                 });
@@ -347,12 +339,32 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         auto noPoints = points->getNumPoints();
         auto indices = points->indices;
 
-        for (int i = 0; i < noPoints; i++) {
-            auto endmember = new Endmember(*this, dataset);
-            _model.addEndmember(endmember, -1);
+        if (indices.size() != 0) {
+            for (int i = 0; i < noPoints; i++) {
+                auto endmember = new Endmember(*this, dataset);
+                _model.addEndmember(endmember, -1);
 
-            computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
-        }        
+                computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
+            }
+        }
+        else {
+            auto numDimensions = points->getNumDimensions();
+            auto dimNames = points->getDimensionNames();
+
+            std::vector<float> endmemberData(numDimensions);
+            std::vector<float> confInterval(numDimensions);
+
+            for (int i = 0; i < noPoints; i++) {
+                auto endmember = new Endmember(*this, dataset);
+                _model.addEndmember(endmember, -1);
+
+                for (int v = 0; v < numDimensions; v++) {
+                    endmemberData[v] = points->getValueAt(i * numDimensions + v);
+                }
+                _linePlotWidget.setData(endmemberData, confInterval, confInterval, dimNames, numDimensions, "endmember");
+                
+            }
+        }
     }
     else if (type == ClusterType) {
 
@@ -376,9 +388,6 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 
 void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
 
-    auto endmember = new Endmember(*this, dataset);
-    _model.addEndmember(endmember, 0);
-
     auto type = dataset->getDataType();
     auto parent = dataset->getParent();
 
@@ -387,22 +396,20 @@ void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
         auto noPoints = points->getNumPoints();
         auto indices = points->indices;
 
-        computeAverageSpectrum(parent, noPoints, indices, "endmember");
+        if (indices.size() != 0) {
+            auto endmember = new Endmember(*this, dataset);
+            _model.addEndmember(endmember, 0);
+
+            computeAverageSpectrum(parent, noPoints, indices, "endmember");
+        }
     }
 }
 
 void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
 
-    hdps::Dataset<Points> derivedEndmembers;
-
     auto endmembers = _core->requestDataset(datasetGuid);
     auto endmemberPoints = endmembers->getSourceDataset<Points>();
     auto guiName = endmembers->getGuiName();
-
-    if (_points.isValid()) {
-        derivedEndmembers = _core->createDerivedDataset(guiName, _points, _points);
-       // _core->removeDataset(endmembers);
-    }
 
     auto numDimensions = endmemberPoints->getNumDimensions();
     auto endmembersNo = endmemberPoints->getNumPoints();
@@ -424,10 +431,17 @@ void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
 
     endmemberPoints->setDimensionNames(dimNames);
     endmemberPoints->setData(endmemberData.data(), endmembersNo - 1, numDimensions);
-    //derivedEndmembers->setDimensionNames(dimNames);
-    //derivedEndmembers->setData(endmemberData.data(), endmembersNo - 1, numDimensions);
-   // _core->notifyDatasetAdded(derivedEndmembers);
-    _core->notifyDatasetChanged(endmemberPoints);
+    
+    if (_points.isValid()) {
+        hdps::Dataset<Points> derivedEndmembers = _core->createDerivedDataset("endmembers", _points, _points);
+        derivedEndmembers->setData(endmemberData.data(), endmembersNo - 1, numDimensions);
+        derivedEndmembers->setDimensionNames(dimNames);
+        _core->notifyDatasetAdded(derivedEndmembers);
+        _core->notifyDatasetChanged(endmemberPoints);
+    }
+    else {
+        _core->notifyDatasetChanged(endmemberPoints);
+    }
 }
 
 void LineplotPlugin::initializeImageRGB() {
