@@ -3,6 +3,7 @@
 #include "EndmembersAction.h"
 #include "LineplotPlugin.h"
 #include "ClusterData.h"
+#include <QtCore>
 
 GeneralAction::GeneralAction(Endmember& endmember) :
     GroupAction(&endmember, true),
@@ -10,7 +11,8 @@ GeneralAction::GeneralAction(Endmember& endmember) :
     _visibleAction(this, "Visible", true, true),
     _datasetNameAction(this, "Dataset name"),
     _colorAction(this, "Color"),
-    _nameAction(this, "Name")
+    _nameAction(this, "Name"),
+    _angleAction(this, "Angle", 0.15f)
 {
     setText("General");
 
@@ -20,6 +22,8 @@ GeneralAction::GeneralAction(Endmember& endmember) :
     _visibleAction.setToolTip("Visibility of the endmember");
     _datasetNameAction.setToolTip("Name of the endmember dataset");
     _nameAction.setToolTip("Name of the endmember");
+    _angleAction.setToolTip("Angle for SAM");
+
 
     // Get initial random layer color
     const auto endmemberColor = _endmember.getEndmembersAction().getRandomLayerColor();
@@ -36,17 +40,17 @@ GeneralAction::GeneralAction(Endmember& endmember) :
     // Set layer name and default name
     _nameAction.setString(guiName);
     _nameAction.setDefaultString(guiName);
+
+    _angleAction.setSuffix(" radians");
+    _angleAction.setUpdateDuringDrag(false);
+    _angleAction.setMaximum(M_PI);
+    _angleAction.maximumChanged(M_PI);
     
     const auto render = [this]() {
         _endmember.getLineplotPlugin().getLineplotWidget().update();
 
     };
-   // const auto updateBounds = [this]() {
-   //     _layer.getImageViewerPlugin().getImageViewerWidget().updateWorldBoundingRectangle();
-   // };
 
     connect(&_nameAction, &StringAction::stringChanged, this, render);
-    //connect(&_visibleAction, &ToggleAction::toggled, this, render);
-    //connect(&_colorAction, &ColorAction::colorChanged, this, updateBounds);
     connect(&_colorAction, &ColorAction::colorChanged, this, render);
 }

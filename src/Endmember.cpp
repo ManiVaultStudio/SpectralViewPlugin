@@ -72,3 +72,7 @@ LineplotPlugin& Endmember::getLineplotPlugin()
 {
     return _lineplotPlugin;
 }
+
+void Endmember::updateAngle(std::vector<float> endmemberData, float angle) {
+    _lineplotPlugin.updateMap(endmemberData, angle);
+}

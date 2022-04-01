@@ -37,7 +37,21 @@ function addData() {
     _selectionLine
         .datum(_data)
         .transition().duration(1000)
-        .attr("d", line)
+        .attr("d", line);
+
+    if (_endmembers.length > 0) {
+
+        _stdAreas
+            .data(_endmembers)
+            .transition().duration(dur)
+            .attr("d", area);
+
+        _endmemberLines
+            .data(_endmembers)
+            .transition().duration(dur)
+            .attr("d", line);
+
+    }
 }
 
 function showElement(name, value) {

@@ -40,6 +40,7 @@ public:
     void sendEndmemberRemoved(int row);
     void highlightSelection(int row);
     void setData(std::vector<float>);
+    void updateAngle(std::vector<float> endmemberData, float angle);
 
     /**
      * Get the context menu

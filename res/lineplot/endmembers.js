@@ -48,4 +48,17 @@ function addEndmembers(endmember, index) {
 
     // SAve the confidence intervals for the endmembers
     _stdAreas = _lineChart.selectAll(".endmembersStd").data(_endmembers);
+
+    if (_data) {
+
+        _stdArea
+            .datum(_data)
+            .transition().duration(1000)
+            .attr("d", area);
+
+        _selectionLine
+            .datum(_data)
+            .transition().duration(1000)
+            .attr("d", line);
+    }
 }

@@ -4,6 +4,7 @@
 #include <actions/ToggleAction.h>
 #include <actions/StringAction.h>
 #include <actions/ColorAction.h>
+#include <actions/DecimalAction.h>
 
 class Endmember;
 
@@ -36,6 +37,7 @@ public: /** Action getters */
     ToggleAction& getVisibleAction() { return _visibleAction; }
     ColorAction& getColorAction() { return _colorAction; }
     StringAction& getNameAction() { return _nameAction; }
+    DecimalAction& getAngleAction() { return _angleAction; }
 
 protected:
     Endmember& _endmember;                 /** Reference to layer */
@@ -43,5 +45,5 @@ protected:
     StringAction    _datasetNameAction;     /** Dataset name action */
     ColorAction     _colorAction;           /** Color action */
     StringAction    _nameAction;            /** Name action */
-    //hdps::Dataset<hdps::DatasetImpl> _dataset;
+    DecimalAction   _angleAction;
 };

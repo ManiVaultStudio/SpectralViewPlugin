@@ -71,8 +71,6 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
     {
         int noEndmembers = _endmembers.length();
 
-        //setEndmemberProperties(endmember, decisionIndex);
-
         // Insert the endmember action at the beginning
         beginInsertRows(QModelIndex(), 0, 0);
         {
@@ -93,10 +91,15 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
                 endmember->sendColor(color, _endmembers.indexOf(endmember));
                 });
 
-            // Inform views that the layer name has changed when it is changed in the action
+            // Inform views that the endmember name has changed when it is changed in the action
             connect(&endmember->getGeneralAction().getNameAction(), &StringAction::stringChanged, this, [this, endmember]() {
                 const auto changedCell = index(_endmembers.indexOf(endmember), Column::Name);
                 emit dataChanged(changedCell, changedCell);
+                });
+
+            // Inform views that the endmember angle has changed when it is changed in the action
+            connect(&endmember->getGeneralAction().getAngleAction(), &DecimalAction::valueChanged, this, [this, endmember](float value) {
+                endmember->updateAngle(endmember->getData(), value);
                 });
         }
         endInsertRows();   
@@ -112,7 +115,7 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
 
 void EndmembersModel::setEndmemberProperties(Endmember* endmember, int decisionIndex) {
 
-    int noEndmembers = _endmembers.length();
+    int noEndmembers = _endmembers.length() - 1;
 
     auto dataset = endmember->getDataset();
     auto type = dataset->getDataType();
@@ -140,6 +143,7 @@ void EndmembersModel::setEndmemberProperties(Endmember* endmember, int decisionI
     }
 
     endmember->sendColor(endmemberColor, noEndmembers);
+
 }
 
 void EndmembersModel::saveEndmembers(QString name) {

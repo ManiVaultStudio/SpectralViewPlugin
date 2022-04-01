@@ -31,7 +31,10 @@ LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     _dropWidget(&_linePlotWidget),
     _mainToolbarAction(*this),
     _settingsAction(*this),
-    _childrenLen()
+    _map(),
+    _mapImage(),
+    _imageRGB(),
+    _imageRGBPoints()
 {
     setObjectName("Line Plot");
 
@@ -91,8 +94,6 @@ void LineplotPlugin::init()
 
         const auto mimeText = mimeData->text();
         const auto tokens = mimeText.split("\n");
-
-        _childrenLen = 0;
 
         if (tokens.count() == 1)
             return dropRegions;
@@ -693,6 +694,96 @@ QString LineplotPlugin::getDatasetName() {
     }
     else
         return "";
+}
+
+void LineplotPlugin::updateMap(std::vector<float> endmemberData, float thresholdAngle) {
+
+    if (!_points.isValid()) {
+        return;
+    }
+
+    if (!_map.isValid()) {
+
+        qDebug() << "Setting map." << endmemberData.size();
+
+        auto children = _points->getChildren({ ImageType });
+        auto imagesId = children[0].getDatasetGuid();
+        auto images = _core->requestDataset<Images>(imagesId);
+        auto imageSize = images->getImageSize();
+        int width = imageSize.width();
+        int height = imageSize.height();
+
+        _map = _core->createDerivedDataset("endmemberMapPoints", _points);
+
+        spectralAngleMapper(endmemberData, thresholdAngle);
+
+        _mapImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_map));
+        _mapImage->setGuiName("endmemberMap");
+        _mapImage->setType(ImageData::Type::Stack);
+        _mapImage->setNumberOfImages(1);
+        _mapImage->setImageSize(QSize(width, height));
+        _mapImage->setNumberOfComponentsPerPixel(1);
+
+        _core->notifyDatasetAdded(_map);
+        _core->notifyDatasetAdded(_mapImage);
+    }
+    else {
+        qDebug() << "Updating map " << endmemberData.size();
+        spectralAngleMapper(endmemberData, thresholdAngle);
+
+        _core->notifyDatasetChanged(_map);
+        _core->notifyDatasetChanged(_mapImage);
+    }
+}
+
+void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle) {
+    
+    auto children = _points->getChildren({ ImageType });
+    auto imagesId = children[0].getDatasetGuid();
+    auto images = _core->requestDataset<Images>(imagesId);
+    auto imageSize = images->getImageSize();
+    int width = imageSize.width();
+    int height = imageSize.height();
+
+    auto numDimensions = _points->getNumDimensions();
+    auto noPoints = _points->getNumPoints();
+
+    std::vector<float> mapData(noPoints);
+
+    float referenceSum = 0;
+
+    // spectral angle mapper algorithm
+    for (int v = 0; v < numDimensions; v++) {
+        referenceSum += endmemberData[v] * endmemberData[v];
+    }
+
+    referenceSum = sqrt(referenceSum);
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            float sum = 0;
+            float pointSum = 0;
+
+            for (int v = 0; v < numDimensions; v++) {
+                sum += endmemberData[v] * _points->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + v);
+                pointSum += pow(_points->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + v), 2);
+            }
+
+            pointSum = sqrt(pointSum);
+
+            auto angle = acos(sum / (referenceSum * pointSum));
+            //qDebug() << "Computed angle: " << angle;
+
+            //  if (angle <= thresholdAngle) {
+
+                  // if angle is 0, than very similar spectrum, so high value
+            mapData[width * (height - y - 1) + x] = 1 - (angle / M_PI);
+            qDebug() << mapData[width * (height - y - 1) + x];
+            // }
+        }
+    }
+
+    _map->setData(mapData.data(), noPoints, 1);
 }
 
 

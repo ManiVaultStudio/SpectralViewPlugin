@@ -106,6 +106,10 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
             int row = selectedRows.first().row();
             endmember->highlightSelection(row);
 
+            if (endmember->getData().size() != 0) {
+                endmember->updateAngle(endmember->getData(), endmember->getGeneralAction().getAngleAction().getValue());
+            }
+
             groupActions << &endmember->getGeneralAction();
         }
         else {

@@ -66,6 +66,9 @@ public:
 
     QString getDatasetName();
 
+    void updateMap(std::vector<float> endmemberData, float angle);
+    void spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle);
+
 
 public: // Action getters
 
@@ -87,7 +90,9 @@ private:
     hdps::Dataset<Clusters>            _clusters;      /** Currently loaded clusters dataset */
     hdps::Dataset<Points>              _imageRGBPoints;
     hdps::Dataset<Images>              _imageRGB;
-
+    hdps::Dataset<Points>              _map;
+    hdps::Dataset<Images>              _mapImage;
+            
     EndmembersModel             _model;                 /** Endmembers model */
     QItemSelectionModel     _selectionModel;        /** Layers selection model */
     LineplotWidget       _linePlotWidget;       /** Heatmap widget displaying cluster data */
@@ -95,7 +100,6 @@ private:
     hdps::gui::DropWidget   _dropWidget;            /** Widget allowing users to drop in data */
     MainToolbarAction       _mainToolbarAction;     /** Main toolbar action */
     SettingsAction          _settingsAction;        /** Line chart settings action */
-    int                     _childrenLen;
 };
 
 
