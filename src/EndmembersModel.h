@@ -97,7 +97,7 @@ public: // Endmember operations
      * @param endmember Pointer to endmember
      * @param decision index for colour/name selection
      */
-    void addEndmember(Endmember* endmember, int decisionIndex);
+    void addEndmember(Endmember* endmember);
 
     /**
     * Save all endmembers to a .txt file
@@ -105,10 +105,16 @@ public: // Endmember operations
     void saveEndmembers(QString name);
 
     /**
-     * Remove a layer from the model by row index
+     * Remove an endmember from the model by row index
      * @param row Row index of the layer
      */
     void removeEndmember(const std::uint32_t& row);
+
+    /**
+     * Remove endmembers created from given dataset from the model
+     * @param datasetGuid
+     */
+    void removeEndmembers(QString datasetGuid);
 
     /**
      * Remove a layer from the model by images dataset globally unique identifier
@@ -121,6 +127,9 @@ public: // Endmember operations
      * @param layerModelIndex Layer model index
      */
     void removeEndmember(const QModelIndex& layerModelIndex);
+
+    void setEndmemberProperties(Endmember* endmember, int decisionIndex);
+
 
     /**
      * Duplicates a layer  by model index

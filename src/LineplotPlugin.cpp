@@ -14,6 +14,8 @@
 #include <QtDebug>
 #include <iostream>
 
+#include<tuple>
+
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.LineplotPlugin")
 
@@ -225,6 +227,7 @@ void LineplotPlugin::init()
         });
 
     registerDataEventByType(PointType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
+    registerDataEventByType(ClusterType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
 
     const auto endmembersInsertedRemovedChanged = [this]() {
        // _dropWidget.setShowDropIndicator(_model.rowCount() == 0);
@@ -247,10 +250,10 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
     // Get smart pointer to dataset that changed
     const auto changedDataSet = dataEvent->getDataset();
+    auto type = changedDataSet->getDataType();
 
     // Get GUI name of the dataset that changed
     const auto datasetGuiName = changedDataSet->getGuiName();
-
     const auto datasetGuid = changedDataSet->getGuid();
 
     switch (dataEvent->getType()) {
@@ -265,17 +268,6 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 
             // Get the GUI name of the added points dataset and print to the console
             std::cout << datasetGuiName.toStdString() << " was added" << std::endl;
-            
-//            if (_points.isValid()) {
-              //  auto children = _points->getChildren({ PointType, ClusterType});
-              //  auto childrenLen = children.length();
-
-              //  if (childrenLen > _childrenLen) {
-
-              //      _childrenLen = childrenLen;
-              //      addDataset(children[childrenLen-1]);
-        //        }
-  //          }
 
             if (datasetGuiName == "endmemberList") {
                 importEndmembersCSV(datasetGuid);
@@ -292,6 +284,12 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 
             // Get the name of the points dataset of which the data changed and print to the console
             std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
+
+            if (_clusters.isValid() && type == ClusterType) {
+                if (_clusters->getGuiName() == datasetGuiName) {
+                    addDataset(changedDataSet);
+                }
+            }
         }
 
         // Points dataset data was removed
@@ -315,9 +313,6 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             // Get the selection set that changed
             const auto& selectionSet = changedDataSet->getSelection<Points>();
 
-            // Print to the console
-            //std::cout << datasetGuiName.toStdString() << " selection has changed" << std::endl;
-
             if(_points.isValid())
                 updateSelection(selectionSet);
 
@@ -333,6 +328,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
     
     auto type = dataset->getDataType();
     auto parent = dataset->getParent();
+    auto numDimensions = parent.get<Points>()->getNumDimensions();
 
     if (type == PointType) {
         auto points = dataset.get<Points>();
@@ -343,10 +339,11 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             for (int i = 0; i < noPoints; i++) {
 
                 auto endmember = new Endmember(*this, dataset);
-                _model.addEndmember(endmember, -1);
+                _model.addEndmember(endmember);
+                _model.setEndmemberProperties(endmember, -1);
 
                 auto endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
-                endmember->setData(endmemberData);
+                endmember->setData(std::get<0>(endmemberData));
             }
         }
         else {
@@ -363,7 +360,8 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
                 }
 
                 auto endmember = new Endmember(*this, dataset);
-                _model.addEndmember(endmember, -1);
+                _model.addEndmember(endmember);
+                _model.setEndmemberProperties(endmember, -1);
 
                 _linePlotWidget.setData(endmemberData, confInterval, confInterval, dimNames, numDimensions, "endmember");
                 endmember->setData(endmemberData);
@@ -375,19 +373,52 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 
         auto clusters = dataset.get<Clusters>()->getClusters();
         auto noClusters = clusters.length();
-        auto dimNames = parent.get<Points>()->getDimensionNames();
-        auto numDimensions = parent.get<Points>()->getNumDimensions();
 
+        // remove clusters of this dataset
+        _model.removeEndmembers(dataset->getGuid());
+        
+        // add clsuters
         for (int i = 0; i < noClusters; i++) {
 
             auto noPointsCluster = clusters[i].getNumberOfIndices();
             auto indices = clusters[i].getIndices();
 
-            auto endmember = new Endmember(*this, dataset);
-            _model.addEndmember(endmember, i);
+            auto average = clusters[i].getMean();
+            auto std = clusters[i].getStandardDeviation();
 
-            auto averageSpectrum = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
-            endmember->setData(averageSpectrum);
+            auto endmember = new Endmember(*this, dataset);
+            _model.addEndmember(endmember);
+
+            if (average.size() == 0) {
+
+                average.resize(numDimensions);
+                std.resize(numDimensions);
+
+                _model.setEndmemberProperties(endmember, i);
+                auto endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+                auto computedAvg = std::get<0>(endmemberData);
+                auto computedStd = std::get<1>(endmemberData);
+
+                for (int v = 0; v < numDimensions; v++) {
+                    average[v] = computedAvg[v];
+                    std[v] = computedStd[v];
+                }
+            }
+            else {
+                std::vector<float> confIntervalLeft;
+                std::vector<float> confIntervalRight;
+                auto dimNames = parent.get<Points>()->getDimensionNames();
+
+                _model.setEndmemberProperties(endmember, i);
+
+                for (int v = 0; v < numDimensions; v++) {
+                    confIntervalLeft[v] = average[v] - std[v];
+                    confIntervalRight[v] = average[v] + std[v];
+                }
+                _linePlotWidget.setData(average, confIntervalLeft, confIntervalRight, dimNames, numDimensions, "endmember");
+            }
+
+            endmember->setData(average);
         }
     }
 }
@@ -405,10 +436,11 @@ void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
         if (indices.size() != 0) {
 
             auto endmember = new Endmember(*this, dataset);
-            _model.addEndmember(endmember, 0);
+            _model.addEndmember(endmember);
+            _model.setEndmemberProperties(endmember, 0);
 
-            auto averageSpectrum = computeAverageSpectrum(parent, noPoints, indices, "endmember");
-            endmember->setData(averageSpectrum);
+            auto endmemberData = computeAverageSpectrum(parent, noPoints, indices, "endmember");
+            endmember->setData(std::get<0>(endmemberData));
         }
     }
 }
@@ -596,7 +628,7 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
     }
 }
 
-std::vector<float> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
+std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
 
     auto numDimensions = source->getNumDimensions();
     auto children = source->getChildren({ ImageType });
@@ -606,7 +638,7 @@ std::vector<float> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source
     int width = imageSize.width();
     int height = imageSize.height();  
 
-    std::vector<float> averageSpectrum;
+    std::vector<float> averageSpectrum, standardDeviation;
     std::vector<float> confIntervalLeft(numDimensions);
     std::vector <float> confIntervalRight(numDimensions);
 
@@ -618,7 +650,7 @@ std::vector<float> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source
             auto index = indices.at(i);
             int x = index / width;
             int y = index - (x * width);
-            sum = sum + source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+            sum += source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
 
         }
 
@@ -634,11 +666,12 @@ std::vector<float> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source
                 int x = index / width;
                 int y = index - (x * width);
                 float value = source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
-                std = std + (value - mean) * (value - mean);
+                std += (value - mean) * (value - mean);
             }
 
             std = sqrt(std / noPoints);
 
+            standardDeviation.push_back(std);
             confIntervalRight[v] = mean + std;
             confIntervalLeft[v] = mean - std;
         }
@@ -651,7 +684,7 @@ std::vector<float> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source
 
     _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions, dataOrigin);
 
-    return averageSpectrum;
+    return { averageSpectrum, standardDeviation };
 }
 
 QString LineplotPlugin::getDatasetName() {

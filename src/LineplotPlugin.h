@@ -44,7 +44,8 @@ public:
     void addAverageDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
 
 
-    std::vector<float> computeAverageSpectrum(hdps::Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
+    std::tuple<std::vector<float>, std::vector<float>> computeAverageSpectrum(hdps::Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
+    
 
 public:
 

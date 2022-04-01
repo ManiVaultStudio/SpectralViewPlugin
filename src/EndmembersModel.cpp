@@ -65,38 +65,13 @@ EndmembersModel::~EndmembersModel()
         removeEndmember(row);
 }
 
-void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
+void EndmembersModel::addEndmember(Endmember* endmember) {
     
     try
     {
         int noEndmembers = _endmembers.length();
 
-        auto dataset = endmember->getDataset();
-        auto type = dataset->getDataType();
-        QColor endmemberColor;
-        QVector<Cluster> clusters;
-
-        if (type == PointType) {
-            // set name with avg
-            if (decisionIndex == 0) {
-                auto currentName = endmember->getGeneralAction().getNameAction().getString();
-                endmember->getGeneralAction().getNameAction().setString(currentName + " average");
-            }
-
-            endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
-
-        }
-        else if (type == ClusterType) {
-            clusters = dataset.get<Clusters>()->getClusters();
-            auto noClusters = clusters.length();
-           
-            endmemberColor = clusters[decisionIndex].getColor();
-            auto endmemberName = clusters[decisionIndex].getName();
-            endmember->getGeneralAction().getColorAction().setColor(endmemberColor);
-            endmember->getGeneralAction().getNameAction().setString(endmemberName);
-        }
-
-        endmember->sendColor(endmemberColor, noEndmembers);
+        //setEndmemberProperties(endmember, decisionIndex);
 
         // Insert the endmember action at the beginning
         beginInsertRows(QModelIndex(), 0, 0);
@@ -133,6 +108,38 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
     catch (...) {
         exceptionMessageBox("Unable to add endmember to the endmembers model");
     }
+}
+
+void EndmembersModel::setEndmemberProperties(Endmember* endmember, int decisionIndex) {
+
+    int noEndmembers = _endmembers.length();
+
+    auto dataset = endmember->getDataset();
+    auto type = dataset->getDataType();
+    QColor endmemberColor;
+    QVector<Cluster> clusters;
+
+    if (type == PointType) {
+        // set name with avg
+        if (decisionIndex == 0) {
+            auto currentName = endmember->getGeneralAction().getNameAction().getString();
+            endmember->getGeneralAction().getNameAction().setString(currentName + " average");
+        }
+
+        endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
+
+    }
+    else if (type == ClusterType) {
+        clusters = dataset.get<Clusters>()->getClusters();
+        auto noClusters = clusters.length();
+
+        endmemberColor = clusters[decisionIndex].getColor();
+        auto endmemberName = clusters[decisionIndex].getName();
+        endmember->getGeneralAction().getColorAction().setColor(endmemberColor);
+        endmember->getGeneralAction().getNameAction().setString(endmemberName);
+    }
+
+    endmember->sendColor(endmemberColor, noEndmembers);
 }
 
 void EndmembersModel::saveEndmembers(QString name) {
@@ -180,13 +187,11 @@ void EndmembersModel::saveEndmembers(QString name) {
             auto visible = _endmembers[i]->getGeneralAction().getVisibleAction().isChecked();
             if (visible) {
                 stream << "Column: " << columnNo << ": " << "name" << endl;
-                qDebug() << "Endmember: " << columnNo;
                 columnNo++;
                 lastIndex = i;
             }
         }
 
-        qDebug() << "Last index: " << lastIndex;
         for (int v = 0; v < noDim; v++) {
 
             stream << "  " << dimNames[v];
@@ -502,6 +507,38 @@ void EndmembersModel::removeEndmember(const std::uint32_t& row)
     }
     catch (...) {
         exceptionMessageBox("Unable to remove layer from the layers model");
+    }
+}
+
+void EndmembersModel::removeEndmembers(QString datasetGuid) {
+    
+    int noEndmembers = _endmembers.length();
+
+    Dataset<DatasetImpl> endmemberDataset;
+    int noClusters = 0;
+    int startIndex = 0;
+
+    if (noEndmembers > 0) {
+        endmemberDataset = _endmembers[0]->getDataset();
+    }
+
+    for (int i = 0; i < noEndmembers; i++) {
+        
+        if (endmemberDataset->getGuid() == datasetGuid) {
+            startIndex = i;
+            break;
+        }
+    }
+
+    for (int i = 0; i < noEndmembers; i++) {
+
+        if (endmemberDataset->getGuid() == datasetGuid) {
+            noClusters++;
+        }
+    }
+
+    for (int i = 0; i < noClusters; i++) {
+        removeEndmember(startIndex);
     }
 }
 
