@@ -774,12 +774,16 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
             auto angle = acos(sum / (referenceSum * pointSum));
             //qDebug() << "Computed angle: " << angle;
 
-            //  if (angle <= thresholdAngle) {
-
+            if (angle <= thresholdAngle) {
+                mapData[width * (height - y - 1) + x] = 1;
+            }
+            else {
+                mapData[width * (height - y - 1) + x] = 0;
+            }
                   // if angle is 0, than very similar spectrum, so high value
-            mapData[width * (height - y - 1) + x] = 1 - (angle / M_PI);
-            qDebug() << mapData[width * (height - y - 1) + x];
-            // }
+            //mapData[width * (height - y - 1) + x] = 1 - (angle / M_PI);
+            //qDebug() << mapData[width * (height - y - 1) + x];
+             //}
         }
     }
 
