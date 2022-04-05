@@ -39,6 +39,8 @@ set(SOURCES
     src/Endmember.h
     src/GeneralAction.cpp
     src/GeneralAction.h
+    src/MapAction.cpp
+    src/MapAction.h
     src/LineplotPlugin.json
 )
 

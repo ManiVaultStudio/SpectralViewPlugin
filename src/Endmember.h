@@ -2,6 +2,7 @@
 
 #include "EndmembersAction.h"
 #include "GeneralAction.h"
+#include "MapAction.h"
 
 #include <util/Interpolation.h>
 #include <event/EventListener.h>
@@ -40,7 +41,7 @@ public:
     void sendEndmemberRemoved(int row);
     void highlightSelection(int row);
     void setData(std::vector<float>);
-    void updateAngle(std::vector<float> endmemberData, float angle);
+    void updateAngle(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
 
     /**
      * Get the context menu
@@ -64,12 +65,14 @@ public: /** Action getters */
     hdps::Dataset<hdps::DatasetImpl>& getDataset() { return _dataset; }
     std::vector<float> getData() { return _data;  }
     GeneralAction& getGeneralAction() { return _generalAction; }
+    MapAction& getMapAction() { return _mapAction; }
 
 protected:
     LineplotPlugin& _lineplotPlugin;                              /** Reference to line plot plugin */
     bool                                _active;                  /** Whether the layer is active (editable) */  
     hdps::Dataset<hdps::DatasetImpl>    _dataset;                 /** Smart pointer to endmember dataset */
     GeneralAction                       _generalAction;
+    MapAction                           _mapAction;
     std::vector<float>                  _data;                    /** Smart pointer to endmember data */
 
     friend class LineplotWidget;

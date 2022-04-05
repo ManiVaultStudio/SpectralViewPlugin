@@ -43,12 +43,12 @@ function addData() {
 
         _stdAreas
             .data(_endmembers)
-            .transition().duration(dur)
+            .transition().duration(1000)
             .attr("d", area);
 
         _endmemberLines
             .data(_endmembers)
-            .transition().duration(dur)
+            .transition().duration(1000)
             .attr("d", line);
 
     }

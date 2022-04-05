@@ -97,10 +97,34 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
                 emit dataChanged(changedCell, changedCell);
                 });
 
-            // Inform views that the endmember angle has changed when it is changed in the action
-            connect(&endmember->getGeneralAction().getAngleAction(), &DecimalAction::valueChanged, this, [this, endmember](float value) {
-                endmember->updateAngle(endmember->getData(), value);
+            connect(&endmember->getMapAction().getComputeAction(), &TriggerAction::triggered, this, [this, endmember]() {
+                auto endmemberData = endmember->getData();
+                auto angle = endmember->getMapAction().getAngleAction().getValue();
+                auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+                auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
+                //auto automatic = endmember->getMapAction().getComputeAction().isChecked();
+
+                endmember->updateAngle(endmemberData, angle, mapType, algorithm);
                 });
+
+            connect(&endmember->getGeneralAction().getVisibleAction(), &ToggleAction::toggled, this, [this, endmember](bool toggled) {
+                
+                if (toggled) {
+
+                    auto endmemberData = endmember->getData();
+                    auto angle = endmember->getMapAction().getAngleAction().getValue();
+                    auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+                    auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
+
+                    endmember->updateAngle(endmemberData, angle, mapType, algorithm);
+                }
+                
+                });
+
+            // Inform views that the endmember angle has changed when it is changed in the action
+            //connect(&endmember->getMapAction().getAngleAction(), &DecimalAction::valueChanged, this, [this, endmember](float value) {
+            //    endmember->updateAngle(endmember->getData(), value);
+            //    });
         }
         endInsertRows();   
     }

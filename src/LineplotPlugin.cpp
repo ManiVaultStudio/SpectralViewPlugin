@@ -375,6 +375,9 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         auto clusters = dataset.get<Clusters>()->getClusters();
         auto noClusters = clusters.length();
 
+        //need to change
+        auto parent = _points;
+
         // remove clusters of this dataset
         _model.removeEndmembers(dataset->getGuid());
         
@@ -420,6 +423,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             }
 
             endmember->setData(average);
+            std::cout << "heyo" << std::endl;
         }
     }
 }
@@ -696,7 +700,7 @@ QString LineplotPlugin::getDatasetName() {
         return "";
 }
 
-void LineplotPlugin::updateMap(std::vector<float> endmemberData, float thresholdAngle) {
+void LineplotPlugin::updateMap(std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType) {
 
     if (!_points.isValid()) {
         return;
@@ -715,7 +719,12 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
 
         _map = _core->createDerivedDataset("endmemberMapPoints", _points);
 
-        spectralAngleMapper(endmemberData, thresholdAngle);
+        if (algorithmType == 0) {
+            spectralAngleMapper(endmemberData, thresholdAngle, mapType);
+        }
+        else if (algorithmType == 1) {
+
+        }
 
         _mapImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_map));
         _mapImage->setGuiName("endmemberMap");
@@ -728,15 +737,20 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
         _core->notifyDatasetAdded(_mapImage);
     }
     else {
-        qDebug() << "Updating map " << endmemberData.size();
-        spectralAngleMapper(endmemberData, thresholdAngle);
+
+        if (algorithmType == 0) {
+            spectralAngleMapper(endmemberData, thresholdAngle, mapType);
+        }
+        else if (algorithmType == 1) {
+
+        }
 
         _core->notifyDatasetChanged(_map);
         _core->notifyDatasetChanged(_mapImage);
     }
 }
 
-void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle) {
+void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType) {
     
     auto children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
@@ -758,6 +772,9 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
     }
 
     referenceSum = sqrt(referenceSum);
+    float angle;
+
+    std::cout << "Reference sum: " << referenceSum << std::endl;
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -770,20 +787,36 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
             }
 
             pointSum = sqrt(pointSum);
+            
+            //std::cout << "Point sum: " << pointSum << std::endl;
+            //std::cout << "Sum sum: " << sum << std::endl;
 
-            auto angle = acos(sum / (referenceSum * pointSum));
-            //qDebug() << "Computed angle: " << angle;
-
-            if (angle <= thresholdAngle) {
-                mapData[width * (height - y - 1) + x] = 1;
+            if (pointSum == 0 || referenceSum == 0) {
+                angle = thresholdAngle + 0.2;
             }
             else {
-                mapData[width * (height - y - 1) + x] = 0;
+                angle = acos(sum / (referenceSum * pointSum));
             }
-                  // if angle is 0, than very similar spectrum, so high value
-            //mapData[width * (height - y - 1) + x] = 1 - (angle / M_PI);
-            //qDebug() << mapData[width * (height - y - 1) + x];
-             //}
+            //std::cout << "Computed angle: " << angle << std::endl << std::endl;
+
+            if (mapType == 0) {
+                if (angle <= thresholdAngle) {
+                    mapData[width * (height - y - 1) + x] = 1;
+                }
+                else {
+                   mapData[width * (height - y - 1) + x] = 0;
+                }
+            }
+            else if (mapType == 1) {
+                if (pointSum != 0) {
+                    mapData[width * (height - y - 1) + x] = 1 - (angle / M_PI/2);
+                }
+                else {
+                    mapData[width * (height - y - 1) + x] = 0;
+                }
+
+               //std::cout << "Value " << mapData[width * (height - y - 1) + x] << std::endl;
+            }
         }
     }
 

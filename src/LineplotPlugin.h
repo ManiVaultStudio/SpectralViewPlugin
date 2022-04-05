@@ -66,8 +66,10 @@ public:
 
     QString getDatasetName();
 
-    void updateMap(std::vector<float> endmemberData, float angle);
-    void spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle);
+    void updateMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
+    void spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
+    void spectralCorrelationMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
+
 
 
 public: // Action getters

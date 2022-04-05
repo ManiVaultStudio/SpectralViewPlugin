@@ -19,7 +19,8 @@ Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>&
     _active(false),
     _dataset(dataset),
     _data(),
-    _generalAction(*this)
+    _generalAction(*this),
+    _mapAction(*this)
 {
     setText("Endmember");
     setObjectName("Endmember");
@@ -73,6 +74,6 @@ LineplotPlugin& Endmember::getLineplotPlugin()
     return _lineplotPlugin;
 }
 
-void Endmember::updateAngle(std::vector<float> endmemberData, float angle) {
-    _lineplotPlugin.updateMap(endmemberData, angle);
+void Endmember::updateAngle(std::vector<float> endmemberData, float angle, int mapType, int algorithmType) {
+    _lineplotPlugin.updateMap(endmemberData, angle, mapType, algorithmType);
 }

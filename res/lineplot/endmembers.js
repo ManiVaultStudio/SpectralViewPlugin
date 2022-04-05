@@ -61,4 +61,14 @@ function addEndmembers(endmember, index) {
             .transition().duration(1000)
             .attr("d", line);
     }
+
+    _stdAreas
+        .data(_endmembers)
+        .transition().duration(1000)
+        .attr("d", area);
+
+    _endmemberLines
+        .data(_endmembers)
+        .transition().duration(1000)
+        .attr("d", line);
 }
