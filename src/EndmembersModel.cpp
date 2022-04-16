@@ -172,16 +172,16 @@ void EndmembersModel::setEndmemberProperties(Endmember* endmember, int decisionI
 
 void EndmembersModel::saveEndmembers(QString name) {
 
-    // Create a txt file
-    //QString filename = "Endmembers_" + name + ".txt";
-    //QFile file(filename);
-
-    // resample before saving
-
     auto parent = _endmembers[0]->getDataset()->getParent();
     auto points = parent.get<Points>();
     auto dimNames = points->getDimensionNames();
     auto noDim = points->getNumDimensions();
+
+    std::vector<float> dimensions(noDim);
+
+    for (int v = 0; v < noDim; v++) {
+        dimensions[v] = dimNames[v].toFloat();
+    }
 
     // Open dialog for saving location
     QString fileName = QFileDialog::getSaveFileName(nullptr, 
@@ -228,11 +228,20 @@ void EndmembersModel::saveEndmembers(QString name) {
    
                 auto visible = _endmembers[i]->getGeneralAction().getVisibleAction().isChecked();
                 if (visible) {
+                    // resample before saving
+                    auto resampledEndmember = _endmembers[i]->resample(dimensions);
+
                     stream << "  " << _endmembers[i]->getData().at(v);
+                    //stream << "  " << resampledEndmember.at(v);
+
                 }
             }
 
+            auto resampledEndmember = _endmembers[lastIndex]->resample(dimensions);
+
             stream << "  " << _endmembers[lastIndex]->getData().at(v) << endl;
+            //stream << "  " << resampledEndmember.at(v) << endl;
+
         }
     }
 }

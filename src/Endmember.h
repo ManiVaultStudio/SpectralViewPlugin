@@ -42,6 +42,7 @@ public:
     void highlightSelection(int row);
     void setData(std::vector<float>);
     void updateAngle(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
+    std::vector<float> resample(std::vector<float> parentDim);
 
     /**
      * Get the context menu

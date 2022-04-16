@@ -77,3 +77,45 @@ LineplotPlugin& Endmember::getLineplotPlugin()
 void Endmember::updateAngle(std::vector<float> endmemberData, float angle, int mapType, int algorithmType) {
     _lineplotPlugin.updateMap(endmemberData, angle, mapType, algorithmType);
 }
+
+std::vector<float> Endmember::resample(std::vector<float> parentDim) {
+
+    float noDim = parentDim.size();
+    auto endmemberDatasetPoints = _dataset.get<Points>();
+    auto endmemberDimString = endmemberDatasetPoints->getDimensionNames();
+    float noEndmemberDim = endmemberDatasetPoints->getNumDimensions();
+    std::vector<float> endmemberDim(noEndmemberDim);
+
+    std::vector<float> values(noDim);
+
+    if (noEndmemberDim == noDim) {
+        return _data;
+    }
+    else {
+
+        for (int v = 0; v < noEndmemberDim; v++) {
+            endmemberDim[v] = endmemberDimString[v].toFloat();
+        }
+
+        // equally spaced values
+        float step = endmemberDim[1] - endmemberDim[0];
+        float last = 0;
+
+        for (int x = 0; x < noDim; x++) {
+            for (int y = 1; y < noEndmemberDim; y++) {
+                if (endmemberDim[y] == parentDim[x]) {
+                    values[x] = _data[x];
+                    break;
+                }
+                else if (endmemberDim[y] > parentDim[x]) {
+                    float weight = (endmemberDim[y] - parentDim[x]) / step;
+                    values[x] = weight * _data[y - 1] + (1 - weight) * _data[y];
+                    last = y;
+                    break;
+                }
+            }
+        }
+    }
+
+    return values;
+}
