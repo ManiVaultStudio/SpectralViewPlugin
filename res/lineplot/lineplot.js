@@ -41,6 +41,8 @@ var checkedRGB = false;
 var _checkedStd = false;
 var _endmemberColors = [];
 
+var _visibleEndmembers = [];
+
 // sizes =======================================================================
 var _lineChartWidth;
 var _lineChartHeight;
@@ -419,6 +421,8 @@ function setEndmemberColor(r, g, b, row) {
 
 function setEndmemberVisibility(toggled, row) {
 
+    _visibleEndmembers[row] = toggled;
+
     if (toggled) {
         showElement("#line" + row, 1);
 
@@ -446,6 +450,7 @@ function setEndmemberRemoved(row) {
     _lineChart.select("#line" + row).remove();
 
     _endmemberColors.splice(row, 1);
+    _visibleEndmembers.splice(row, 1);
 
     var noEndmembers = _endmembers.length;
     log("No endmembers: " + noEndmembers);
@@ -490,7 +495,12 @@ function enableStdArea(c) {
 
     if (_checkedStd) {
         showElement(".stdInterval", 0.1);
-        showElement(".endmembersStd", 0.1);
+
+        for (var i = 0; i < _visibleEndmembers.length; i++) {
+            if (_visibleEndmembers[i]) {
+                _lineChart.select("#area" + i).attr("opacity", 0.1);
+            }
+        }
     }
     else {
         removeElement(".stdInterval");

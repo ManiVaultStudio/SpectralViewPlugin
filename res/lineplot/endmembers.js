@@ -1,5 +1,7 @@
 function addEndmembers(endmember, index) {
 
+    _visibleEndmembers[index] = true;
+
     var newYMax = d3.max(endmember, function (d) { return +d.y; });
     var newYMin = d3.max(endmember, function (d) { return +d.y; });
 
