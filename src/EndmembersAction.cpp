@@ -107,7 +107,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
             endmember->highlightSelection(row);
 
            // if (endmember->getData().size() != 0) {
-           //     endmember->updateAngle(endmember->getData(), endmember->getGeneralAction().getAngleAction().getValue());
+           //     endmember->updateAngle(endmember->getData(), endmember->getMapAction().getAngleAction().getValue());
            // }
 
             groupActions << &endmember->getGeneralAction() << &endmember->getMapAction();

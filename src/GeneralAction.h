@@ -37,7 +37,6 @@ public: /** Action getters */
     ToggleAction& getVisibleAction() { return _visibleAction; }
     ColorAction& getColorAction() { return _colorAction; }
     StringAction& getNameAction() { return _nameAction; }
-    DecimalAction& getAngleAction() { return _angleAction; }
 
 protected:
     Endmember& _endmember;                 /** Reference to layer */
@@ -45,5 +44,4 @@ protected:
     StringAction    _datasetNameAction;     /** Dataset name action */
     ColorAction     _colorAction;           /** Color action */
     StringAction    _nameAction;            /** Name action */
-    DecimalAction   _angleAction;
 };

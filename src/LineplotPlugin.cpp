@@ -423,7 +423,6 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             }
 
             endmember->setData(average);
-            std::cout << "heyo" << std::endl;
         }
     }
 }
@@ -543,9 +542,12 @@ void LineplotPlugin::initializeImageRGB() {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                imageRGBData[width * 3 * (height - y - 1) + 3 * x] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimR);
-                imageRGBData[width * 3 * (height - y - 1) + 3 * x + 1] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimG);
-                imageRGBData[width * 3 * (height - y - 1) + 3 * x + 2] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimB);
+
+                int index = y * width + x;
+                imageRGBData[index * 3] = source->getValueAt(index * numDimensions + dimR);
+                imageRGBData[index * 3 + 1] = source->getValueAt(index * numDimensions + dimG);
+                imageRGBData[index * 3 + 2] = source->getValueAt(index * numDimensions + dimB);
+
             }
         }
 
@@ -606,9 +608,12 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float w
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            imageRGBData[width * 3 * (height - y - 1) + 3 * x] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimR);
-            imageRGBData[width * 3 * (height - y - 1) + 3 * x + 1] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimG);
-            imageRGBData[width * 3 * (height - y - 1) + 3 * x + 2] = source->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + dimB);
+
+            int index = y * width + x;
+
+            imageRGBData[index * 3] = source->getValueAt(index * numDimensions + dimR);
+            imageRGBData[index * 3 + 1] = source->getValueAt(index * numDimensions + dimG);
+            imageRGBData[index * 3 + 2] = source->getValueAt(index * numDimensions + dimB);
         }
     }
 
@@ -653,10 +658,8 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
         for (int i = 0; i < noPoints; i++) {
             
             auto index = indices.at(i);
-            int x = index / width;
-            int y = index - (x * width);
-            sum += source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
 
+            sum += source->getValueAt(index * numDimensions + v);
         }
 
         float mean = noPoints == 0 ? 0 : sum / noPoints;
@@ -668,9 +671,7 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
 
             for (int i = 0; i < noPoints; i++) {
                 auto index = indices.at(i);
-                int x = index / width;
-                int y = index - (x * width);
-                float value = source->getValueAt(width * numDimensions * (height - x - 1) + numDimensions * y + v);
+                float value = source->getValueAt(index * numDimensions + v);
                 std += (value - mean) * (value - mean);
             }
 
@@ -719,12 +720,7 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
 
         _map = _core->createDerivedDataset("endmemberMapPoints", _points);
 
-        if (algorithmType == 0) {
-            spectralAngleMapper(endmemberData, thresholdAngle, mapType);
-        }
-        else if (algorithmType == 1) {
-
-        }
+        spectralMapper(endmemberData, thresholdAngle, mapType, algorithmType);
 
         _mapImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_map));
         _mapImage->setGuiName("endmemberMap");
@@ -738,19 +734,15 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
     }
     else {
 
-        if (algorithmType == 0) {
-            spectralAngleMapper(endmemberData, thresholdAngle, mapType);
-        }
-        else if (algorithmType == 1) {
-
-        }
+       spectralMapper(endmemberData, thresholdAngle, mapType, algorithmType);
 
         _core->notifyDatasetChanged(_map);
         _core->notifyDatasetChanged(_mapImage);
     }
 }
 
-void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType) {
+// implementation of spectral angle mapper and spectral correlation mapper
+void LineplotPlugin::spectralMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType) {
     
     auto children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
@@ -762,65 +754,110 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
     auto numDimensions = _points->getNumDimensions();
     auto noPoints = _points->getNumPoints();
 
-    std::vector<float> mapData(noPoints);
+    std::vector<float> mapData(width * height);
 
     float referenceSum = 0;
+    float referenceMean = 0;
 
-    // spectral angle mapper algorithm
-    for (int v = 0; v < numDimensions; v++) {
-        referenceSum += endmemberData[v] * endmemberData[v];
+    if (algorithmType == 0) {
+
+        for (int v = 0; v < numDimensions; v++) {
+            referenceSum += pow(endmemberData[v], 2);
+        }
+    }
+    else if (algorithmType == 1) {
+        referenceMean = computeAverageValue(endmemberData);
+
+        for (int v = 0; v < numDimensions; v++) {
+            referenceSum += pow(endmemberData[v] - referenceMean, 2);
+        }
     }
 
     referenceSum = sqrt(referenceSum);
     float angle;
 
-    std::cout << "Reference sum: " << referenceSum << std::endl;
-
     for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
+       for (int x = 0; x < width; x++) {
             float sum = 0;
             float pointSum = 0;
+            int index = y * width + x;
 
-            for (int v = 0; v < numDimensions; v++) {
-                sum += endmemberData[v] * _points->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + v);
-                pointSum += pow(_points->getValueAt(width * numDimensions * (height - y - 1) + numDimensions * x + v), 2);
+            if (algorithmType == 0) {
+                for (int v = 0; v < numDimensions; v++) {
+                    auto pointValue = _points->getValueAt(index * numDimensions + v);
+
+                    sum += endmemberData[v] * pointValue;
+                    pointSum += pow(pointValue, 2);
+                }
             }
+            else if (algorithmType == 1) {
+
+                std::vector<float> pointData(noPoints);
+
+                for (int v = 0; v < numDimensions; v++) {
+                    pointData[v] = _points->getValueAt(index * numDimensions + v);
+                }
+                float pointMean = computeAverageValue(pointData);
+                qDebug() << pointMean;
+
+                for (int v = 0; v < numDimensions; v++) {
+                    auto pointValue = _points->getValueAt(index * numDimensions + v);
+
+                    sum += (endmemberData[v] - referenceMean) * (pointValue - pointMean);
+                    pointSum += pow(pointValue - pointMean, 2);
+                }
+            } 
 
             pointSum = sqrt(pointSum);
-            
-            //std::cout << "Point sum: " << pointSum << std::endl;
-            //std::cout << "Sum sum: " << sum << std::endl;
-
+           
             if (pointSum == 0 || referenceSum == 0) {
                 angle = thresholdAngle + 0.2;
             }
             else {
-                angle = acos(sum / (referenceSum * pointSum));
+                float value = sum / (referenceSum * pointSum);
+
+                if (value > 1)
+                    angle = 0;
+                else if (value < 0)
+                    angle = M_PI/2;
+                else
+                    angle = acos(value);
             }
-            //std::cout << "Computed angle: " << angle << std::endl << std::endl;
 
             if (mapType == 0) {
                 if (angle <= thresholdAngle) {
-                    mapData[width * (height - y - 1) + x] = 1;
+                    mapData[index] = 1;                    
                 }
                 else {
-                   mapData[width * (height - y - 1) + x] = 0;
+                    mapData[index] = 0;
                 }
             }
             else if (mapType == 1) {
                 if (pointSum != 0) {
-                    mapData[width * (height - y - 1) + x] = 1 - (angle / M_PI/2);
+                    mapData[index] = 1 - 2 * angle / M_PI;
                 }
                 else {
-                    mapData[width * (height - y - 1) + x] = 0;
+                    mapData[index] = 0;
                 }
-
-               //std::cout << "Value " << mapData[width * (height - y - 1) + x] << std::endl;
             }
         }
     }
 
     _map->setData(mapData.data(), noPoints, 1);
+}
+
+float LineplotPlugin::computeAverageValue(std::vector<float> data) {
+
+    int dataLen = data.size();
+    float avg = 0;
+
+    for (int v = 0; v < dataLen; v++) {
+        avg += data.at(v);
+    }
+
+    avg = avg / dataLen;
+
+    return avg;
 }
 
 

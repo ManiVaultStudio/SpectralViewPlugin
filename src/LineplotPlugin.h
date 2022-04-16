@@ -67,8 +67,8 @@ public:
     QString getDatasetName();
 
     void updateMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
-    void spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
-    void spectralCorrelationMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
+    void spectralMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType);
+    float LineplotPlugin::computeAverageValue(std::vector<float> data);
 
 
 

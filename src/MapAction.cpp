@@ -10,7 +10,7 @@ MapAction::MapAction(Endmember& endmember) :
     _endmember(endmember),
     _algorithmAction(this, "Algorithm", {"Spectral Angle Mapper", "Spectral Correlation Mapper"}, "Spectral Angle Mapper", "Spectral Angle Mapper"),
     _mapTypeAction(this, "Map type", { "Binary", "Distance based"}, "Binary", "Binary"),
-    _angleAction(this, "Angle", 0.15),
+    _angleAction(this, "Angle"),
     _updateAction(this, "Update automatically"),
     _computeAction(this, "Perform algorithm")
 {
@@ -32,6 +32,6 @@ MapAction::MapAction(Endmember& endmember) :
     _angleAction.minimumChanged(0);
     _angleAction.setSingleStep(0.05);
     _angleAction.singleStepChanged(0.05);
-    _angleAction.setMaximum(M_PI);
-    _angleAction.maximumChanged(M_PI);
+    _angleAction.setMaximum(M_PI/2);
+    _angleAction.maximumChanged(M_PI/2);
 }
