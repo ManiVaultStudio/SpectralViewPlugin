@@ -98,8 +98,10 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
                 });
 
             connect(&endmember->getMapAction().getComputeAction(), &TriggerAction::triggered, this, [this, endmember]() {
+                
                 auto endmemberData = endmember->getData();
                 auto angle = endmember->getMapAction().getAngleAction().getValue();
+                qDebug() << angle;
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 //auto automatic = endmember->getMapAction().getComputeAction().isChecked();
@@ -107,18 +109,15 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
                 endmember->updateAngle(endmemberData, angle, mapType, algorithm);
                 });
 
-            connect(&endmember->getGeneralAction().getVisibleAction(), &ToggleAction::toggled, this, [this, endmember](bool toggled) {
+            connect(&endmember->getMapAction().getMapTypeAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int index) {
                 
-                if (toggled) {
-
-                    auto endmemberData = endmember->getData();
-                    auto angle = endmember->getMapAction().getAngleAction().getValue();
-                    auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
-                    auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
-
-                    endmember->updateAngle(endmemberData, angle, mapType, algorithm);
+                if (index == 0) {
+                    endmember->getMapAction().getAngleAction().setEnabled(true);
                 }
-                
+                else if (index == 1) {
+                    endmember->getMapAction().getAngleAction().setEnabled(false);
+                }
+
                 });
 
             // Inform views that the endmember angle has changed when it is changed in the action

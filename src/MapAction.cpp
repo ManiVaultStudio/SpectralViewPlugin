@@ -28,10 +28,11 @@ MapAction::MapAction(Endmember& endmember) :
 
     _angleAction.setSuffix(" rad");
     _angleAction.setUpdateDuringDrag(false);
-    _angleAction.setMinimum(0);
-    _angleAction.minimumChanged(0);
+    _angleAction.setDefaultValue(0.15);
+    _angleAction.defaultValueChanged(0.15);
+    _angleAction.setNumberOfDecimals(2);
+    _angleAction.numberOfDecimalsChanged(2);
+    _angleAction.setRange(0, M_PI / 2);
     _angleAction.setSingleStep(0.05);
     _angleAction.singleStepChanged(0.05);
-    _angleAction.setMaximum(M_PI/2);
-    _angleAction.maximumChanged(M_PI/2);
 }
