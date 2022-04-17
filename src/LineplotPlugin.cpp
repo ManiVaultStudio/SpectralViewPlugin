@@ -141,6 +141,7 @@ void LineplotPlugin::init()
                         const auto description2 = QString("Visaualize the points in %1 as an average line").arg(datasetGuiName);
 
                         if ((!candidateDataset->isFull() || candidateDataset->isDerivedData()) && candidateDataset->getParent() == _points) {
+                            
                             dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
                                 addDataset(candidateDataset);
                                 });
@@ -268,11 +269,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             const auto dataAddedEvent = static_cast<DataAddedEvent*>(dataEvent);
 
             // Get the GUI name of the added points dataset and print to the console
-            std::cout << datasetGuiName.toStdString() << " was added" << std::endl;
-
-            if (datasetGuiName == "endmemberList") {
-                importEndmembersCSV(datasetGuid);
-            }            
+            std::cout << datasetGuiName.toStdString() << " was added" << std::endl;            
 
             break;
         }
@@ -446,45 +443,6 @@ void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
             auto endmemberData = computeAverageSpectrum(parent, noPoints, indices, "endmember");
             endmember->setData(std::get<0>(endmemberData));
         }
-    }
-}
-
-void LineplotPlugin::importEndmembersCSV(const QString datasetGuid) {
-
-    auto endmembers = _core->requestDataset(datasetGuid);
-    auto endmemberPoints = endmembers->getSourceDataset<Points>();
-    auto guiName = endmembers->getGuiName();
-
-    auto numDimensions = endmemberPoints->getNumDimensions();
-    auto endmembersNo = endmemberPoints->getNumPoints();
-
-    std::vector<QString> dimNames;
-    std::vector<float> endmemberData;
-
-
-    for (int v = 0; v < numDimensions; v++) {
-        auto value = endmemberPoints->getValueAt(v);
-        dimNames.push_back(QString::number(value));
-    }
-
-    for (int i = 1; i < endmembersNo; i++) {
-        for (int v = 0; v < numDimensions; v++) {
-            endmemberData.push_back(endmemberPoints->getValueAt(i * numDimensions + v));
-        }
-    }
-
-    endmemberPoints->setDimensionNames(dimNames);
-    endmemberPoints->setData(endmemberData.data(), endmembersNo - 1, numDimensions);
-    
-    if (_points.isValid()) {
-        hdps::Dataset<Points> derivedEndmembers = _core->createDerivedDataset("endmembers", _points, _points);
-        derivedEndmembers->setData(endmemberData.data(), endmembersNo - 1, numDimensions);
-        derivedEndmembers->setDimensionNames(dimNames);
-        _core->notifyDatasetAdded(derivedEndmembers);
-        _core->notifyDatasetChanged(endmemberPoints);
-    }
-    else {
-        _core->notifyDatasetChanged(endmemberPoints);
     }
 }
 
