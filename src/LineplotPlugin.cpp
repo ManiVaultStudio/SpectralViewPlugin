@@ -140,16 +140,22 @@ void LineplotPlugin::init()
                         const auto description1 = QString("Visualize every point in %1 as one line").arg(datasetGuiName);
                         const auto description2 = QString("Visaualize the points in %1 as an average line").arg(datasetGuiName);
 
-                        if ((!candidateDataset->isFull() || candidateDataset->isDerivedData()) && candidateDataset->getParent() == _points) {
-                            
-                            dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
-                                addDataset(candidateDataset);
-                                });
+                        if (!candidateDataset->isFull() || candidateDataset->isDerivedData()) {
 
-                            dropRegions << new DropWidget::DropRegion(this, "Average endmember", description2, "map-marker-alt", true, [this, candidateDataset]() {
-                                addAverageDataset(candidateDataset);
-                                });
+                            DataHierarchyItems parents;
 
+                            hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
+
+                            if (parents.at(0)->getGuiName() == _points->getGuiName()) {
+
+                                dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
+                                    addDataset(candidateDataset);
+                                    });
+
+                                dropRegions << new DropWidget::DropRegion(this, "Average endmember", description2, "map-marker-alt", true, [this, candidateDataset]() {
+                                    addAverageDataset(candidateDataset);
+                                    });
+                            }
                         }
                         else {
                             dropRegions << new DropWidget::DropRegion(this, "Points", description, "map-marker-alt", true, [this, candidateDataset]() {
@@ -180,11 +186,19 @@ void LineplotPlugin::init()
                     dropRegions << new gui::DropWidget::DropRegion(this, "Clusters", "Cluster set is already in use", "exclamation-circle", false, [this]() {});
                 }
                 else {
-                    dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
-                        _clusters = candidateDataset;
-                        addDataset(candidateDataset);
-                        
-                        });
+
+                    DataHierarchyItems parents;
+
+                    hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
+
+                    if (parents.at(0)->getGuiName() == _points->getGuiName()) {
+
+                        dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
+                            _clusters = candidateDataset;
+                            addDataset(candidateDataset);
+
+                            });
+                    }
                 }
             }
             else {
@@ -606,7 +620,8 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
     int width = imageSize.width();
     int height = imageSize.height();  
 
-    std::vector<float> averageSpectrum, standardDeviation;
+    std::vector<float> averageSpectrum(numDimensions);
+    std::vector<float> standardDeviation(numDimensions);
     std::vector<float> confIntervalLeft(numDimensions);
     std::vector <float> confIntervalRight(numDimensions);
 
@@ -616,12 +631,11 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
         for (int i = 0; i < noPoints; i++) {
             
             auto index = indices.at(i);
-
             sum += source->getValueAt(index * numDimensions + v);
         }
 
         float mean = noPoints == 0 ? 0 : sum / noPoints;
-        averageSpectrum.push_back(mean);
+        averageSpectrum[v] = mean;
 
         if (noPoints > 1) {
             // compute standard deviation per dimension                
@@ -635,7 +649,7 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
 
             std = sqrt(std / noPoints);
 
-            standardDeviation.push_back(std);
+            standardDeviation[v] = std;
             confIntervalRight[v] = mean + std;
             confIntervalLeft[v] = mean - std;
         }
