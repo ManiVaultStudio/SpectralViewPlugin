@@ -11,7 +11,6 @@ MapAction::MapAction(Endmember& endmember) :
     _algorithmAction(this, "Algorithm", {"Spectral Angle Mapper", "Spectral Correlation Mapper"}, "Spectral Angle Mapper", "Spectral Angle Mapper"),
     _mapTypeAction(this, "Map type", { "Binary", "Distance based"}, "Binary", "Binary"),
     _angleAction(this, "Angle"),
-    _updateAction(this, "Update automatically"),
     _computeAction(this, "Perform algorithm")
 {
     setText("Mapping");
@@ -20,7 +19,6 @@ MapAction::MapAction(Endmember& endmember) :
     _algorithmAction.setToolTip("Choose algorithm for mapping");
     _mapTypeAction.setToolTip("Choose map type");
     _angleAction.setToolTip("Threshold angle for mapping");
-    _updateAction.setToolTip("Update map on release of angle bar");
     _computeAction.setToolTip("Update map");
     
     auto& fontAwesome = Application::getIconFont("FontAwesome");

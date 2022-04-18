@@ -25,7 +25,7 @@ public:
      * Constructor
      * @param layer Reference to layer
      */
-    GeneralAction(Endmember& endmember);
+    GeneralAction(Endmember& endmember, int index);
 
     /** Get reference to parent layer */
     Endmember& getEndmember() { return _endmember; }

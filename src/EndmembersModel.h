@@ -97,7 +97,7 @@ public: // Endmember operations
      * @param endmember Pointer to endmember
      * @param decision index for colour/name selection
      */
-    void addEndmember(Endmember* endmember);
+    void addEndmember(Endmember* endmember, int decisionIndex);
 
     /**
     * Save all endmembers to a .txt file
@@ -127,9 +127,6 @@ public: // Endmember operations
      * @param layerModelIndex Layer model index
      */
     void removeEndmember(const QModelIndex& layerModelIndex);
-
-    void setEndmemberProperties(Endmember* endmember, int decisionIndex);
-
 
     /**
      * Duplicates a layer  by model index

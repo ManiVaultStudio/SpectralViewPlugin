@@ -36,7 +36,6 @@ public: /** Action getters */
     OptionAction& getAlgorithmAction() { return _algorithmAction; }
     OptionAction& getMapTypeAction() { return _mapTypeAction; }
     DecimalAction& getAngleAction() { return _angleAction; }
-    ToggleAction& getUpdateAction() { return _updateAction; }
     TriggerAction& getComputeAction() { return _computeAction; }
 
 protected:
@@ -44,7 +43,6 @@ protected:
     OptionAction    _algorithmAction;     /** Dataset name action */
     OptionAction    _mapTypeAction;
     DecimalAction   _angleAction;
-    ToggleAction    _updateAction;
     TriggerAction    _computeAction;         /** Visible action */
 
 };

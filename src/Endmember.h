@@ -28,7 +28,7 @@ public:
      * @param lineplotPlugin Reference to line plot plugin
      * @param dataset Smart pointer to dataset
      */
-    Endmember(LineplotPlugin& lineplotPlugin, const hdps::Dataset<hdps::DatasetImpl>& dataset);
+    Endmember(LineplotPlugin& lineplotPlugin, const hdps::Dataset<hdps::DatasetImpl>& dataset, int index);
 
     /** Destructor */
     virtual ~Endmember();

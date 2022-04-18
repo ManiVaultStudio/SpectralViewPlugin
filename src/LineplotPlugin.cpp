@@ -350,9 +350,8 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         if (indices.size() != 0) {
             for (int i = 0; i < noPoints; i++) {
 
-                auto endmember = new Endmember(*this, dataset);
-                _model.addEndmember(endmember);
-                _model.setEndmemberProperties(endmember, -1);
+                auto endmember = new Endmember(*this, dataset, -1);
+                _model.addEndmember(endmember, -1);
 
                 auto endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
                 endmember->setData(std::get<0>(endmemberData));
@@ -371,9 +370,8 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
                     endmemberData[v] = points->getValueAt(i * numDimensions + v);
                 }
 
-                auto endmember = new Endmember(*this, dataset);
-                _model.addEndmember(endmember);
-                _model.setEndmemberProperties(endmember, -1);
+                auto endmember = new Endmember(*this, dataset, -1);
+                _model.addEndmember(endmember, -1);
 
                 _linePlotWidget.setData(endmemberData, confInterval, confInterval, dimNames, numDimensions, "endmember");
                 endmember->setData(endmemberData);
@@ -401,15 +399,14 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             auto average = clusters[i].getMean();
             auto std = clusters[i].getStandardDeviation();
 
-            auto endmember = new Endmember(*this, dataset);
-            _model.addEndmember(endmember);
+            auto endmember = new Endmember(*this, dataset, i);
+            _model.addEndmember(endmember, i);
 
             if (average.size() == 0) {
 
                 average.resize(numDimensions);
                 std.resize(numDimensions);
 
-                _model.setEndmemberProperties(endmember, i);
                 auto endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
                 auto computedAvg = std::get<0>(endmemberData);
                 auto computedStd = std::get<1>(endmemberData);
@@ -423,8 +420,6 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
                 std::vector<float> confIntervalLeft;
                 std::vector<float> confIntervalRight;
                 auto dimNames = parent.get<Points>()->getDimensionNames();
-
-                _model.setEndmemberProperties(endmember, i);
 
                 for (int v = 0; v < numDimensions; v++) {
                     confIntervalLeft[v] = average[v] - std[v];
@@ -450,9 +445,8 @@ void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
 
         if (indices.size() != 0) {
 
-            auto endmember = new Endmember(*this, dataset);
-            _model.addEndmember(endmember);
-            _model.setEndmemberProperties(endmember, 0);
+            auto endmember = new Endmember(*this, dataset, 0);
+            _model.addEndmember(endmember, 0);
 
             auto endmemberData = computeAverageSpectrum(parent, noPoints, indices, "endmember");
             endmember->setData(std::get<0>(endmemberData));

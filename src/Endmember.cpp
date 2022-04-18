@@ -12,15 +12,16 @@
 
 #include <set>
 
-Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>& dataset) :
+Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>& dataset, int index) :
     WidgetAction(&lineplotPlugin),
     EventListener(),
     _lineplotPlugin(lineplotPlugin),
     _active(false),
     _dataset(dataset),
     _data(),
-    _generalAction(*this),
+    _generalAction(*this, index),
     _mapAction(*this)
+
 {
     setText("Endmember");
     setObjectName("Endmember");

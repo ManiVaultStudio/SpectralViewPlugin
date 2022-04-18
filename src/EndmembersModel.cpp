@@ -65,11 +65,15 @@ EndmembersModel::~EndmembersModel()
         removeEndmember(row);
 }
 
-void EndmembersModel::addEndmember(Endmember* endmember) {
+void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
     
     try
     {
         int noEndmembers = _endmembers.length();
+
+        auto endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
+
+        endmember->sendColor(endmemberColor, noEndmembers);
 
         // Insert the endmember action at the beginning
         beginInsertRows(QModelIndex(), 0, 0);
@@ -85,16 +89,48 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
                 });
 
             // Inform views that the endmember color has changed when it is changed in the action
-            connect(&endmember->getGeneralAction().getColorAction(), &ColorAction::colorChanged, this, [this, endmember](const QColor& color) {
+            connect(&endmember->getGeneralAction().getColorAction(), &ColorAction::colorChanged, this, [this, endmember, decisionIndex](const QColor& color) {
                 const auto changedCell = index(_endmembers.indexOf(endmember), Column::Color);
                 emit dataChanged(changedCell, changedCell);
                 endmember->sendColor(color, _endmembers.indexOf(endmember));
+                
+                /*
+                auto dataset = endmember->getDataset();
+                auto type = dataset->getDataType();
+
+                if (type == ClusterType) {
+                    auto clusters = dataset.get<Clusters>()->getClusters();
+                    clusters[decisionIndex].setColor(color);
+                   
+                    qDebug() << "Second change cluster color with: " << color;
+                    qDebug() << "Index: " << decisionIndex;
+
+                    Application::core()->notifyDatasetChanged(dataset);
+                }
+                */
                 });
 
             // Inform views that the endmember name has changed when it is changed in the action
-            connect(&endmember->getGeneralAction().getNameAction(), &StringAction::stringChanged, this, [this, endmember]() {
+            connect(&endmember->getGeneralAction().getNameAction(), &StringAction::stringChanged, this, [this, endmember, decisionIndex](const QString& name) {
                 const auto changedCell = index(_endmembers.indexOf(endmember), Column::Name);
                 emit dataChanged(changedCell, changedCell);
+                
+                /*
+                auto dataset = endmember->getDataset();
+                auto type = dataset->getDataType();
+
+                if (type == ClusterType) {
+                    auto clusters = dataset.get<Clusters>()->getClusters();
+                    qDebug() << "Before: " << clusters[decisionIndex].getName();
+                    clusters[decisionIndex].setName(name);
+                    dataset.get<Clusters>()->changed();
+                    qDebug() << "After " << clusters[decisionIndex].getName();
+
+                    emit dataChanged(index(clusters.indexOf(clusters[decisionIndex]), Column::Name), index(clusters.indexOf(clusters[decisionIndex]), Column::Name));
+                    Application::core()->notifyDatasetChanged(dataset->getSourceDataset<Clusters>());
+                }
+                */
+
                 });
 
             connect(&endmember->getMapAction().getComputeAction(), &TriggerAction::triggered, this, [this, endmember]() {
@@ -104,7 +140,6 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
                 qDebug() << angle;
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
-                //auto automatic = endmember->getMapAction().getComputeAction().isChecked();
 
                 endmember->updateAngle(endmemberData, angle, mapType, algorithm);
                 });
@@ -134,39 +169,6 @@ void EndmembersModel::addEndmember(Endmember* endmember) {
     catch (...) {
         exceptionMessageBox("Unable to add endmember to the endmembers model");
     }
-}
-
-void EndmembersModel::setEndmemberProperties(Endmember* endmember, int decisionIndex) {
-
-    int noEndmembers = _endmembers.length() - 1;
-
-    auto dataset = endmember->getDataset();
-    auto type = dataset->getDataType();
-    QColor endmemberColor;
-    QVector<Cluster> clusters;
-
-    if (type == PointType) {
-        // set name with avg
-        if (decisionIndex == 0) {
-            auto currentName = endmember->getGeneralAction().getNameAction().getString();
-            endmember->getGeneralAction().getNameAction().setString(currentName + " average");
-        }
-
-        endmemberColor = endmember->getGeneralAction().getColorAction().getColor();
-
-    }
-    else if (type == ClusterType) {
-        clusters = dataset.get<Clusters>()->getClusters();
-        auto noClusters = clusters.length();
-
-        endmemberColor = clusters[decisionIndex].getColor();
-        auto endmemberName = clusters[decisionIndex].getName();
-        endmember->getGeneralAction().getColorAction().setColor(endmemberColor);
-        endmember->getGeneralAction().getNameAction().setString(endmemberName);
-    }
-
-    endmember->sendColor(endmemberColor, noEndmembers);
-
 }
 
 void EndmembersModel::saveEndmembers(QString name) {
@@ -213,7 +215,7 @@ void EndmembersModel::saveEndmembers(QString name) {
             // set the right name
             auto visible = _endmembers[i]->getGeneralAction().getVisibleAction().isChecked();
             if (visible) {
-                stream << "Column: " << columnNo << ": " << "name" << endl;
+                stream << "Column " << columnNo << ": " << _endmembers[i]->getGeneralAction().getNameAction().getString() << endl;
                 columnNo++;
                 lastIndex = i;
             }
@@ -550,17 +552,12 @@ void EndmembersModel::removeEndmembers(QString datasetGuid) {
     
     int noEndmembers = _endmembers.length();
 
-    Dataset<DatasetImpl> endmemberDataset;
     int noClusters = 0;
     int startIndex = 0;
 
-    if (noEndmembers > 0) {
-        endmemberDataset = _endmembers[0]->getDataset();
-    }
-
     for (int i = 0; i < noEndmembers; i++) {
         
-        if (endmemberDataset->getGuid() == datasetGuid) {
+        if (_endmembers[i]->getDataset()->getGuid() == datasetGuid) {
             startIndex = i;
             break;
         }
@@ -568,7 +565,7 @@ void EndmembersModel::removeEndmembers(QString datasetGuid) {
 
     for (int i = 0; i < noEndmembers; i++) {
 
-        if (endmemberDataset->getGuid() == datasetGuid) {
+        if (_endmembers[i]->getDataset()->getGuid() == datasetGuid) {
             noClusters++;
         }
     }
