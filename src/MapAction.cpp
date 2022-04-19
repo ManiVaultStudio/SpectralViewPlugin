@@ -28,8 +28,8 @@ MapAction::MapAction(Endmember& endmember) :
     _angleAction.setUpdateDuringDrag(false);
     _angleAction.setDefaultValue(0.15);
     _angleAction.defaultValueChanged(0.15);
-    _angleAction.setNumberOfDecimals(2);
-    _angleAction.numberOfDecimalsChanged(2);
+    _angleAction.setNumberOfDecimals(3);
+    _angleAction.numberOfDecimalsChanged(3);
     _angleAction.setRange(0, M_PI / 2);
     _angleAction.setSingleStep(0.05);
     _angleAction.singleStepChanged(0.05);
