@@ -3,6 +3,7 @@
 #include <actions/WidgetAction.h>
 #include <actions/GroupAction.h>
 #include <actions/ToggleAction.h>
+#include <actions/OptionAction.h>
 
 using namespace hdps::gui;
 
@@ -55,10 +56,16 @@ public:
 public: /** Action getters */
 
     GroupAction& getGroupAction() { return _groupAction; }
+    OptionAction& getRedWavelengthAction() { return _redWavelengthAction; }
+    OptionAction& getGreenWavelengthAction() { return _greenWavelengthAction; }
+    OptionAction& getBlueWavelengthAction() { return _blueWavelengthAction; }
 
 protected:
     LineplotPlugin& _lineplotPlugin;         /** Reference to image viewer plugin */
     GroupAction         _groupAction;
     ToggleAction    _wavelengthsRGBEnabledAction;
     ToggleAction    _stdAreaEnabledAction;
+    OptionAction    _redWavelengthAction;
+    OptionAction    _greenWavelengthAction;
+    OptionAction    _blueWavelengthAction;
 };

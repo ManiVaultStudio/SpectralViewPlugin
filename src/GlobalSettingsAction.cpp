@@ -12,20 +12,30 @@ GlobalSettingsAction::GlobalSettingsAction(LineplotPlugin& lineplotPlugin) :
     _lineplotPlugin(lineplotPlugin),
     _groupAction(this),
     _wavelengthsRGBEnabledAction(this, "Show RGB wavelengths", true, true),
-    _stdAreaEnabledAction(this, "Show standard deviation area", true, true)
+    _stdAreaEnabledAction(this, "Show standard deviation area", true, true),
+    _redWavelengthAction(this, "Red", { "630" }, "630", "630"),
+    _greenWavelengthAction(this, "Green", { "532" }, "532", "532"),
+    _blueWavelengthAction(this, "Blue", { "464" }, "464", "464")
+    
 {
     setIcon(Application::getIconFont("FontAwesome").getIcon("cog"));
     setText("Global settings");
 
     _wavelengthsRGBEnabledAction.setToolTip("Show 3 RGB lines that can be moved");
     _stdAreaEnabledAction.setToolTip("Show the average +/- standard deviation interval");
+    _redWavelengthAction.setToolTip("Red wavelength set by dragging the red line");
+    _greenWavelengthAction.setToolTip("Green wavelength set by dragging the green line");
+    _blueWavelengthAction.setToolTip("Blue wavelength set by dragging the blue line");
 
     _wavelengthsRGBEnabledAction.setChecked(false);
     _stdAreaEnabledAction.setChecked(false);
 
     _groupAction << _wavelengthsRGBEnabledAction;
     _groupAction << _stdAreaEnabledAction;
-
+    _groupAction << _redWavelengthAction;
+    _groupAction << _greenWavelengthAction;
+    _groupAction << _blueWavelengthAction;
+     
     auto& lineplotWidget = _lineplotPlugin.getLineplotWidget();
 
     // Update RGB lines enabled

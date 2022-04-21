@@ -456,138 +456,67 @@ void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
 
 void LineplotPlugin::initializeImageRGB() {
 
-    if (!_imageRGBPoints.isValid()) {
-        _imageRGBPoints = _core->createDerivedDataset("imageRGBData", _points, _points);
-        _imageRGB = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_imageRGBPoints));
-        
+    QStringList dimensionNames;
+    auto numDimensions = _points->getNumDimensions();
+    auto dimNames = _points->getDimensionNames();
 
-       // qDebug() << "Create image";
-
-        auto source = _points->getSourceDataset<Points>();
-        auto dimNames = _points->getDimensionNames();
-        unsigned int numDimensions = _points->getNumDimensions();
-
-        auto children = source->getChildren({ ImageType });
-        auto imagesId = children[0].getDatasetGuid();
-        auto images = _core->requestDataset<Images>(imagesId);
-        auto imageSize = images->getImageSize();
-        int width = imageSize.width();
-        int height = imageSize.height();
-
-        int numPoints = width * height;
-
-        std::vector<float> imageRGBData(width * height * 3);
-        std::vector<QString> imageDim(3);
-
-        // needs to change
-        float wavelengthR = 630;
-        float wavelengthG = 532;
-        float wavelengthB = 464;
-
-        int dimR = 0;
-        int dimG = 0;
-        int dimB = 0;
-
-        for (int v = 0; v < numDimensions; v++) {
-            auto dimName = dimNames.at(v);
-            float dimValue = dimName.toFloat();
-
-            if (abs(wavelengthR - dimValue) < 1) {
-                dimR = v;
-                imageDim[0] = dimName;
-            }
-            else if (abs(wavelengthG - dimValue) < 1) {
-                dimG = v;
-                imageDim[1] = dimName;
-            }
-            else if (abs(wavelengthB - dimValue) < 1) {
-                dimB = v;
-                imageDim[2] = dimName;
-            }
-        }
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-
-                int index = y * width + x;
-                imageRGBData[index * 3] = source->getValueAt(index * numDimensions + dimR);
-                imageRGBData[index * 3 + 1] = source->getValueAt(index * numDimensions + dimG);
-                imageRGBData[index * 3 + 2] = source->getValueAt(index * numDimensions + dimB);
-
-            }
-        }
-
-        _imageRGBPoints->setData(imageRGBData.data(), numPoints, 3);
-        _imageRGBPoints->setDimensionNames(imageDim);
-
-        _core->notifyDatasetAdded(_imageRGBPoints);
-
-        _imageRGB->setGuiName("RGB Image");
-        _imageRGB->setType(ImageData::Type::Stack);
-        _imageRGB->setNumberOfImages(1);
-        _imageRGB->setImageSize(QSize(width, height));
-        _imageRGB->setNumberOfComponentsPerPixel(3);
-
-        _core->notifyDatasetAdded(_imageRGB);
+    // Populate dimension names
+    if (_points->getDimensionNames().size() == _points->getNumDimensions()) {
+        for (const auto& dimensionName : _points->getDimensionNames())
+            dimensionNames << dimensionName;
     }
+    else {
+        for (std::uint32_t dimensionIndex = 0; dimensionIndex < _points->getNumDimensions(); dimensionIndex++)
+            dimensionNames << QString("Dim %1").arg(QString::number(dimensionIndex));
+    }
+
+    _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setOptions(dimensionNames);
+    _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setOptions(dimensionNames);
+    _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setOptions(dimensionNames);
+
+    float wavelengthR = 630;
+    float wavelengthG = 532;
+    float wavelengthB = 464;
+
+    QString dimR;
+    QString dimG;
+    QString dimB;
+    float step = dimNames.at(1).toFloat() - dimNames.at(0).toFloat();
+
+    for (int v = 0; v < numDimensions; v++) {
+        auto dimName = dimNames.at(v);
+        float dimValue = dimName.toFloat();
+
+        if (abs(wavelengthR - dimValue) < step) {
+            dimR = dimName;
+        }
+        else if (abs(wavelengthG - dimValue) < step) {
+            dimG = dimName;
+        }
+        else if (abs(wavelengthB - dimValue) < step) {
+            dimB = dimName;
+        }
+    }
+
+    _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setCurrentText(dimR);
+    _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setCurrentText(dimG);
+    _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setCurrentText(dimB);
+
+    _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setDefaultText(dimR);
+    _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setDefaultText(dimG);
+    _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setDefaultText(dimB);
 }
 
 // improve: change one wavelength at a time
 void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float wavelengthG, const float wavelengthB) {
 
-    auto source = _points->getSourceDataset<Points>();
-    auto dimNames = _points->getDimensionNames();
-    auto numDimensions = _points->getNumDimensions();
-    
-    auto children = source->getChildren({ ImageType });
-    auto imagesId = children[0].getDatasetGuid();
-    auto images = _core->requestDataset<Images>(imagesId);
-    auto imageSize = images->getImageSize();
-    int width = imageSize.width();
-    int height = imageSize.height();
+    QString red = QString::number(wavelengthR, 'f', 6);
+    QString green = QString::number(wavelengthG, 'f', 6);
+    QString blue = QString::number(wavelengthB, 'f', 6);
 
-    int numPoints = width * height;
-
-    std::vector<float> imageRGBData(width * height * 3);
-    std::vector<QString> imageDim(3);
-
-    int dimR = 0;
-    int dimG = 0;
-    int dimB = 0;
-
-    for (int v = 0; v < numDimensions; v++) {
-        auto dimName = dimNames.at(v);
-        float dimValue = dimName.toFloat();
-        if (abs(wavelengthR - dimValue) < 1) {
-            dimR = v;
-            imageDim[0] = dimName;
-        }
-        if (abs(wavelengthG - dimValue) < 1) {
-            dimG = v;
-            imageDim[1] = dimName;
-        }
-        if (abs(wavelengthB - dimValue) < 1) {
-            dimB = v;
-            imageDim[2] = dimName;
-        }
-    }
-
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-
-            int index = y * width + x;
-
-            imageRGBData[index * 3] = source->getValueAt(index * numDimensions + dimR);
-            imageRGBData[index * 3 + 1] = source->getValueAt(index * numDimensions + dimG);
-            imageRGBData[index * 3 + 2] = source->getValueAt(index * numDimensions + dimB);
-        }
-    }
-
-    _imageRGBPoints->setData(imageRGBData.data(), numPoints, 3);
-    _imageRGBPoints->setDimensionNames(imageDim);
-    _core->notifyDatasetChanged(_imageRGBPoints);
-    _core->notifyDatasetChanged(_imageRGB);
-  
+    _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setCurrentText(red);
+    _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setCurrentText(green);
+    _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setCurrentText(blue);
 }
 
 void LineplotPlugin::updateSelection(Dataset<Points> selection) {
