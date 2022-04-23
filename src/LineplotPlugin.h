@@ -78,7 +78,7 @@ public: // Action getters
     SettingsAction& getSettingsAction() { return _settingsAction; }
 
 protected slots:
-    void changeRGBWavelengths(const float wavelengthR, const float wavelengthG, const float wavelengthB);
+    void changeRGBWavelengths(const float wavelengthR, int index);
     // void dataSetPicked(const QString& name);
     // void clusterSelected(QList<int> selectedClusters);
 

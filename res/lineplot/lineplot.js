@@ -16,6 +16,9 @@ try {
         QtBridge.qt_enableStdArea.connect(function () { enableStdArea(arguments[0]); });
         QtBridge.qt_addAvailableData.connect(function () { addAvailableData(arguments[0]); });
         QtBridge.qt_setEndmemberVisibility.connect(function () { setEndmemberVisibility(arguments[0], arguments[1]); });
+        QtBridge.qt_updateRedLine.connect(function () { updateRedLine(arguments[0]); });
+        QtBridge.qt_updateGreenLine.connect(function () { updateGreenLine(arguments[0]); });
+        QtBridge.qt_updateBlueLine.connect(function () { updateBlueLine(arguments[0]); });
 
 
         notifyBridgeAvailable();
@@ -296,25 +299,43 @@ function mousemove() {
                 .style("opacity", 1);
 
             if (moveLine == "R") {
+
+                wavelengthR = selectedData.x;
+
                 lineR
-                    .attr("x1", x(selectedData.x))
+                    .attr("x1", x(wavelengthR))
                     .attr("y1", y(minY))
-                    .attr("x2", x(selectedData.x))
+                    .attr("x2", x(wavelengthR))
                     .attr("y2", y(maxY));
+
+                sendRGBWavelength(wavelengthR, 0);
+
             }
             else if (moveLine == "G") {
+
+                wavelengthG = selectedData.x;
+
                 lineG
-                    .attr("x1", x(selectedData.x))
+                    .attr("x1", x(wavelengthG))
                     .attr("y1", y(minY))
-                    .attr("x2", x(selectedData.x))
+                    .attr("x2", x(wavelengthG))
                     .attr("y2", y(maxY));
+
+                sendRGBWavelength(wavelengthG, 1);
+
             }
             else if (moveLine == "B") {
+
+                wavelengthB = selectedData.x;
+
                 lineB
-                    .attr("x1", x(selectedData.x))
+                    .attr("x1", x(wavelengthB))
                     .attr("y1", y(minY))
-                    .attr("x2", x(selectedData.x))
+                    .attr("x2", x(wavelengthB))
                     .attr("y2", y(maxY));
+
+                sendRGBWavelength(wavelengthB, 2);
+
             }
         }
         else {
@@ -351,6 +372,7 @@ function mouseup() {
 
         if (moveLine == "R") {
             wavelengthR = selectedData.x;
+            log("Mouse up: " + wavelengthR);
 
             lineR
                 .attr("x1", x(wavelengthR))
@@ -359,7 +381,7 @@ function mouseup() {
                 .attr("y2", y(maxY));
 
             // send RGB wavelength values to qt
-            sendRGBWavelengths();
+            sendRGBWavelength(wavelengthR, 0);
         }
         else if (moveLine == "G") {
             wavelengthG = selectedData.x;
@@ -370,7 +392,7 @@ function mouseup() {
                 .attr("y2", y(maxY));
 
             // send RGB wavelength values to qt
-            sendRGBWavelengths();
+            sendRGBWavelength(wavelengthG, 1);
         }
         else if (moveLine == "B") {
             wavelengthB = selectedData.x;
@@ -381,7 +403,7 @@ function mouseup() {
                 .attr("y2", y(maxY));
 
             // send RGB wavelength values to qt
-            sendRGBWavelengths();
+            sendRGBWavelength(wavelengthB, 2);
         }
 
         moveLine = "N";
@@ -508,10 +530,39 @@ function enableStdArea(c) {
     }
 }
 
-function sendRGBWavelengths() {
+function updateRedLine(newWavelength) {
+    /*
+    wavelengthR = newWavelength;
+    log("Value changed: " + wavelengthR);
+    lineR.attr("x1", x(wavelengthR))
+        .attr("x2", x(wavelengthR));
+        */
+}
+
+function updateGreenLine(newWavelength) {
+    /*
+    wavelengthG = newWavelength;
+
+    lineG.attr("x1", x(wavelengthG))
+        .attr("x2", x(wavelengthG));
+        */
+}
+
+function updateBlueLine(newWavelength) {
+    /*
+    wavelengthB = newWavelength;
+
+    lineB.attr("x1", x(wavelengthB))
+        .attr("x2", x(wavelengthB));
+        */
+}
+
+
+
+function sendRGBWavelength(wavelength, index) {
 
     if (isQtAvailable) {
-        QtBridge.js_setRGBWavelengths(wavelengthR, wavelengthG, wavelengthB);
+        QtBridge.js_setRGBWavelength(wavelength, index);
     }
 }
 

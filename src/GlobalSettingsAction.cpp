@@ -50,6 +50,16 @@ GlobalSettingsAction::GlobalSettingsAction(LineplotPlugin& lineplotPlugin) :
     connect(&_wavelengthsRGBEnabledAction, &ToggleAction::toggled, this, updateRGBWavelengths);
     connect(&_stdAreaEnabledAction, &ToggleAction::toggled, this, updateStdArea);
 
+    connect(&_redWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget](const QString newWavelength) {
+        //qDebug() << "Wavelength to pass: " << newWavelength;
+        lineplotWidget.updateRGBLine(newWavelength.toFloat(), 0);
+        });
+    connect(&_greenWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget](const QString newWavelength) {
+        lineplotWidget.updateRGBLine(newWavelength.toFloat(), 1);
+        });
+    connect(&_blueWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget](const QString newWavelength) {
+        lineplotWidget.updateRGBLine(newWavelength.toFloat(), 2);
+        });
 }
 
 GlobalSettingsAction::Widget::Widget(QWidget* parent, GlobalSettingsAction* globalSettingsAction, const std::int32_t& widgetFlags) :

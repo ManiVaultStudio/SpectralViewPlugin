@@ -230,7 +230,7 @@ void LineplotPlugin::init()
         updateWindowTitle();
         });
 
-    connect(&_linePlotWidget, SIGNAL(changeRGBWavelengths(float, float, float)), SLOT(changeRGBWavelengths(float, float, float)));
+    connect(&_linePlotWidget, SIGNAL(changeRGBWavelengths(float, int)), SLOT(changeRGBWavelengths(float, int)));
 
     // Respond when the name of the dataset in the dataset reference changes
     connect(&_points, &Dataset<Points>::dataGuiNameChanged, this, [this](const QString& oldDatasetName, const QString& newDatasetName) {
@@ -508,15 +508,20 @@ void LineplotPlugin::initializeImageRGB() {
 }
 
 // improve: change one wavelength at a time
-void LineplotPlugin::changeRGBWavelengths(const float wavelengthR, const float wavelengthG, const float wavelengthB) {
+void LineplotPlugin::changeRGBWavelengths(const float wavelength, int index) {
 
-    QString red = QString::number(wavelengthR, 'f', 6);
-    QString green = QString::number(wavelengthG, 'f', 6);
-    QString blue = QString::number(wavelengthB, 'f', 6);
+    QString newValue = QString::number(wavelength);
 
-    _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setCurrentText(red);
-    _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setCurrentText(green);
-    _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setCurrentText(blue);
+    if (index == 0) {
+        _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setCurrentText(newValue);
+    }
+    else if (index == 1) {
+        _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setCurrentText(newValue);
+    }
+    else if (index == 2) {
+        _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setCurrentText(newValue);
+    }
+
 }
 
 void LineplotPlugin::updateSelection(Dataset<Points> selection) {

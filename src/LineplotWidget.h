@@ -31,9 +31,12 @@ signals:
     void qt_addAvailableData(QString name);
     void qt_enableRGBWavelengths(bool checkedRGB);
     void qt_enableStdArea(bool checkedStd);
+    void qt_updateRedLine(float newWavelength);
+    void qt_updateGreenLine(float newWavelength);
+    void qt_updateBlueLine(float newWavelength);
 
 public slots:
-    void js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
+    void js_setRGBWavelength(float wavelengthR, int index);
  
 private:
     LineplotWidget* _parent;
@@ -54,6 +57,7 @@ public:
     void setHighlightSelection(int row);
     void enableRGBWavelengths(bool checkedRGB);
     void enableStdArea(bool checkedStd);
+    void updateRGBLine(float newWavelength, int index);
 
 protected:
     void mousePressEvent(QMouseEvent* event)   Q_DECL_OVERRIDE;
@@ -65,10 +69,10 @@ protected:
 
 
 signals:
-    void changeRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
+    void changeRGBWavelengths(float wavelengthR, int index);
 
 public:
-    void js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB);
+    void js_setRGBWavelength(float wavelength, int index);
   
 private slots:
     void initWebPage() override;

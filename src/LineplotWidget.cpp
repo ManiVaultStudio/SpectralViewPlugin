@@ -16,9 +16,9 @@ LinePlotCommunicationObject::LinePlotCommunicationObject(LineplotWidget* parent)
 
 }
 
-void LinePlotCommunicationObject::js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB)
+void LinePlotCommunicationObject::js_setRGBWavelength(float wavelength, int index)
 {
-    _parent->js_setRGBWavelengths(wavelengthR, wavelengthG, wavelengthB);
+    _parent->js_setRGBWavelength(wavelength, index);
 }
 
 LineplotWidget::LineplotWidget(LineplotPlugin& lineplotPlugin) :
@@ -108,6 +108,18 @@ void LineplotWidget::enableStdArea(bool checkedStd) {
     emit _communicationObject->qt_enableStdArea(checkedStd);
 }
 
+void LineplotWidget::updateRGBLine(float newWavelength, int index) {
+    if (index == 0) {
+        emit _communicationObject->qt_updateRedLine(newWavelength);
+    }
+    else if (index == 1) {
+        emit _communicationObject->qt_updateGreenLine(newWavelength);
+    }
+    else if (index == 2) {
+        emit _communicationObject->qt_updateBlueLine(newWavelength);
+    }
+}
+
 void LineplotWidget::mousePressEvent(QMouseEvent* event)
 {
     // UNUSED
@@ -143,7 +155,6 @@ void LineplotWidget::initWebPage()
     dataOptionBuffer.clear();
 }
 
-void LineplotWidget::js_setRGBWavelengths(float wavelengthR, float wavelengthG, float wavelengthB) {
-
-    emit changeRGBWavelengths(wavelengthR, wavelengthG, wavelengthB);
+void LineplotWidget::js_setRGBWavelength(float wavelength, int index) {
+    emit changeRGBWavelengths(wavelength, index);
 }

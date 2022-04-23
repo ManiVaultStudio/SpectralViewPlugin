@@ -42,6 +42,10 @@ GeneralAction::GeneralAction(Endmember& endmember, int index) :
             _nameAction.setString(guiName + " average");
             _nameAction.setDefaultString(guiName + "average");
         }
+        else {
+            _nameAction.setString(guiName);
+            _nameAction.setDefaultString(guiName);
+        }
 
         endmemberColor = _endmember.getEndmembersAction().getRandomLayerColor();
         //endmemberColor = _endmember.getGeneralAction().getColorAction().getColor();
