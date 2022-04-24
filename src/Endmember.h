@@ -41,7 +41,8 @@ public:
     void sendEndmemberRemoved(int row);
     void highlightSelection(int row);
     void setData(std::vector<float>);
-    void updateAngle(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
+    void computeMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
+    void updateThresholdAngle(float threshold, int mapType);
     std::vector<float> resample(std::vector<float> parentDim);
 
     /**

@@ -137,28 +137,34 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 
                 auto endmemberData = endmember->getData();
                 auto angle = endmember->getMapAction().getAngleAction().getValue();
-                qDebug() << angle;
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
 
-                endmember->updateAngle(endmemberData, angle, mapType, algorithm);
+                endmember->computeMap(endmemberData, angle, mapType, algorithm);
                 });
 
             connect(&endmember->getMapAction().getMapTypeAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int index) {
                 
-                if (index == 0) {
+                if (index == 0 || index == 1) {
                     endmember->getMapAction().getAngleAction().setEnabled(true);
                 }
-                else if (index == 1) {
+                else if (index == 2) {
                     endmember->getMapAction().getAngleAction().setEnabled(false);
                 }
+
+                auto threshold = endmember->getMapAction().getAngleAction().getValue();
+
+                endmember->updateThresholdAngle(threshold, index);
 
                 });
 
             // Inform views that the endmember angle has changed when it is changed in the action
-            //connect(&endmember->getMapAction().getAngleAction(), &DecimalAction::valueChanged, this, [this, endmember](float value) {
-            //    endmember->updateAngle(endmember->getData(), value);
-            //    });
+            connect(&endmember->getMapAction().getAngleAction(), &DecimalAction::valueChanged, this, [this, endmember](float value) {
+               
+                auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+                if (mapType != 2)
+                    endmember->updateThresholdAngle(value, mapType);
+                });
         }
         endInsertRows();   
     }

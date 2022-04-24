@@ -33,8 +33,7 @@ LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     _settingsAction(*this),
     _map(),
     _mapImage(),
-    _imageRGB(),
-    _imageRGBPoints()
+    _distDataset()
 {
     setObjectName("Line Plot");
 
@@ -507,7 +506,6 @@ void LineplotPlugin::initializeImageRGB() {
     _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setDefaultText(dimB);
 }
 
-// improve: change one wavelength at a time
 void LineplotPlugin::changeRGBWavelengths(const float wavelength, int index) {
 
     QString newValue = QString::number(wavelength);
@@ -651,6 +649,8 @@ void LineplotPlugin::spectralMapper(std::vector<float> endmemberData, float thre
     int width = imageSize.width();
     int height = imageSize.height();
 
+    _distDataset.resize(width * height);
+
     auto numDimensions = _points->getNumDimensions();
     auto noPoints = _points->getNumPoints();
 
@@ -711,7 +711,7 @@ void LineplotPlugin::spectralMapper(std::vector<float> endmemberData, float thre
             pointSum = sqrt(pointSum);
            
             if (pointSum == 0 || referenceSum == 0) {
-                angle = thresholdAngle + 0.2;
+                angle = 10;
             }
             else {
                 float value = sum / (referenceSum * pointSum);
@@ -724,6 +724,8 @@ void LineplotPlugin::spectralMapper(std::vector<float> endmemberData, float thre
                     angle = acos(value);
             }
 
+            _distDataset[index] = angle;
+
             if (mapType == 0) {
                 if (angle <= thresholdAngle) {
                     mapData[index] = 1;                    
@@ -733,6 +735,14 @@ void LineplotPlugin::spectralMapper(std::vector<float> endmemberData, float thre
                 }
             }
             else if (mapType == 1) {
+                if (angle <= thresholdAngle) {
+                    mapData[index] = 1 - 2 * angle / M_PI;
+                }
+                else {
+                    mapData[index] = 0;
+                }
+            }
+            else if (mapType == 2) {
                 if (pointSum != 0) {
                     mapData[index] = 1 - 2 * angle / M_PI;
                 }
@@ -744,6 +754,60 @@ void LineplotPlugin::spectralMapper(std::vector<float> endmemberData, float thre
     }
 
     _map->setData(mapData.data(), noPoints, 1);
+}
+
+void LineplotPlugin::updateThresholdAngle(float threshold, int mapType) {
+
+    if (_distDataset.size() != 0) {
+
+        auto children = _points->getChildren({ ImageType });
+        auto imagesId = children[0].getDatasetGuid();
+        auto images = _core->requestDataset<Images>(imagesId);
+        auto imageSize = images->getImageSize();
+        int width = imageSize.width();
+        int height = imageSize.height();
+
+        auto numDimensions = _points->getNumDimensions();
+        auto noPoints = _points->getNumPoints();
+
+        std::vector<float> mapData(width * height);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+
+                int index = y * width + x;
+                float angle = _distDataset[index];
+
+                if (mapType == 0) {
+                    if (angle <= threshold) {
+                        mapData[index] = 1;
+                    }
+                    else {
+                        mapData[index] = 0;
+                    }
+                }
+                else if (mapType == 1) {
+                    if (angle <= threshold) {
+                        mapData[index] = 1 - 2 * angle / M_PI;;
+                    }
+                    else {
+                        mapData[index] = 0;
+                    }
+                }
+                else if (mapType == 2) {
+                    if (angle > M_PI)
+                        mapData[index] = 0;
+                    else
+                        mapData[index] = 1 - 2 * angle / M_PI;
+                }
+            }
+        }
+
+        _map->setData(mapData.data(), noPoints, 1);
+
+        _core->notifyDatasetChanged(_map);
+        _core->notifyDatasetChanged(_mapImage);
+    }
 }
 
 float LineplotPlugin::computeAverageValue(std::vector<float> data) {

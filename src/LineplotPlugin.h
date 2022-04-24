@@ -68,7 +68,8 @@ public:
 
     void updateMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
     void spectralMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType);
-    float LineplotPlugin::computeAverageValue(std::vector<float> data);
+    void updateThresholdAngle(float threshold, int mapType);
+    float computeAverageValue(std::vector<float> data);
 
 
 
@@ -83,17 +84,15 @@ protected slots:
     // void clusterSelected(QList<int> selectedClusters);
 
 private:
-    void importEndmembersCSV(const QString datasetGuid);
     void initializeImageRGB();
     void updateSelection(hdps::Dataset<Points> selection);
     //std::vector<float> createRGBImage(int dimR, int dimG, int dimB);
 
     hdps::Dataset<Points>              _points;        /** Currently loaded points dataset */
     hdps::Dataset<Clusters>            _clusters;      /** Currently loaded clusters dataset */
-    hdps::Dataset<Points>              _imageRGBPoints;
-    hdps::Dataset<Images>              _imageRGB;
     hdps::Dataset<Points>              _map;
     hdps::Dataset<Images>              _mapImage;
+    std::vector<float>                 _distDataset;
             
     EndmembersModel             _model;                 /** Endmembers model */
     QItemSelectionModel     _selectionModel;        /** Layers selection model */
