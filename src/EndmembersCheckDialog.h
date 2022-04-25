@@ -31,9 +31,11 @@ signals:
 
 public slots:
     void closeDialogAction(bool checked = false);
+    void loadEndmembersAction(bool checked = false);
 
 private:
     StringAction        _numberOfEndmembersAction;  /** Number of endmembers action */
     TriggerAction       _loadAction;                /** Load action */
+    TriggerAction       _closeAction;                /** Don't load action */
     GroupAction         _groupAction;               /** Group action */
 };

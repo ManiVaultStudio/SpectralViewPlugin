@@ -5,6 +5,7 @@ EndmembersCheckDialog::EndmembersCheckDialog(QWidget* parent, int noEndmembers) 
     QDialog(parent),
     _numberOfEndmembersAction(this, "Number of endmembers to load"),
     _loadAction(this, "Load"),
+    _closeAction(this, "Don't load"),
     _groupAction(this)
 {
     setWindowTitle(tr("Check number of endmembers"));
@@ -13,8 +14,9 @@ EndmembersCheckDialog::EndmembersCheckDialog(QWidget* parent, int noEndmembers) 
     _numberOfEndmembersAction.setEnabled(false);
 
     _groupAction << _numberOfEndmembersAction;
+    _groupAction << _closeAction;
     _groupAction << _loadAction;
-
+    
     auto layout = new QVBoxLayout();
 
     layout->setMargin(0);
@@ -22,10 +24,16 @@ EndmembersCheckDialog::EndmembersCheckDialog(QWidget* parent, int noEndmembers) 
 
     setLayout(layout);
 
-    connect(&_loadAction, &TriggerAction::triggered, this, &EndmembersCheckDialog::closeDialogAction);
+    connect(&_loadAction, &TriggerAction::triggered, this, &EndmembersCheckDialog::loadEndmembersAction);
+    connect(&_closeAction, &TriggerAction::triggered, this, &EndmembersCheckDialog::closeDialogAction);
 }
 
 void EndmembersCheckDialog::closeDialogAction(bool checked)
+{
+    accept();
+}
+
+void EndmembersCheckDialog::loadEndmembersAction(bool checked)
 {
     emit closeDialog();
 
