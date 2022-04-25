@@ -531,30 +531,38 @@ function enableStdArea(c) {
 }
 
 function updateRedLine(newWavelength) {
-    /*
-    wavelengthR = newWavelength;
-    log("Value changed: " + wavelengthR);
-    lineR.attr("x1", x(wavelengthR))
-        .attr("x2", x(wavelengthR));
-        */
+
+    if (wavelengthR != newWavelength) {
+
+        wavelengthR = newWavelength;
+        log("Value changed: " + wavelengthR);
+        lineR.attr("x1", x(wavelengthR))
+            .attr("x2", x(wavelengthR));
+    }
+        
 }
 
 function updateGreenLine(newWavelength) {
-    /*
-    wavelengthG = newWavelength;
 
-    lineG.attr("x1", x(wavelengthG))
-        .attr("x2", x(wavelengthG));
-        */
+    if (wavelengthG != newWavelength) {
+        wavelengthG = newWavelength;
+
+        lineG.attr("x1", x(wavelengthG))
+            .attr("x2", x(wavelengthG));
+    }
+        
 }
 
 function updateBlueLine(newWavelength) {
-    /*
-    wavelengthB = newWavelength;
 
-    lineB.attr("x1", x(wavelengthB))
-        .attr("x2", x(wavelengthB));
-        */
+    if (wavelengthB != newWavelength) {
+
+        wavelengthB = newWavelength;
+
+        lineB.attr("x1", x(wavelengthB))
+            .attr("x2", x(wavelengthB));
+    }
+        
 }
 
 

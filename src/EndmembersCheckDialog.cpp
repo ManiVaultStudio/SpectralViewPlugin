@@ -27,7 +27,6 @@ EndmembersCheckDialog::EndmembersCheckDialog(QWidget* parent, int noEndmembers) 
 
 void EndmembersCheckDialog::closeDialogAction(bool checked)
 {
-    qDebug() << "close dialog";
     emit closeDialog();
 
     accept();
