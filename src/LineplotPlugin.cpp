@@ -2,6 +2,7 @@
 #pragma once
 
 #include "LineplotPlugin.h"
+#include "EndmembersCheckDialog.h"
 
 #include "PointData.h"
 #include "ClusterData.h"
@@ -33,7 +34,8 @@ LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     _settingsAction(*this),
     _map(),
     _mapImage(),
-    _distDataset()
+    _distDataset(),
+    _averageDataset()
 {
     setObjectName("Line Plot");
 
@@ -148,7 +150,21 @@ void LineplotPlugin::init()
                             if (parents.at(0)->getGuiName() == _points->getGuiName()) {
 
                                 dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
-                                    addDataset(candidateDataset);
+
+                                    auto noEndmembers = candidateDataset.get<Points>()->getNumPoints();
+
+                                    if (noEndmembers > 15) {
+                                        EndmembersCheckDialog endmembersCheckDialog(nullptr, noEndmembers);
+
+                                        connect(&endmembersCheckDialog, &EndmembersCheckDialog::closeDialog, this, [this, candidateDataset]() {
+                                            addDataset(candidateDataset);
+                                            });
+
+                                        endmembersCheckDialog.exec();
+                                                   
+                                    }
+                                    else
+                                        addDataset(candidateDataset);
                                     });
 
                                 dropRegions << new DropWidget::DropRegion(this, "Average endmember", description2, "map-marker-alt", true, [this, candidateDataset]() {
@@ -615,6 +631,7 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
+        auto numDimensions = _points->getNumDimensions();
 
         _map = _core->createDerivedDataset("endmemberMapPoints", _points);
 
@@ -666,7 +683,15 @@ void LineplotPlugin::spectralMapper(std::vector<float> endmemberData, float thre
         }
     }
     else if (algorithmType == 1) {
-        referenceMean = computeAverageValue(endmemberData);
+
+        qDebug() << "Compute avg image";
+        computeAverageDataset(width, height, numDimensions);
+
+        for (int v = 0; v < numDimensions; v++) {
+            referenceMean += endmemberData[v];
+        }
+
+        referenceMean = referenceMean / numDimensions;
 
         for (int v = 0; v < numDimensions; v++) {
             referenceSum += pow(endmemberData[v] - referenceMean, 2);
@@ -692,19 +717,11 @@ void LineplotPlugin::spectralMapper(std::vector<float> endmemberData, float thre
             }
             else if (algorithmType == 1) {
 
-                std::vector<float> pointData(noPoints);
-
-                for (int v = 0; v < numDimensions; v++) {
-                    pointData[v] = _points->getValueAt(index * numDimensions + v);
-                }
-                float pointMean = computeAverageValue(pointData);
-                qDebug() << pointMean;
-
                 for (int v = 0; v < numDimensions; v++) {
                     auto pointValue = _points->getValueAt(index * numDimensions + v);
 
-                    sum += (endmemberData[v] - referenceMean) * (pointValue - pointMean);
-                    pointSum += pow(pointValue - pointMean, 2);
+                    sum += (endmemberData[v] - referenceMean) * (pointValue - _averageDataset[index]);
+                    pointSum += pow(pointValue - _averageDataset[index], 2);
                 }
             } 
 
@@ -810,18 +827,23 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType) {
     }
 }
 
-float LineplotPlugin::computeAverageValue(std::vector<float> data) {
+void LineplotPlugin::computeAverageDataset(int width, int height, int numDimensions) {
 
-    int dataLen = data.size();
-    float avg = 0;
+    _averageDataset.resize(width * height);
 
-    for (int v = 0; v < dataLen; v++) {
-        avg += data.at(v);
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+
+            float avg = 0;
+            int index = y * width + x;
+
+            for (int v = 0; v < numDimensions; v++) {
+                avg += _points->getValueAt(index * numDimensions + v);
+            }
+
+            _averageDataset[index] = avg / numDimensions;
+        }
     }
-
-    avg = avg / dataLen;
-
-    return avg;
 }
 
 

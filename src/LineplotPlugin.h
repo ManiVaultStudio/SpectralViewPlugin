@@ -69,7 +69,7 @@ public:
     void updateMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
     void spectralMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType);
     void updateThresholdAngle(float threshold, int mapType);
-    float computeAverageValue(std::vector<float> data);
+    void computeAverageDataset(int width, int height, int numDimensions);
 
 
 
@@ -93,6 +93,7 @@ private:
     hdps::Dataset<Points>              _map;
     hdps::Dataset<Images>              _mapImage;
     std::vector<float>                 _distDataset;
+    std::vector<float>                 _averageDataset;
             
     EndmembersModel             _model;                 /** Endmembers model */
     QItemSelectionModel     _selectionModel;        /** Layers selection model */

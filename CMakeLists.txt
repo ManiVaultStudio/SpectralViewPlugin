@@ -41,6 +41,8 @@ set(SOURCES
     src/GeneralAction.h
     src/MapAction.cpp
     src/MapAction.h
+    src/EndmembersCheckDialog.cpp
+    src/EndmembersCheckDialog.h
     src/LineplotPlugin.json
 )
 
