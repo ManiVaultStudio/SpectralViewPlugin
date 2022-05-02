@@ -12,7 +12,7 @@ function drawRGBlines() {
     lineR = _lineChart
         .append('g')
         .append('line')
-        .style("stroke", colorsRGB[0])
+        .attr("stroke", colorsRGB[0])
         .style("opacity", 0)
         .attr("class", "RGBLines")
         .attr("stroke-width", 2)
@@ -24,7 +24,7 @@ function drawRGBlines() {
     lineG = _lineChart
         .append('g')
         .append('line')
-        .style("stroke", colorsRGB[1])
+        .attr("stroke", colorsRGB[1])
         .style("opacity", 0)
         .attr("class", "RGBLines")
         .attr("stroke-width", 2)
@@ -36,7 +36,7 @@ function drawRGBlines() {
     lineB = _lineChart
         .append('g')
         .append('line')
-        .style("stroke", colorsRGB[2])
+        .attr("stroke", colorsRGB[2])
         .style("opacity", 0)
         .attr("class", "RGBLines")
         .attr("stroke-width", 2)

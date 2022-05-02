@@ -105,12 +105,12 @@ var _stdArea = _lineChart.append("path")
     .attr("class", "stdInterval")
     .attr("fill", "black")
     .attr("stroke", "none")
-    .attr("opacity", 0);
+    .style("opacity", 0);
 
 // Add the line for the selection
 var _selectionLine = _lineChart.append("path")
     .attr("class", "selectionLine")
-    .attr("opacity", 1)
+    .style("opacity", 1)
     .attr("fill", "none")
     .attr("stroke", "black")
     .attr("stroke-width", 2);
@@ -225,13 +225,13 @@ function mouseover() {
 
 
         if (distR < maxDist) {
-            lineR.attr("stroke-width", 6);
+            lineR.style("stroke-width", 6);
         }
         else if (distG < maxDist) {
-            lineG.attr("stroke-width", 6);
+            lineG.style("stroke-width", 6);
         }
         else if (distB < maxDist) {
-            lineB.attr("stroke-width", 6);
+            lineB.style("stroke-width", 6);
         }
     }
 }
@@ -258,15 +258,15 @@ function mousedown() {
 
         if (distR < maxDist) {
             moveLine = "R";
-            lineR.attr("stroke-width", 2);
+            lineR.style("stroke-width", 2);
         }
         else if (distG < maxDist) {
             moveLine = "G";
-            lineG.attr("stroke-width", 2);
+            lineG.style("stroke-width", 2);
         }
         else if (distB < maxDist) {
             moveLine = "B";
-            lineB.attr("stroke-width", 2);
+            lineB.style("stroke-width", 2);
         }
     }
 }
@@ -277,9 +277,9 @@ function mousemove() {
 
     _topRect.raise();
 
-    lineR.attr("stroke-width", 2);
-    lineG.attr("stroke-width", 2);
-    lineB.attr("stroke-width", 2);
+    lineR.style("stroke-width", 2);
+    lineG.style("stroke-width", 2);
+    lineB.style("stroke-width", 2);
 
     // recover coordinate we need
     var x0 = x.invert(d3.mouse(this)[0]);
@@ -345,13 +345,13 @@ function mousemove() {
             var maxDist = 10;
 
             if (distR < maxDist) {
-                lineR.attr("stroke-width", 6);
+                lineR.style("stroke-width", 6);
             }
             else if (distG < maxDist) {
-                lineG.attr("stroke-width", 6);
+                lineG.style("stroke-width", 6);
             }
             else if (distB < maxDist) {
-                lineB.attr("stroke-width", 6);
+                lineB.style("stroke-width", 6);
             }
         }
     }
@@ -372,7 +372,6 @@ function mouseup() {
 
         if (moveLine == "R") {
             wavelengthR = selectedData.x;
-            log("Mouse up: " + wavelengthR);
 
             lineR
                 .attr("x1", x(wavelengthR))
@@ -475,8 +474,6 @@ function setEndmemberRemoved(row) {
     _visibleEndmembers.splice(row, 1);
 
     var noEndmembers = _endmembers.length;
-    log("No endmembers: " + noEndmembers);
-    log("Row removed: " + row);
 
     if (noEndmembers > 1) {
 
@@ -520,7 +517,7 @@ function enableStdArea(c) {
 
         for (var i = 0; i < _visibleEndmembers.length; i++) {
             if (_visibleEndmembers[i]) {
-                _lineChart.select("#area" + i).attr("opacity", 0.1);
+                _lineChart.select("#area" + i).style("opacity", 0.1);
             }
         }
     }
@@ -535,7 +532,6 @@ function updateRedLine(newWavelength) {
     if (wavelengthR != newWavelength) {
 
         wavelengthR = newWavelength;
-        log("Value changed: " + wavelengthR);
         lineR.attr("x1", x(wavelengthR))
             .attr("x2", x(wavelengthR));
     }

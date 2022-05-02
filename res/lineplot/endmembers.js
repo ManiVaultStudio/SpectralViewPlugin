@@ -31,7 +31,7 @@ function addEndmembers(endmember, index) {
     var newEndmember = _lineChart.append("path")
         .datum(endmember)
         .attr("class", "endmembers")
-        .attr("opacity", 1)
+        .style("opacity", 1)
         .attr("fill", "none")
         .attr("stroke", d3.rgb(r, g, b))
         .attr("stroke-width", 2)
@@ -39,10 +39,10 @@ function addEndmembers(endmember, index) {
         .attr("d", line);
 
     if (_checkedStd) {
-        newEndmemberStd.attr("opacity", 0.1);
+        newEndmemberStd.style("opacity", 0.1);
     }
     else {
-        newEndmemberStd.attr("opacity", 0);
+        newEndmemberStd.style("opacity", 0);
     }
 
     // Save the lines for the endmembers
