@@ -42,7 +42,7 @@ public:
     void highlightSelection(int row);
     void setData(std::vector<float>);
     void computeMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
-    void updateThresholdAngle(float threshold, int mapType);
+    void updateThresholdAngle(float threshold, int mapType, int algorithmType);
     std::vector<float> resample(std::vector<float> parentDim);
 
     /**

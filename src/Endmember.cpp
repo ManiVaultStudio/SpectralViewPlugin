@@ -79,8 +79,8 @@ void Endmember::computeMap(std::vector<float> endmemberData, float angle, int ma
     _lineplotPlugin.updateMap(endmemberData, angle, mapType, algorithmType);
 }
 
-void Endmember::updateThresholdAngle(float threshold, int mapType) {
-    _lineplotPlugin.updateThresholdAngle(threshold, mapType);
+void Endmember::updateThresholdAngle(float threshold, int mapType, int algorithmType) {
+    _lineplotPlugin.updateThresholdAngle(threshold, mapType, algorithmType);
 }
 
 std::vector<float> Endmember::resample(std::vector<float> parentDim) {

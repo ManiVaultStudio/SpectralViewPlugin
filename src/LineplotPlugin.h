@@ -67,8 +67,9 @@ public:
     QString getDatasetName();
 
     void updateMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
-    void spectralMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType);
-    void updateThresholdAngle(float threshold, int mapType);
+    void spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
+    void spectralCorrelationMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
+    void updateThresholdAngle(float threshold, int mapType, int algorithmType);
     void computeAverageDataset(int width, int height, int numDimensions);
 
 

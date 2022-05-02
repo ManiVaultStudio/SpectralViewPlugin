@@ -14,6 +14,8 @@
 
 #include <stdexcept>
 #include <iomanip>
+#include <DataHierarchyItem.h>
+#include <iostream>
 
 
 using namespace hdps;
@@ -94,20 +96,22 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 emit dataChanged(changedCell, changedCell);
                 endmember->sendColor(color, _endmembers.indexOf(endmember));
                 
-                /*
+                
                 auto dataset = endmember->getDataset();
                 auto type = dataset->getDataType();
 
                 if (type == ClusterType) {
                     auto clusters = dataset.get<Clusters>()->getClusters();
+
+                    qDebug() << "First color: " << clusters[decisionIndex].getColor();
+
                     clusters[decisionIndex].setColor(color);
                    
-                    qDebug() << "Second change cluster color with: " << color;
-                    qDebug() << "Index: " << decisionIndex;
+                    qDebug() << "Second change cluster color with: " << clusters[decisionIndex].getColor();
 
-                    Application::core()->notifyDatasetChanged(dataset);
+                    Application::core()->notifyDatasetChanged(dataset->getSourceDataset<Clusters>());
                 }
-                */
+                
                 });
 
             // Inform views that the endmember name has changed when it is changed in the action
@@ -115,21 +119,21 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 const auto changedCell = index(_endmembers.indexOf(endmember), Column::Name);
                 emit dataChanged(changedCell, changedCell);
                 
-                /*
+                
                 auto dataset = endmember->getDataset();
                 auto type = dataset->getDataType();
 
                 if (type == ClusterType) {
                     auto clusters = dataset.get<Clusters>()->getClusters();
-                    qDebug() << "Before: " << clusters[decisionIndex].getName();
                     clusters[decisionIndex].setName(name);
-                    dataset.get<Clusters>()->changed();
-                    qDebug() << "After " << clusters[decisionIndex].getName();
-
-                    emit dataChanged(index(clusters.indexOf(clusters[decisionIndex]), Column::Name), index(clusters.indexOf(clusters[decisionIndex]), Column::Name));
-                    Application::core()->notifyDatasetChanged(dataset->getSourceDataset<Clusters>());
+                    Application::core()->notifyDatasetChanged(dataset);
+                    qDebug() << "After 2 " << clusters[decisionIndex].getName();
+                   // emit dataChanged(index(clusters.indexOf(clusters[decisionIndex]), Column::Name), index(clusters.indexOf(clusters[decisionIndex]), Column::Name));
+                      // dataset.get<Clusters>()->changed();
+                    //qDebug() << "After " << clusters[decisionIndex].getName();
+                    // qDebug() << "Before: " << clusters[decisionIndex].getName();
                 }
-                */
+                
 
                 });
 
@@ -145,6 +149,8 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
 
             connect(&endmember->getMapAction().getMapTypeAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int index) {
                 
+                auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
+
                 if (index == 0 || index == 1) {
                     endmember->getMapAction().getAngleAction().setEnabled(true);
                 }
@@ -154,16 +160,17 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
 
                 auto threshold = endmember->getMapAction().getAngleAction().getValue();
 
-                endmember->updateThresholdAngle(threshold, index);
+                endmember->updateThresholdAngle(threshold, index, algorithm);
 
                 });
 
             // Inform views that the endmember angle has changed when it is changed in the action
             connect(&endmember->getMapAction().getAngleAction(), &DecimalAction::valueChanged, this, [this, endmember](float value) {
                
+                auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                 if (mapType != 2)
-                    endmember->updateThresholdAngle(value, mapType);
+                    endmember->updateThresholdAngle(value, mapType, algorithm);
                 });
         }
         endInsertRows();   
@@ -179,7 +186,11 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
 
 void EndmembersModel::saveEndmembers(QString name) {
 
-    auto parent = _endmembers[0]->getDataset()->getParent();
+    DataHierarchyItems parents;
+
+    hdps::DataHierarchyItem::getParents(_endmembers[0]->getDataset()->getDataHierarchyItem(), parents);
+
+    auto parent = parents.at(0)->getDataset();
     auto points = parent.get<Points>();
     auto dimNames = points->getDimensionNames();
     auto noDim = points->getNumDimensions();
@@ -207,7 +218,7 @@ void EndmembersModel::saveEndmembers(QString name) {
         }
 
         QTextStream stream(&file);
-        stream << "Endmembers for " << name << " dataset" << endl;
+        stream << "ENVI ASCII Plot File Endmembers for " << name << " dataset" << endl;
         stream << "Column 1: Wavelength" << endl;
         
         stream.setRealNumberNotation(QTextStream::FixedNotation);
@@ -236,7 +247,7 @@ void EndmembersModel::saveEndmembers(QString name) {
                 auto visible = _endmembers[i]->getGeneralAction().getVisibleAction().isChecked();
                 if (visible) {
                     // resample before saving
-                    auto resampledEndmember = _endmembers[i]->resample(dimensions);
+                    //auto resampledEndmember = _endmembers[i]->resample(dimensions);
 
                     stream << "  " << _endmembers[i]->getData().at(v);
                     //stream << "  " << resampledEndmember.at(v);
@@ -244,7 +255,7 @@ void EndmembersModel::saveEndmembers(QString name) {
                 }
             }
 
-            auto resampledEndmember = _endmembers[lastIndex]->resample(dimensions);
+            //auto resampledEndmember = _endmembers[lastIndex]->resample(dimensions);
 
             stream << "  " << _endmembers[lastIndex]->getData().at(v) << endl;
             //stream << "  " << resampledEndmember.at(v) << endl;

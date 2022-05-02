@@ -65,8 +65,6 @@ GeneralAction::GeneralAction(Endmember& endmember, int index) :
     // Assign the color and default color
     _colorAction.initialize(endmemberColor, endmemberColor);
 
-    qDebug() << "Set endmember name and color";
-
     const auto render = [this]() {
         _endmember.getLineplotPlugin().getLineplotWidget().update();
 
