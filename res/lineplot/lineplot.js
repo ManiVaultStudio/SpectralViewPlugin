@@ -225,13 +225,13 @@ function mouseover() {
 
 
         if (distR < maxDist) {
-            lineR.style("stroke-width", 6);
+            lineR.attr("stroke-width", 6);
         }
         else if (distG < maxDist) {
-            lineG.style("stroke-width", 6);
+            lineG.attr("stroke-width", 6);
         }
         else if (distB < maxDist) {
-            lineB.style("stroke-width", 6);
+            lineB.attr("stroke-width", 6);
         }
     }
 }
@@ -258,15 +258,15 @@ function mousedown() {
 
         if (distR < maxDist) {
             moveLine = "R";
-            lineR.style("stroke-width", 2);
+            lineR.attr("stroke-width", 2);
         }
         else if (distG < maxDist) {
             moveLine = "G";
-            lineG.style("stroke-width", 2);
+            lineG.attr("stroke-width", 2);
         }
         else if (distB < maxDist) {
             moveLine = "B";
-            lineB.style("stroke-width", 2);
+            lineB.attr("stroke-width", 2);
         }
     }
 }
@@ -277,9 +277,9 @@ function mousemove() {
 
     _topRect.raise();
 
-    lineR.style("stroke-width", 2);
-    lineG.style("stroke-width", 2);
-    lineB.style("stroke-width", 2);
+    lineR.attr("stroke-width", 2);
+    lineG.attr("stroke-width", 2);
+    lineB.attr("stroke-width", 2);
 
     // recover coordinate we need
     var x0 = x.invert(d3.mouse(this)[0]);
@@ -345,13 +345,13 @@ function mousemove() {
             var maxDist = 10;
 
             if (distR < maxDist) {
-                lineR.style("stroke-width", 6);
+                lineR.attr("stroke-width", 6);
             }
             else if (distG < maxDist) {
-                lineG.style("stroke-width", 6);
+                lineG.attr("stroke-width", 6);
             }
             else if (distB < maxDist) {
-                lineB.style("stroke-width", 6);
+                lineB.attr("stroke-width", 6);
             }
         }
     }
