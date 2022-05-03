@@ -96,20 +96,13 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 emit dataChanged(changedCell, changedCell);
                 endmember->sendColor(color, _endmembers.indexOf(endmember));
                 
-                
-                auto dataset = endmember->getDataset();
+                auto& dataset = endmember->getDataset();
                 auto type = dataset->getDataType();
 
                 if (type == ClusterType) {
-                    auto clusters = dataset.get<Clusters>()->getClusters();
-
-                    qDebug() << "First color: " << clusters[decisionIndex].getColor();
-
+                    auto& clusters = dataset.get<Clusters>()->getClusters();
                     clusters[decisionIndex].setColor(color);
-                   
-                    qDebug() << "Second change cluster color with: " << clusters[decisionIndex].getColor();
-
-                    Application::core()->notifyDatasetChanged(dataset->getSourceDataset<Clusters>());
+                    Application::core()->notifyDatasetChanged(dataset);
                 }
                 
                 });
@@ -124,44 +117,107 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 auto type = dataset->getDataType();
 
                 if (type == ClusterType) {
-                    auto clusters = dataset.get<Clusters>()->getClusters();
+                    auto& clusters = dataset.get<Clusters>()->getClusters();
                     clusters[decisionIndex].setName(name);
                     Application::core()->notifyDatasetChanged(dataset);
-                    qDebug() << "After 2 " << clusters[decisionIndex].getName();
-                   // emit dataChanged(index(clusters.indexOf(clusters[decisionIndex]), Column::Name), index(clusters.indexOf(clusters[decisionIndex]), Column::Name));
-                      // dataset.get<Clusters>()->changed();
-                    //qDebug() << "After " << clusters[decisionIndex].getName();
-                    // qDebug() << "Before: " << clusters[decisionIndex].getName();
                 }
-                
-
                 });
 
             connect(&endmember->getMapAction().getComputeAction(), &TriggerAction::triggered, this, [this, endmember]() {
                 
                 auto endmemberData = endmember->getData();
-                auto angle = endmember->getMapAction().getAngleAction().getValue();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
+                float threshold;
 
-                endmember->computeMap(endmemberData, angle, mapType, algorithm);
+                if (algorithm == 0)
+                {
+                    threshold = endmember->getMapAction().getAngleAction().getValue();
+                }
+                else {
+                    threshold = endmember->getMapAction().getThresholdAction().getValue();
+                }
+
+                endmember->computeMap(endmemberData, threshold, mapType, algorithm);
                 });
 
             connect(&endmember->getMapAction().getMapTypeAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int index) {
                 
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
+                float threshold = 0;
 
                 if (index == 0 || index == 1) {
-                    endmember->getMapAction().getAngleAction().setEnabled(true);
+
+                    if (algorithm == 0)
+                    {
+                        endmember->getMapAction().getAngleAction().setEnabled(true);
+                        endmember->getMapAction().getThresholdAction().setEnabled(false);
+                        threshold = endmember->getMapAction().getAngleAction().getValue();
+                    }
+                    else if (algorithm == 1) {
+                        endmember->getMapAction().getAngleAction().setEnabled(false);
+                        endmember->getMapAction().getThresholdAction().setEnabled(true);
+                        threshold = endmember->getMapAction().getThresholdAction().getValue();
+                    }
                 }
                 else if (index == 2) {
                     endmember->getMapAction().getAngleAction().setEnabled(false);
+                    endmember->getMapAction().getThresholdAction().setEnabled(false);
                 }
 
-                auto threshold = endmember->getMapAction().getAngleAction().getValue();
-
                 endmember->updateThresholdAngle(threshold, index, algorithm);
+                
+                });
 
+            connect(&endmember->getMapAction().getAlgorithmAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int algorithm) {
+                
+                float threshold = 0;
+                auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+
+                if (algorithm == 0)
+                {
+                    if (mapType != 2) {
+                        endmember->getMapAction().getAngleAction().setEnabled(true);
+                        endmember->getMapAction().getThresholdAction().setEnabled(false);
+                    }
+                    threshold = endmember->getMapAction().getAngleAction().getValue();
+                }
+                else if (algorithm == 1) {
+
+                    if (mapType != 2) {
+                        endmember->getMapAction().getAngleAction().setEnabled(false);
+                        endmember->getMapAction().getThresholdAction().setEnabled(true);
+                    }
+                    threshold = endmember->getMapAction().getThresholdAction().getValue();
+                }
+
+                if (endmember->getMapAction().getUpdateAutoAction().isChecked()) {
+                    auto endmemberData = endmember->getData();
+                   
+                    endmember->computeMap(endmemberData, threshold, mapType, algorithm);
+                }
+                });
+
+            connect(&endmember->getMapAction().getUpdateAutoAction(), &ToggleAction::toggled, this, [this, endmember](bool checked) {
+
+                float threshold;
+
+                if (endmember->getMapAction().getAlgorithmAction().getCurrentIndex() == 0) {
+                    threshold = endmember->getMapAction().getAngleAction().getValue();
+                }
+                else {
+                    threshold = endmember->getMapAction().getThresholdAction().getValue();
+                }
+
+                if (checked) {
+                    if (endmember->getMapAction().getUpdateAutoAction().isChecked()) {
+                        auto endmemberData = endmember->getData();
+                        auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+                        auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
+
+                        endmember->computeMap(endmemberData, threshold, mapType, algorithm);
+                    }
+                }
                 });
 
             // Inform views that the endmember angle has changed when it is changed in the action
@@ -169,6 +225,16 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+
+                if (mapType != 2)
+                    endmember->updateThresholdAngle(value, mapType, algorithm);
+                });
+
+            connect(&endmember->getMapAction().getThresholdAction(), &DecimalAction::valueChanged, this, [this, endmember](float value) {
+
+                auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
+                auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+
                 if (mapType != 2)
                     endmember->updateThresholdAngle(value, mapType, algorithm);
                 });
@@ -543,7 +609,6 @@ void EndmembersModel::removeEndmember(const std::uint32_t& row)
         // Get pointer to layer which needs to be removed
         auto removeEndmember = _endmembers[row];
         removeEndmember->sendEndmemberRemoved(row);
-        qDebug() << "Remove endmember:" << removeEndmember->getGeneralAction().getNameAction().getString();
 
         // Remove the row from the model
         beginRemoveRows(QModelIndex(), row, row);

@@ -282,11 +282,11 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     // Get smart pointer to dataset that changed
     const auto changedDataSet = dataEvent->getDataset();
     auto type = changedDataSet->getDataType();
-
+    
     // Get GUI name of the dataset that changed
     const auto datasetGuiName = changedDataSet->getGuiName();
     const auto datasetGuid = changedDataSet->getGuid();
-
+ 
     switch (dataEvent->getType()) {
 
         // Event which gets triggered when a dataset is added to the system.
@@ -405,7 +405,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         //need to change
         auto parent = _points;
         auto numDimensions = parent->getNumDimensions();
-
+        
         // remove clusters of this dataset
         _model.removeEndmembers(dataset->getGuid());
         
@@ -753,7 +753,7 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
     _map->setData(mapData.data(), noPoints, 1);
 }
 
-void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType) {
+void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData, float threshold, int mapType) {
 
     auto children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
@@ -785,7 +785,6 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
     }
     
     referenceSum = sqrt(referenceSum);
-    auto threshold = cos(thresholdAngle);
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -827,7 +826,7 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
             }
             else if (mapType == 1) {
                 if (value >= threshold) {
-                    mapData[index] = value;
+                    mapData[index] = (value + 1) / 2;
                 }
                 else {
                     mapData[index] = 0;
@@ -835,10 +834,10 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
             }
             else if (mapType == 2) {
                 if (pointSum != 0) {
-                    mapData[index] = value;
+                    mapData[index] = (value + 1) / 2;
                 }
                 else {
-                    mapData[index] = -2;
+                    mapData[index] = 0;
                 }
             }
         }
@@ -848,6 +847,8 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
 }
 
 void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algorithmType) {
+
+    qDebug() << threshold;
 
     if (_distDataset.size() != 0) {
 
@@ -888,7 +889,7 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
                         }
                     }
                     else if (mapType == 2) {
-                        if (value > M_PI)
+                        if (value > M_PI/2)
                             mapData[index] = 0;
                         else
                             mapData[index] = 1 - 2 * value / M_PI;
@@ -896,10 +897,8 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
                 }
                 else if (algorithmType == 1) {
 
-                    auto thresholdCos = cos(threshold);
-
                     if (mapType == 0) {
-                        if (value >= thresholdCos) {
+                        if (value >= threshold) {
                             mapData[index] = 1;
                         }
                         else {
@@ -907,18 +906,19 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
                         }
                     }
                     else if (mapType == 1) {
-                        if (value >= thresholdCos) {
-                            mapData[index] = value;
+                        if (value >= threshold) {
+                            mapData[index] = (value + 1) / 2;
                         }
                         else {
                             mapData[index] = 0;
                         }
                     }
                     else if (mapType == 2) {
+
                         if (value < -1)
-                            mapData[index] = -2;
+                            mapData[index] = 0;
                         else
-                            mapData[index] = value;
+                            mapData[index] = (value + 1) / 2; 
                     }
                 }
             }
