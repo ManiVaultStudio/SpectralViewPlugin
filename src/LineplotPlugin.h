@@ -71,6 +71,7 @@ public:
     void spectralCorrelationMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
     void updateThresholdAngle(float threshold, int mapType, int algorithmType);
     void computeAverageDataset(int width, int height, int numDimensions);
+    void setSelection(std::vector<unsigned int> indices);
 
 
 
@@ -91,9 +92,12 @@ private:
 
     hdps::Dataset<Points>              _points;        /** Currently loaded points dataset */
     hdps::Dataset<Clusters>            _clusters;      /** Currently loaded clusters dataset */
-    hdps::Dataset<Points>              _map;
-    hdps::Dataset<Images>              _mapImage;
-    std::vector<float>                 _distDataset;
+    hdps::Dataset<Points>              _angleMap;
+    hdps::Dataset<Images>              _mapAngleImage;
+    hdps::Dataset<Points>              _corMap;
+    hdps::Dataset<Images>              _mapCorImage;
+    std::vector<float>                 _angleDataset;
+    std::vector<float>                 _corDataset;
     std::vector<float>                 _averageDataset;
             
     EndmembersModel             _model;                 /** Endmembers model */

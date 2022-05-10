@@ -105,10 +105,12 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
 
             int row = selectedRows.first().row();
             endmember->highlightSelection(row);
-
-           // if (endmember->getData().size() != 0) {
-           //     endmember->updateAngle(endmember->getData(), endmember->getMapAction().getAngleAction().getValue());
-           // }
+            
+            /*
+            if (endmember->getIndices().size() != 0) {
+                lineplotPlugin.setSelection(endmember->getIndices());
+            }
+            */
 
             groupActions << &endmember->getGeneralAction() << &endmember->getMapAction();
         }

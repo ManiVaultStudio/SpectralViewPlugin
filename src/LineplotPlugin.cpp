@@ -32,9 +32,12 @@ LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     _dropWidget(&_linePlotWidget),
     _mainToolbarAction(*this),
     _settingsAction(*this),
-    _map(),
-    _mapImage(),
-    _distDataset(),
+    _angleMap(),
+    _mapAngleImage(),
+    _corMap(),
+    _mapCorImage(),
+    _angleDataset(),
+    _corDataset(),
     _averageDataset()
 {
     setObjectName("Line Plot");
@@ -373,6 +376,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 
                 auto endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
                 endmember->setData(std::get<0>(endmemberData));
+                //endmember->setIndices(indices);
             }
         }
         else {
@@ -392,8 +396,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
                 _model.addEndmember(endmember, -1);
 
                 _linePlotWidget.setData(endmemberData, confInterval, confInterval, dimNames, numDimensions, "endmember");
-                endmember->setData(endmemberData);
-                
+                endmember->setData(endmemberData);                
             }
         }
     }
@@ -448,6 +451,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             }
 
             endmember->setData(average);
+            //endmember->setIndices(indices);
         }
     }
 }
@@ -556,6 +560,16 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
     }
 }
 
+/*
+void LineplotPlugin::setSelection(std::vector<unsigned int> indices) {
+    
+    if (_points.isValid()) {
+        _points->setSelectionIndices(indices);
+        Application::core()->notifyDatasetSelectionChanged(_points);
+    }
+}
+*/
+
 std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
 
     auto numDimensions = source->getNumDimensions();
@@ -625,9 +639,7 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
         return;
     }
 
-    if (!_map.isValid()) {
-
-        qDebug() << "Setting map." << endmemberData.size();
+    if ( (algorithmType == 0 && !_angleMap.isValid()) || (algorithmType == 1 && !_corMap.isValid()) ) {
 
         auto children = _points->getChildren({ ImageType });
         auto imagesId = children[0].getDatasetGuid();
@@ -637,32 +649,55 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
         int height = imageSize.height();
         auto numDimensions = _points->getNumDimensions();
 
-        _map = _core->createDerivedDataset("endmemberMapPoints", _points);
 
-        if (algorithmType == 0)
+        if (algorithmType == 0) {
+
+            _angleMap = _core->createDerivedDataset("endmemberAngleMapPoints", _points);
+
             spectralAngleMapper(endmemberData, thresholdAngle, mapType);
-        else
+
+            _mapAngleImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_angleMap));
+            _mapAngleImage->setGuiName("endmemberAngleMap");
+            _mapAngleImage->setType(ImageData::Type::Stack);
+            _mapAngleImage->setNumberOfImages(1);
+            _mapAngleImage->setImageSize(QSize(width, height));
+            _mapAngleImage->setNumberOfComponentsPerPixel(1);
+
+            _core->notifyDatasetAdded(_angleMap);
+            _core->notifyDatasetAdded(_mapAngleImage);
+
+        }
+        else {
+
+            _corMap = _core->createDerivedDataset("endmemberCorMapPoints", _points);
+
             spectralCorrelationMapper(endmemberData, thresholdAngle, mapType);
 
-        _mapImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_map));
-        _mapImage->setGuiName("endmemberMap");
-        _mapImage->setType(ImageData::Type::Stack);
-        _mapImage->setNumberOfImages(1);
-        _mapImage->setImageSize(QSize(width, height));
-        _mapImage->setNumberOfComponentsPerPixel(1);
+            _mapCorImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_corMap));
+            _mapCorImage->setGuiName("endmemberCorMap");
+            _mapCorImage->setType(ImageData::Type::Stack);
+            _mapCorImage->setNumberOfImages(1);
+            _mapCorImage->setImageSize(QSize(width, height));
+            _mapCorImage->setNumberOfComponentsPerPixel(1);
 
-        _core->notifyDatasetAdded(_map);
-        _core->notifyDatasetAdded(_mapImage);
+            _core->notifyDatasetAdded(_corMap);
+            _core->notifyDatasetAdded(_mapCorImage);
+        }
     }
     else {
 
-        if (algorithmType == 0)
+        if (algorithmType == 0) {
             spectralAngleMapper(endmemberData, thresholdAngle, mapType);
-        else
+            _core->notifyDatasetChanged(_angleMap);
+            _core->notifyDatasetChanged(_mapAngleImage);
+        }
+        else {
             spectralCorrelationMapper(endmemberData, thresholdAngle, mapType);
+            _core->notifyDatasetChanged(_corMap);
+            _core->notifyDatasetChanged(_mapCorImage);
+        }
 
-        _core->notifyDatasetChanged(_map);
-        _core->notifyDatasetChanged(_mapImage);
+       
     }
 }
 
@@ -676,7 +711,7 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
     int width = imageSize.width();
     int height = imageSize.height();
 
-    _distDataset.resize(width * height);
+    _angleDataset.resize(width * height);
 
     auto numDimensions = _points->getNumDimensions();
     auto noPoints = _points->getNumPoints();
@@ -721,7 +756,7 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
                     angle = acos(value);
             }
 
-             _distDataset[index] = angle;
+            _angleDataset[index] = angle;
 
             if (mapType == 0) {
                 if (angle <= thresholdAngle) {
@@ -750,7 +785,7 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
         }
     }
 
-    _map->setData(mapData.data(), noPoints, 1);
+    _angleMap->setData(mapData.data(), noPoints, 1);
 }
 
 void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData, float threshold, int mapType) {
@@ -762,7 +797,7 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
     int width = imageSize.width();
     int height = imageSize.height();
 
-    _distDataset.resize(width * height);
+    _corDataset.resize(width * height);
 
     auto numDimensions = _points->getNumDimensions();
     auto noPoints = _points->getNumPoints();
@@ -815,7 +850,7 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
                     value = -1;
             }
             
-            _distDataset[index] = value;
+            _corDataset[index] = value;
 
             if (mapType == 0) {
 
@@ -843,14 +878,12 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
         }
     }
 
-    _map->setData(mapData.data(), noPoints, 1);
+    _corMap->setData(mapData.data(), noPoints, 1);
 }
 
-void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algorithmType) {
+void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algorithmType) {    
 
-    qDebug() << threshold;
-
-    if (_distDataset.size() != 0) {
+    if ( (algorithmType == 0 && _angleDataset.size() != 0) || (algorithmType == 1 && _corDataset.size() != 0) ) {
 
         auto children = _points->getChildren({ ImageType });
         auto imagesId = children[0].getDatasetGuid();
@@ -863,14 +896,16 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
         auto noPoints = _points->getNumPoints();
 
         std::vector<float> mapData(width * height);
+        float value = 0;
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
 
                 int index = y * width + x;
-                float value = _distDataset[index];
 
                 if (algorithmType == 0) {
+
+                    value = _angleDataset[index];
 
                     if (mapType == 0) {
                         if (value <= threshold) {
@@ -896,6 +931,8 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
                     }
                 }
                 else if (algorithmType == 1) {
+
+                    value = _corDataset[index];
 
                     if (mapType == 0) {
                         if (value >= threshold) {
@@ -924,10 +961,18 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
             }
         }
 
-        _map->setData(mapData.data(), noPoints, 1);
+        if (algorithmType == 0) {
+            _angleMap->setData(mapData.data(), noPoints, 1);
 
-        _core->notifyDatasetChanged(_map);
-        _core->notifyDatasetChanged(_mapImage);
+            _core->notifyDatasetChanged(_angleMap);
+            _core->notifyDatasetChanged(_mapAngleImage);
+        }
+        else if (algorithmType == 1) {
+            _corMap->setData(mapData.data(), noPoints, 1);
+
+            _core->notifyDatasetChanged(_corMap);
+            _core->notifyDatasetChanged(_mapCorImage);
+        }
     }
 }
 

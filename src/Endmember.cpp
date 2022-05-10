@@ -19,6 +19,7 @@ Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>&
     _active(false),
     _dataset(dataset),
     _data(),
+    //_indices(),
     _generalAction(*this, index),
     _mapAction(*this)
 
@@ -47,6 +48,12 @@ Endmember::~Endmember()
 void Endmember::setData(std::vector<float> data) {
     _data = data;
 }
+
+/*
+void Endmember::setIndices(std::vector<unsigned int> indices) {
+    _indices = indices;
+}
+*/
 
 void Endmember::sendColor(QColor endmemberColor, int row) {
     

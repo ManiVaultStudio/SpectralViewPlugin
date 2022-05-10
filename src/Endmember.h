@@ -40,7 +40,8 @@ public:
     void updateVisibility(bool toggled, int row);
     void sendEndmemberRemoved(int row);
     void highlightSelection(int row);
-    void setData(std::vector<float>);
+    void setData(std::vector<float> data);
+    void setIndices(std::vector<unsigned int> indices);
     void computeMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
     void updateThresholdAngle(float threshold, int mapType, int algorithmType);
     std::vector<float> resample(std::vector<float> parentDim);
@@ -66,6 +67,7 @@ public: /** Action getters */
     EndmembersAction& getEndmembersAction();
     hdps::Dataset<hdps::DatasetImpl>& getDataset() { return _dataset; }
     std::vector<float> getData() { return _data;  }
+    //std::vector<unsigned int> getIndices() { return _indices; }
     GeneralAction& getGeneralAction() { return _generalAction; }
     MapAction& getMapAction() { return _mapAction; }
 
@@ -76,6 +78,7 @@ protected:
     GeneralAction                       _generalAction;
     MapAction                           _mapAction;
     std::vector<float>                  _data;                    /** Smart pointer to endmember data */
+    //std::vector<unsigned int>           _indices;
 
     friend class LineplotWidget;
 
