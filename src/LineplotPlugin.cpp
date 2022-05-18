@@ -277,8 +277,27 @@ void LineplotPlugin::init()
     connect(&_model, &EndmembersModel::rowsInserted, this, endmembersInsertedRemovedChanged);
     connect(&_model, &EndmembersModel::rowsRemoved, this, endmembersInsertedRemovedChanged);
     connect(&_model, &EndmembersModel::dataChanged, this, endmembersInsertedRemovedChanged);
+
+    connect(&_linePlotWidget, &LineplotWidget::customContextMenuRequested, this, [this](const QPoint& point) {
+
+        // Only show a context menu when there is data loaded
+        if (_model.rowCount() <= 0)
+            return;
+
+        // Show the context menu
+        _settingsAction.getContextMenu()->exec(getWidget().mapToGlobal(point));
+        });
 }
 
+void LineplotPlugin::loadData(const Datasets& datasets) {
+
+    // Only load data if we at least have one set
+    if (datasets.isEmpty())
+        return;
+    
+    if (datasets[0]->getDataType() == PointType && !_points.isValid())
+        _points = datasets[0];
+}
 
 void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
@@ -343,7 +362,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             // Get the selection set that changed
             const auto& selectionSet = changedDataSet->getSelection<Points>();
 
-            if(_points.isValid())
+            if(_points.isValid() && _mainToolbarAction.getGlobalSettingsAction().getShowSelectionAction().isChecked())
                 updateSelection(selectionSet);
 
             break;
@@ -573,7 +592,7 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
 
     auto numDimensions = source->getNumDimensions();
     auto children = source->getChildren({ ImageType });
-    
+
     std::vector<float> averageSpectrum(numDimensions);
     std::vector<float> standardDeviation(numDimensions);
 

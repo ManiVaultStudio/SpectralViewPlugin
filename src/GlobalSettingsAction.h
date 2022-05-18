@@ -59,6 +59,7 @@ public: /** Action getters */
     OptionAction& getRedWavelengthAction() { return _redWavelengthAction; }
     OptionAction& getGreenWavelengthAction() { return _greenWavelengthAction; }
     OptionAction& getBlueWavelengthAction() { return _blueWavelengthAction; }
+    ToggleAction& getShowSelectionAction() { return _showSelectionAction; }
 
 protected:
     LineplotPlugin& _lineplotPlugin;         /** Reference to image viewer plugin */
@@ -68,4 +69,5 @@ protected:
     OptionAction    _redWavelengthAction;
     OptionAction    _greenWavelengthAction;
     OptionAction    _blueWavelengthAction;
+    ToggleAction    _showSelectionAction;
 };

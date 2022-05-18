@@ -15,7 +15,8 @@ GlobalSettingsAction::GlobalSettingsAction(LineplotPlugin& lineplotPlugin) :
     _stdAreaEnabledAction(this, "Show standard deviation area", true, true),
     _redWavelengthAction(this, "Red", { "630" }, "630", "630"),
     _greenWavelengthAction(this, "Green", { "532" }, "532", "532"),
-    _blueWavelengthAction(this, "Blue", { "464" }, "464", "464")
+    _blueWavelengthAction(this, "Blue", { "464" }, "464", "464"),
+    _showSelectionAction(this, "Show selection", true, true)
     
 {
     setIcon(Application::getIconFont("FontAwesome").getIcon("cog"));
@@ -26,12 +27,15 @@ GlobalSettingsAction::GlobalSettingsAction(LineplotPlugin& lineplotPlugin) :
     _redWavelengthAction.setToolTip("Red wavelength set by dragging the red line");
     _greenWavelengthAction.setToolTip("Green wavelength set by dragging the green line");
     _blueWavelengthAction.setToolTip("Blue wavelength set by dragging the blue line");
+    _showSelectionAction.setToolTip("Show a line for the current selection");
 
     _wavelengthsRGBEnabledAction.setChecked(false);
     _stdAreaEnabledAction.setChecked(false);
+    _showSelectionAction.setChecked(true);
 
     _groupAction << _wavelengthsRGBEnabledAction;
     _groupAction << _stdAreaEnabledAction;
+    _groupAction << _showSelectionAction;
     _groupAction << _redWavelengthAction;
     _groupAction << _greenWavelengthAction;
     _groupAction << _blueWavelengthAction;
