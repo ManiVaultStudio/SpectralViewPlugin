@@ -283,7 +283,7 @@ void LineplotPlugin::init()
 void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
     // Get smart pointer to dataset that changed
-    const auto changedDataSet = dataEvent->getDataset();
+    const auto& changedDataSet = dataEvent->getDataset();
     auto type = changedDataSet->getDataType();
     
     // Get GUI name of the dataset that changed
@@ -357,9 +357,8 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
     
     auto type = dataset->getDataType();
-    auto parent = dataset->getParent();
+    auto parent = _points;
     
-
     if (type == PointType) {
 
         auto numDimensions = parent.get<Points>()->getNumDimensions();
@@ -459,7 +458,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
 
     auto type = dataset->getDataType();
-    auto parent = dataset->getParent();
+    auto parent = _points;
 
     if (type == PointType) {
         auto points = dataset.get<Points>();
@@ -574,53 +573,57 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
 
     auto numDimensions = source->getNumDimensions();
     auto children = source->getChildren({ ImageType });
-    auto imagesId = children[0].getDatasetGuid();
-    auto images = _core->requestDataset<Images>(imagesId);
-    auto imageSize = images->getImageSize();
-    int width = imageSize.width();
-    int height = imageSize.height();  
-
+    
     std::vector<float> averageSpectrum(numDimensions);
     std::vector<float> standardDeviation(numDimensions);
-    std::vector<float> confIntervalLeft(numDimensions);
-    std::vector <float> confIntervalRight(numDimensions);
 
-    for (int v = 0; v < numDimensions; v++) {
-        float sum = 0;
+    if (children.size() != 0) {
+        auto imagesId = children[0].getDatasetGuid();
+        auto images = _core->requestDataset<Images>(imagesId);
+        auto imageSize = images->getImageSize();
+        int width = imageSize.width();
+        int height = imageSize.height();
 
-        for (int i = 0; i < noPoints; i++) {
-            
-            auto index = indices.at(i);
-            sum += source->getValueAt(index * numDimensions + v);
-        }
+        std::vector<float> confIntervalLeft(numDimensions);
+        std::vector <float> confIntervalRight(numDimensions);
 
-        float mean = noPoints == 0 ? 0 : sum / noPoints;
-        averageSpectrum[v] = mean;
-
-        if (noPoints > 1) {
-            // compute standard deviation per dimension                
-            float std = 0;
+        for (int v = 0; v < numDimensions; v++) {
+            float sum = 0;
 
             for (int i = 0; i < noPoints; i++) {
+
                 auto index = indices.at(i);
-                float value = source->getValueAt(index * numDimensions + v);
-                std += (value - mean) * (value - mean);
+                sum += source->getValueAt(index * numDimensions + v);
             }
 
-            std = sqrt(std / noPoints);
+            float mean = noPoints == 0 ? 0 : sum / noPoints;
+            averageSpectrum[v] = mean;
 
-            standardDeviation[v] = std;
-            confIntervalRight[v] = mean + std;
-            confIntervalLeft[v] = mean - std;
+            if (noPoints > 1) {
+                // compute standard deviation per dimension                
+                float std = 0;
+
+                for (int i = 0; i < noPoints; i++) {
+                    auto index = indices.at(i);
+                    float value = source->getValueAt(index * numDimensions + v);
+                    std += (value - mean) * (value - mean);
+                }
+
+                std = sqrt(std / noPoints);
+
+                standardDeviation[v] = std;
+                confIntervalRight[v] = mean + std;
+                confIntervalLeft[v] = mean - std;
+            }
         }
-    }
 
-    std::vector<QString> names;
-    if (source->getDimensionNames().size() == source->getNumDimensions()) {
-        names = source->getDimensionNames();
-    }
+        std::vector<QString> names;
+        if (source->getDimensionNames().size() == source->getNumDimensions()) {
+            names = source->getDimensionNames();
+        }
 
-    _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions, dataOrigin);
+        _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions, dataOrigin);
+    }
 
     return { averageSpectrum, standardDeviation };
 }
