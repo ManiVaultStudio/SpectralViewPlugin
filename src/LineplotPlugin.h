@@ -41,6 +41,8 @@ public:
      * @param dataset Smart pointer to dataset
      */
     void addDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
+    void updateDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
+    void addNewCluster(const hdps::Dataset<hdps::DatasetImpl>& dataset);
     void addAverageDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
     void loadData(const hdps::Datasets& datasets) override;
 
@@ -92,7 +94,7 @@ private:
     //std::vector<float> createRGBImage(int dimR, int dimG, int dimB);
 
     hdps::Dataset<Points>              _points;        /** Currently loaded points dataset */
-    hdps::Dataset<Clusters>            _clusters;      /** Currently loaded clusters dataset */
+    std::vector<QString>               _clusterNames;      /** Names of currently loaded cluster datasets */
     hdps::Dataset<Points>              _angleMap;
     hdps::Dataset<Images>              _mapAngleImage;
     hdps::Dataset<Points>              _corMap;
@@ -100,6 +102,7 @@ private:
     std::vector<float>                 _angleDataset;
     std::vector<float>                 _corDataset;
     std::vector<float>                 _averageDataset;
+    std::vector<int>                   _noLoadedClusters;
             
     EndmembersModel             _model;                 /** Endmembers model */
     QItemSelectionModel     _selectionModel;        /** Layers selection model */

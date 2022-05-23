@@ -28,6 +28,8 @@ Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>&
     setObjectName("Endmember");
     setEventCore(Application::core());
 
+    _index = index;
+
     if (!_dataset.isValid()) {
         throw std::runtime_error("The dataset is not valid after initialization");
     }
@@ -47,6 +49,10 @@ Endmember::~Endmember()
 
 void Endmember::setData(std::vector<float> data) {
     _data = data;
+}
+
+int Endmember::getIndex() {
+    return _index;
 }
 
 /*

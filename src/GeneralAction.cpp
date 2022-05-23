@@ -61,8 +61,6 @@ GeneralAction::GeneralAction(Endmember& endmember, int index) :
         _nameAction.setString(endmemberName);
         _nameAction.setDefaultString(endmemberName);
     }
-    
-    _nameAction.setEnabled(false);
 
     // Assign the color and default color
     _colorAction.initialize(endmemberColor, endmemberColor);

@@ -45,6 +45,7 @@ public:
     void computeMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
     void updateThresholdAngle(float threshold, int mapType, int algorithmType);
     std::vector<float> resample(std::vector<float> parentDim);
+    int getIndex();
 
     /**
      * Get the context menu
@@ -78,6 +79,7 @@ protected:
     GeneralAction                       _generalAction;
     MapAction                           _mapAction;
     std::vector<float>                  _data;                    /** Smart pointer to endmember data */
+    int                                 _index;
     //std::vector<unsigned int>           _indices;
 
     friend class LineplotWidget;

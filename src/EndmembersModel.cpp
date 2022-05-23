@@ -102,7 +102,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 if (type == ClusterType) {
                     auto& clusters = dataset.get<Clusters>()->getClusters();
                     clusters[decisionIndex].setColor(color);
-                    Application::core()->notifyDatasetChanged(dataset);
+                    Application::core()->notifyDatasetChanged(dataset.get<Clusters>());
                 }
                 
                 });
@@ -113,13 +113,13 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 emit dataChanged(changedCell, changedCell);
                 
                 
-                auto dataset = endmember->getDataset();
+                auto& dataset = endmember->getDataset();
                 auto type = dataset->getDataType();
 
                 if (type == ClusterType) {
                     auto& clusters = dataset.get<Clusters>()->getClusters();
                     clusters[decisionIndex].setName(name);
-                    Application::core()->notifyDatasetChanged(dataset);
+                    Application::core()->notifyDatasetChanged(dataset.get<Clusters>());
                 }
                 });
 
@@ -247,6 +247,18 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
     }
     catch (...) {
         exceptionMessageBox("Unable to add endmember to the endmembers model");
+    }
+}
+
+void EndmembersModel::updateEndmember(int index, QString name, QColor color) {
+
+    for (auto endmember : _endmembers) {
+        if (endmember->getIndex() == index) {
+            if (endmember->getGeneralAction().getNameAction().getString() != name)
+                endmember->getGeneralAction().getNameAction().setString(name);
+            else if (endmember->getGeneralAction().getColorAction().getColor() != color)
+                endmember->getGeneralAction().getColorAction().setColor(color);
+        }
     }
 }
 

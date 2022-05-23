@@ -38,7 +38,9 @@ LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     _mapCorImage(),
     _angleDataset(),
     _corDataset(),
-    _averageDataset()
+    _averageDataset(),
+    _noLoadedClusters(),
+    _clusterNames()
 {
     setObjectName("Line Plot");
 
@@ -108,7 +110,7 @@ void LineplotPlugin::init()
         const auto dataTypes = DataTypes({ PointType, ClusterType });
 
         // Get points dataset from the core
-        auto candidateDataset = _core->requestDataset(datasetId);
+        auto& candidateDataset = _core->requestDataset(datasetId);
 
         // Check if the data type can be dropped
         if (!dataTypes.contains(dataType)) {
@@ -198,12 +200,18 @@ void LineplotPlugin::init()
         if (dataType == ClusterType) {
            // const auto candidateDataset = _core->requestDataset<Clusters>(datasetId);
             const auto description = QString("Visualize every cluster in %1 as one line").arg(candidateDataset->getGuiName());
+            bool isNewCluster = true;
 
             if (_points.isValid()) {
-                if (candidateDataset == _clusters) {
-                    dropRegions << new gui::DropWidget::DropRegion(this, "Clusters", "Cluster set is already in use", "exclamation-circle", false, [this]() {});
+                for (int i = 0; i < _clusterNames.size(); i++) {
+                    if (candidateDataset->getGuiName() == _clusterNames[i]) {
+
+                        dropRegions << new gui::DropWidget::DropRegion(this, "Clusters", "Cluster set is already in use", "exclamation-circle", false, [this]() {});
+                        isNewCluster = false;
+                        break;
+                    }
                 }
-                else {
+                if (isNewCluster) {
 
                     DataHierarchyItems parents;
 
@@ -212,7 +220,10 @@ void LineplotPlugin::init()
                     if (parents.at(0)->getGuiName() == _points->getGuiName()) {
 
                         dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
-                            _clusters = candidateDataset;
+                            _clusterNames.push_back(candidateDataset->getGuiName());
+                            _noLoadedClusters.push_back(candidateDataset.get<Clusters>()->getClusters().size());
+                            _clusterNames[0];
+                            _noLoadedClusters[0];
                             addDataset(candidateDataset);
 
                             });
@@ -240,11 +251,6 @@ void LineplotPlugin::init()
     // Load points when the dataset name of the points dataset reference changes
     connect(&_points, &Dataset<Points>::changed, this, [this, updateWindowTitle]() {
         _dropWidget.setShowDropIndicator(false);
-        updateWindowTitle();
-        });
-
-    // Load clusters when the dataset name of the clusters dataset reference changes
-    connect(&_clusters, &Dataset<Clusters>::changed, this, [this, updateWindowTitle]() {
         updateWindowTitle();
         });
 
@@ -334,9 +340,25 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             // Get the name of the points dataset of which the data changed and print to the console
             std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
 
-            if (_clusters.isValid() && type == ClusterType) {
-                if (_clusters->getGuiName() == datasetGuiName) {
-                    addDataset(changedDataSet);
+            // can you have multiple cluster sets?
+            if (type == ClusterType) {
+
+                for (int i = 0; i < _clusterNames.size(); i++) {
+                    if (_clusterNames[i] == datasetGuiName) {
+                        auto noClusters = changedDataSet.get<Clusters>()->getClusters().size();
+
+                        if (_noLoadedClusters[i] == noClusters)
+                            updateDataset(changedDataSet);
+                        else if (_noLoadedClusters[i] > noClusters) {
+                            _noLoadedClusters[i] = noClusters;
+                            addDataset(changedDataSet);
+                        }
+                        else if (_noLoadedClusters[i] < noClusters) {
+                            _noLoadedClusters[i] = noClusters;
+                            addNewCluster(changedDataSet);
+                        }
+                        break;
+                    }                    
                 }
             }
         }
@@ -376,7 +398,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
     
     auto type = dataset->getDataType();
-    auto parent = _points;
+    auto& parent = _points;
     
     if (type == PointType) {
 
@@ -384,7 +406,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 
         auto points = dataset.get<Points>();
         auto noPoints = points->getNumPoints();
-        auto indices = points->indices;
+        auto& indices = points->indices;
 
         if (indices.size() != 0) {
             for (int i = 0; i < noPoints; i++) {
@@ -392,7 +414,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
                 auto endmember = new Endmember(*this, dataset, -1);
                 _model.addEndmember(endmember, -1);
 
-                auto endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
+                auto& endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
                 endmember->setData(std::get<0>(endmemberData));
                 //endmember->setIndices(indices);
             }
@@ -420,11 +442,10 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
     }
     else if (type == ClusterType) {
 
-        auto clusters = dataset.get<Clusters>()->getClusters();
+        auto& clusters = dataset.get<Clusters>()->getClusters();
         auto noClusters = clusters.length();
 
-        //need to change
-        auto parent = _points;
+        auto& parent = _points;
         auto numDimensions = parent->getNumDimensions();
         
         // remove clusters of this dataset
@@ -433,32 +454,35 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         // add clsuters
         for (int i = 0; i < noClusters; i++) {
 
-            auto noPointsCluster = clusters[i].getNumberOfIndices();
-            auto indices = clusters[i].getIndices();
+            auto& cluster = clusters[i];
+            auto noPointsCluster = cluster.getNumberOfIndices();
+            auto& indices = cluster.getIndices();
 
-            auto average = clusters[i].getMean();
-            auto std = clusters[i].getStandardDeviation();
+            auto& average = cluster.getMean();
+            auto& std = cluster.getStandardDeviation();
 
             auto endmember = new Endmember(*this, dataset, i);
             _model.addEndmember(endmember, i);
 
-            if (average.size() == 0) {
-
+            //if (average.size() == 0) {
+             //   qDebug() << "compute";
                 average.resize(numDimensions);
                 std.resize(numDimensions);
 
-                auto endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
-                auto computedAvg = std::get<0>(endmemberData);
-                auto computedStd = std::get<1>(endmemberData);
+                auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+                auto& computedAvg = std::get<0>(endmemberData);
+                auto& computedStd = std::get<1>(endmemberData);
 
                 for (int v = 0; v < numDimensions; v++) {
                     average[v] = computedAvg[v];
                     std[v] = computedStd[v];
                 }
-            }
+           // }
+           /*
             else {
-                std::vector<float> confIntervalLeft;
-                std::vector<float> confIntervalRight;
+                qDebug() << "precomputed ";
+                std::vector<float> confIntervalLeft(numDimensions);
+                std::vector<float> confIntervalRight(numDimensions);
                 auto dimNames = parent.get<Points>()->getDimensionNames();
 
                 for (int v = 0; v < numDimensions; v++) {
@@ -467,29 +491,81 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
                 }
                 _linePlotWidget.setData(average, confIntervalLeft, confIntervalRight, dimNames, numDimensions, "endmember");
             }
-
+            */
+            
             endmember->setData(average);
             //endmember->setIndices(indices);
         }
     }
 }
 
+void LineplotPlugin::addNewCluster(const Dataset<DatasetImpl>& dataset) {
+    
+    auto& clusters = dataset.get<Clusters>()->getClusters();
+    auto noClusters = clusters.length();
+    auto& lastCluster = clusters[noClusters - 1];
+
+    auto& parent = _points;
+    auto numDimensions = parent->getNumDimensions();
+
+    auto& average = lastCluster.getMean();
+    auto& std = lastCluster.getStandardDeviation();
+
+    auto noPointsCluster = lastCluster.getNumberOfIndices();
+    auto& indices = lastCluster.getIndices();
+
+    auto endmember = new Endmember(*this, dataset, noClusters-1);
+    _model.addEndmember(endmember, noClusters-1);
+
+    average.resize(numDimensions);
+    std.resize(numDimensions);
+
+    auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+    auto& computedAvg = std::get<0>(endmemberData);
+    auto& computedStd = std::get<1>(endmemberData);
+
+    for (int v = 0; v < numDimensions; v++) {
+        average[v] = computedAvg[v];
+        std[v] = computedStd[v];
+    }
+}
+
+void LineplotPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
+
+    auto& clusters = dataset.get<Clusters>()->getClusters();
+    auto noClusters = clusters.length();
+
+    auto& parent = _points;
+    auto numDimensions = parent->getNumDimensions();
+
+    for (int i = 0; i < noClusters; i++) {
+
+        auto& cluster = clusters[i];
+
+        auto noPointsCluster = cluster.getNumberOfIndices();
+        auto& indices = cluster.getIndices();
+       
+
+        _model.updateEndmember(i, cluster.getName(), cluster.getColor());   
+    }
+}
+
 void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
 
     auto type = dataset->getDataType();
-    auto parent = _points;
+    auto& parent = _points;
 
     if (type == PointType) {
         auto points = dataset.get<Points>();
         auto noPoints = points->getNumPoints();
-        auto indices = points->indices;
+        auto& indices = points->indices;
 
         if (indices.size() != 0) {
 
             auto endmember = new Endmember(*this, dataset, 0);
             _model.addEndmember(endmember, 0);
 
-            auto endmemberData = computeAverageSpectrum(parent, noPoints, indices, "endmember");
+            auto& endmemberData = computeAverageSpectrum(parent, noPoints, indices, "endmember");
             endmember->setData(std::get<0>(endmemberData));
         }
     }
@@ -499,10 +575,10 @@ void LineplotPlugin::initializeImageRGB() {
 
     QStringList dimensionNames;
     auto numDimensions = _points->getNumDimensions();
-    auto dimNames = _points->getDimensionNames();
+    auto& dimNames = _points->getDimensionNames();
 
     // Populate dimension names
-    if (_points->getDimensionNames().size() == _points->getNumDimensions()) {
+    if (dimNames.size() == _points->getNumDimensions()) {
         for (const auto& dimensionName : _points->getDimensionNames())
             dimensionNames << dimensionName;
     }
@@ -591,14 +667,14 @@ void LineplotPlugin::setSelection(std::vector<unsigned int> indices) {
 std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
 
     auto numDimensions = source->getNumDimensions();
-    auto children = source->getChildren({ ImageType });
+    auto& children = source->getChildren({ ImageType });
 
     std::vector<float> averageSpectrum(numDimensions);
     std::vector<float> standardDeviation(numDimensions);
 
     if (children.size() != 0) {
         auto imagesId = children[0].getDatasetGuid();
-        auto images = _core->requestDataset<Images>(imagesId);
+        auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
@@ -663,9 +739,9 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
 
     if ( (algorithmType == 0 && !_angleMap.isValid()) || (algorithmType == 1 && !_corMap.isValid()) ) {
 
-        auto children = _points->getChildren({ ImageType });
+        auto& children = _points->getChildren({ ImageType });
         auto imagesId = children[0].getDatasetGuid();
-        auto images = _core->requestDataset<Images>(imagesId);
+        auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
@@ -726,9 +802,9 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
 // implementation of spectral angle mapper and spectral correlation mapper
 void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType) {
     
-    auto children = _points->getChildren({ ImageType });
+    auto& children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
-    auto images = _core->requestDataset<Images>(imagesId);
+    auto& images = _core->requestDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
     int height = imageSize.height();
@@ -812,9 +888,9 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
 
 void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData, float threshold, int mapType) {
 
-    auto children = _points->getChildren({ ImageType });
+    auto& children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
-    auto images = _core->requestDataset<Images>(imagesId);
+    auto& images = _core->requestDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
     int height = imageSize.height();
@@ -907,9 +983,9 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
 
     if ( (algorithmType == 0 && _angleDataset.size() != 0) || (algorithmType == 1 && _corDataset.size() != 0) ) {
 
-        auto children = _points->getChildren({ ImageType });
+        auto& children = _points->getChildren({ ImageType });
         auto imagesId = children[0].getDatasetGuid();
-        auto images = _core->requestDataset<Images>(imagesId);
+        auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();

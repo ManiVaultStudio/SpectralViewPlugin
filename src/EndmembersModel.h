@@ -104,6 +104,7 @@ public: // Endmember operations
     */
     void saveEndmembers(QString name);
 
+    void updateEndmember(int index, QString name, QColor color);
     /**
      * Remove an endmember from the model by row index
      * @param row Row index of the layer
