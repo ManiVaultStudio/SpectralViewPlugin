@@ -111,6 +111,8 @@ private:
     hdps::gui::DropWidget   _dropWidget;            /** Widget allowing users to drop in data */
     MainToolbarAction       _mainToolbarAction;     /** Main toolbar action */
     SettingsAction          _settingsAction;        /** Line chart settings action */
+
+    hdps::EventListener     _eventListener;     /** Listen to HDPS events */
 };
 
 

@@ -14,7 +14,6 @@
 
 Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>& dataset, int index) :
     WidgetAction(&lineplotPlugin),
-    EventListener(),
     _lineplotPlugin(lineplotPlugin),
     _active(false),
     _dataset(dataset),
@@ -26,7 +25,6 @@ Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>&
 {
     setText("Endmember");
     setObjectName("Endmember");
-    setEventCore(Application::core());
 
     _index = index;
 

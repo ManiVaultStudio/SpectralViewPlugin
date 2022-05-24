@@ -17,7 +17,7 @@ using namespace hdps::util;
 
 class LineplotPlugin;
 
-class Endmember : public WidgetAction, public hdps::EventListener
+class Endmember : public WidgetAction
 {
     Q_OBJECT
 

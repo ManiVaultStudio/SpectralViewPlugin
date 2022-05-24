@@ -22,13 +22,12 @@ using namespace hdps;
 
 EndmembersModel::EndmembersModel(QObject* parent) :
     QAbstractListModel(parent),
-    EventListener(),
     _endmembers()
 {
-    setEventCore(Application::core());
-
     // Register for events for points datasets
-    registerDataEventByType(PointType, [this](DataEvent* dataEvent) {
+    _eventListener.setEventCore(Application::core());
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataRemoved));
+    _eventListener.registerDataEventByType(PointType, [this](DataEvent* dataEvent) {
 
         switch (dataEvent->getType())
         {
@@ -44,7 +43,9 @@ EndmembersModel::EndmembersModel(QObject* parent) :
         });
 
     // Register for events for images datasets
-    registerDataEventByType(ImageType, [this](DataEvent* dataEvent) {
+    _eventListener.setEventCore(Application::core());
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataRemoved));
+    _eventListener.registerDataEventByType(ImageType, [this](DataEvent* dataEvent) {
 
         switch (dataEvent->getType())
         {

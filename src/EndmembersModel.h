@@ -5,7 +5,7 @@
 
 #include <QAbstractListModel>
 
-class EndmembersModel : public QAbstractListModel, public hdps::EventListener
+class EndmembersModel : public QAbstractListModel
 {
 public:
 
@@ -166,4 +166,5 @@ public: // Endmember operations
 protected:
     QVector<Endmember*>                   _endmembers;        /** Endmembers data */
     std::unordered_map<QString, bool>       _clusterVisibility;
+    hdps::EventListener     _eventListener;
 };

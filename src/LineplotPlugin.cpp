@@ -264,8 +264,12 @@ void LineplotPlugin::init()
         _dropWidget.setShowDropIndicator(newDatasetName.isEmpty());
         });
 
-    registerDataEventByType(PointType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
-    registerDataEventByType(ClusterType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
+    _eventListener.setEventCore(Application::core());
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataAdded));
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataChanged));
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataSelectionChanged));
+    _eventListener.registerDataEventByType(PointType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
+    _eventListener.registerDataEventByType(ClusterType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
 
     const auto endmembersInsertedRemovedChanged = [this]() {
        // _dropWidget.setShowDropIndicator(_model.rowCount() == 0);
@@ -359,18 +363,6 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
                     }                    
                 }
             }
-        }
-
-        // Points dataset data was removed
-        case EventType::DataRemoved:
-        {
-            // Cast the data event to a data removed event
-            const auto dataRemovedEvent = static_cast<DataRemovedEvent*>(dataEvent);
-
-            // Get the name of the removed points dataset and print to the console
-            std::cout << datasetGuiName.toStdString() << " was removed" << std::endl;
-
-            break;
         }
 
         // Points dataset selection has changed
