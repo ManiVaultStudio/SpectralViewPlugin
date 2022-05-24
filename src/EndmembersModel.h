@@ -103,8 +103,10 @@ public: // Endmember operations
     * Save all endmembers to a .txt file
     */
     void saveEndmembers(QString name);
+    void saveEndmemberClusterVisibility(QString datasetGuid);
+    void updateEndmemberClusterVisibility(QString datasetGuid);
 
-    void updateEndmember(int index, QString name, QColor color);
+    void updateEndmember(QString datasetGuid, int index, QString name, QColor color);
     /**
      * Remove an endmember from the model by row index
      * @param row Row index of the layer
@@ -162,5 +164,6 @@ public: // Endmember operations
     QIcon getColorIcon(const QColor& color) const;
 
 protected:
-    QVector<Endmember*>    _endmembers;        /** Endmembers data */
+    QVector<Endmember*>                   _endmembers;        /** Endmembers data */
+    std::unordered_map<QString, bool>       _clusterVisibility;
 };

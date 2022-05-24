@@ -222,8 +222,6 @@ void LineplotPlugin::init()
                         dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
                             _clusterNames.push_back(candidateDataset->getGuiName());
                             _noLoadedClusters.push_back(candidateDataset.get<Clusters>()->getClusters().size());
-                            _clusterNames[0];
-                            _noLoadedClusters[0];
                             addDataset(candidateDataset);
 
                             });
@@ -448,6 +446,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         auto& parent = _points;
         auto numDimensions = parent->getNumDimensions();
         
+        _model.saveEndmemberClusterVisibility(dataset->getGuid());
         // remove clusters of this dataset
         _model.removeEndmembers(dataset->getGuid());
         
@@ -462,21 +461,22 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             auto& std = cluster.getStandardDeviation();
 
             auto endmember = new Endmember(*this, dataset, i);
+
             _model.addEndmember(endmember, i);
 
             //if (average.size() == 0) {
              //   qDebug() << "compute";
-                average.resize(numDimensions);
-                std.resize(numDimensions);
+            average.resize(numDimensions);
+            std.resize(numDimensions);
 
-                auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
-                auto& computedAvg = std::get<0>(endmemberData);
-                auto& computedStd = std::get<1>(endmemberData);
+            auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+            auto& computedAvg = std::get<0>(endmemberData);
+            auto& computedStd = std::get<1>(endmemberData);
 
-                for (int v = 0; v < numDimensions; v++) {
-                    average[v] = computedAvg[v];
-                    std[v] = computedStd[v];
-                }
+            for (int v = 0; v < numDimensions; v++) {
+                average[v] = computedAvg[v];
+                std[v] = computedStd[v];
+            }
            // }
            /*
             else {
@@ -496,6 +496,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             endmember->setData(average);
             //endmember->setIndices(indices);
         }
+        _model.updateEndmemberClusterVisibility(dataset->getGuid());
     }
 }
 
@@ -546,7 +547,7 @@ void LineplotPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
         auto& indices = cluster.getIndices();
        
 
-        _model.updateEndmember(i, cluster.getName(), cluster.getColor());   
+        _model.updateEndmember(dataset->getGuid(), i, cluster.getName(), cluster.getColor());
     }
 }
 

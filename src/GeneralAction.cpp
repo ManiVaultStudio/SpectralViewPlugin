@@ -28,6 +28,8 @@ GeneralAction::GeneralAction(Endmember& endmember, int index) :
     QColor endmemberColor;
     QVector<Cluster> clusters;
 
+    _visibleAction.setChecked(false);
+
     // Get the name of the images dataset
     const auto guiName = dataset->getGuiName();
 

@@ -250,10 +250,10 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
     }
 }
 
-void EndmembersModel::updateEndmember(int index, QString name, QColor color) {
+void EndmembersModel::updateEndmember(QString datasetGuid, int index, QString name, QColor color) {
 
     for (auto endmember : _endmembers) {
-        if (endmember->getIndex() == index) {
+        if (endmember->getDataset()->getGuid() == datasetGuid && endmember->getIndex() == index) {
             if (endmember->getGeneralAction().getNameAction().getString() != name)
                 endmember->getGeneralAction().getNameAction().setString(name);
             else if (endmember->getGeneralAction().getColorAction().getColor() != color)
@@ -639,6 +639,40 @@ void EndmembersModel::removeEndmember(const std::uint32_t& row)
     }
     catch (...) {
         exceptionMessageBox("Unable to remove layer from the layers model");
+    }
+}
+
+void EndmembersModel::saveEndmemberClusterVisibility(QString datasetGuid) {
+
+    _clusterVisibility.reserve(_endmembers.length());
+
+    for (auto endmember : _endmembers) {
+        if (endmember->getDataset()->getGuid() == datasetGuid) {
+            auto& name = endmember->getGeneralAction().getNameAction().getString();
+            auto& color = endmember->getGeneralAction().getColorAction().getColor();
+            QString r = QString::number(color.red());
+            QString g = QString::number(color.green());
+            QString b = QString::number(color.blue());
+            QString index = name + r + "-" + g + "-" + b;
+            _clusterVisibility[index] = endmember->getGeneralAction().getVisibleAction().isChecked();
+        }
+    }
+}
+
+void EndmembersModel::updateEndmemberClusterVisibility(QString datasetGuid) {
+
+    if (_clusterVisibility.size() != 0) {
+        for (auto endmember : _endmembers) {
+            if (endmember->getDataset()->getGuid() == datasetGuid) {
+                auto& name = endmember->getGeneralAction().getNameAction().getString();
+                auto& color = endmember->getGeneralAction().getColorAction().getColor();
+                QString r = QString::number(color.red());
+                QString g = QString::number(color.green());
+                QString b = QString::number(color.blue());
+                QString index = name + r + "-" + g + "-" + b;
+                endmember->getGeneralAction().getVisibleAction().setChecked(_clusterVisibility[index]);
+            }
+        }
     }
 }
 

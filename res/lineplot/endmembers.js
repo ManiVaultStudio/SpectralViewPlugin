@@ -1,6 +1,6 @@
 function addEndmembers(endmember, index) {
 
-    _visibleEndmembers[index] = true;
+    _visibleEndmembers[index] = false;
 
     var newYMax = d3.max(endmember, function (d) { return +d.y; });
     var newYMin = d3.max(endmember, function (d) { return +d.y; });
@@ -31,7 +31,7 @@ function addEndmembers(endmember, index) {
     var newEndmember = _lineChart.append("path")
         .datum(endmember)
         .attr("class", "endmembers")
-        .style("opacity", 1)
+        .style("opacity", 0)
         .attr("fill", "none")
         .attr("stroke", d3.rgb(r, g, b))
         .attr("stroke-width", 2)
