@@ -2,20 +2,20 @@
 
 #include <actions/WidgetAction.h>
 #include <actions/ToggleAction.h>
+#include <actions/OptionAction.h>
 
 using namespace hdps::gui;
 
 class LineplotPlugin;
 
 /**
- * Global view settings action class
+ * Wavelengths RGB action class
  *
- * Settings action class for global view settings
+ * Settings action class for RGB wavelengths settings
  *
- * MainToolbarAction, SettingsAction and GlobalSettingsAction 
- * based on the implementations in ImageViewerPlugin
+ * Based on the implementations in ScatterplotPlugin
  */
-class GlobalSettingsAction : public WidgetAction
+class WavelengthsRGBAction : public WidgetAction
 {
     Q_OBJECT
 
@@ -31,7 +31,7 @@ protected: // Widget
          * @param globalViewSettingsAction Pointer to global view settings action
          * @param widgetFlags Widget flags for the configuration of the widget (type)
          */
-        Widget(QWidget* parent, GlobalSettingsAction* globalViewSettingsAction, const std::int32_t& widgetFlags);
+        Widget(QWidget* parent, WavelengthsRGBAction* wavelengthsRGBAction, const std::int32_t& widgetFlags);
     };
 
     /**
@@ -49,7 +49,7 @@ public:
      * Constructor
      * @param imageViewerPlugin Reference to image viewer plugin
      */
-    GlobalSettingsAction(LineplotPlugin& lineplotPlugin);
+    WavelengthsRGBAction(LineplotPlugin& lineplotPlugin);
 
     /**
      * Get the context menu for the action
@@ -60,12 +60,16 @@ public:
 
 
 public: /** Action getters */
-    
-    ToggleAction& getStdAreaEnabledAction() { return _stdAreaEnabledAction; }
-    ToggleAction& getShowSelectionAction() { return _showSelectionAction; }
+
+    ToggleAction& getWavelengthsRGBEnabledAction() { return _wavelengthsRGBEnabledAction; }
+    OptionAction& getRedWavelengthAction() { return _redWavelengthAction; }
+    OptionAction& getGreenWavelengthAction() { return _greenWavelengthAction; }
+    OptionAction& getBlueWavelengthAction() { return _blueWavelengthAction; }
 
 protected:
     LineplotPlugin& _lineplotPlugin;         /** Reference to image viewer plugin */
-    ToggleAction    _stdAreaEnabledAction;
-    ToggleAction    _showSelectionAction;
+    ToggleAction    _wavelengthsRGBEnabledAction;
+    OptionAction    _redWavelengthAction;
+    OptionAction    _greenWavelengthAction;
+    OptionAction    _blueWavelengthAction;
 };

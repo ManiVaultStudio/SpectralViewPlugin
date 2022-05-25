@@ -1,7 +1,12 @@
 #pragma once
 
-#include <actions/WidgetAction.h>
+//#include <actions/WidgetAction.h>
+//#include <actions/ToggleAction.h>
+#include "actions/WidgetActionStateWidget.h"
 #include "GlobalSettingsAction.h"
+#include "WavelengthsRGBAction.h"
+#include <QHBoxLayout>
+
 
 class LineplotPlugin;
 class LineplotWidget;
@@ -30,7 +35,20 @@ public:
          */
         Widget(QWidget* parent, MainToolbarAction* mainToolbarAction);
 
+        bool eventFilter(QObject* object, QEvent* event);
+
+protected:
+    void addStateWidget(WidgetAction* widgetAction, const std::int32_t& priority = 0);
+
+private:
+    void updateLayout();
+
     protected:
+        QHBoxLayout                         _layout;
+        QWidget                             _toolBarWidget;
+        QHBoxLayout                         _toolBarLayout;
+        QVector<WidgetActionStateWidget*>   _stateWidgets;
+
         friend class MainToolbarAction;
     };
 
@@ -53,14 +71,18 @@ public:
      */
     MainToolbarAction(LineplotPlugin& lineplotPlugin);
 
-    /** Get reference to image viewer widget */
+    QMenu* getContextMenu();
+
+    /** Get reference to lineplot widget */
     LineplotWidget& getLineplotWidget();
 
 public: // Action getters
 
     GlobalSettingsAction& getGlobalSettingsAction() { return _globalSettingsAction; }
+    WavelengthsRGBAction& getWavelengthsRGBAction() { return _wavelengthsRGBAction; }
 
 protected:
     LineplotPlugin& _lineplotPlugin;                 /** Reference to image viewer plugin */
     GlobalSettingsAction    _globalSettingsAction;          /** Global view settings action */
+    WavelengthsRGBAction    _wavelengthsRGBAction;
 };

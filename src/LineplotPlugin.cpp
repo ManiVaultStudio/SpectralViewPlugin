@@ -255,13 +255,11 @@ void LineplotPlugin::init()
     connect(&_linePlotWidget, SIGNAL(changeRGBWavelengths(float, int)), SLOT(changeRGBWavelengths(float, int)));
 
     // Respond when the name of the dataset in the dataset reference changes
-    connect(&_points, &Dataset<Points>::dataGuiNameChanged, this, [this](const QString& oldDatasetName, const QString& newDatasetName) {
-
-        // Update the current dataset name label
-        //_linePlotWidget.set(QString("Current points dataset: %1").arg(newDatasetName));
+    connect(&_points, &Dataset<Points>::dataGuiNameChanged, this, [this, updateWindowTitle](const QString& oldDatasetName, const QString& newDatasetName) {
 
         // Only show the drop indicator when nothing is loaded in the dataset reference
         _dropWidget.setShowDropIndicator(newDatasetName.isEmpty());
+        updateWindowTitle();
         });
 
     _eventListener.setEventCore(Application::core());
@@ -342,7 +340,6 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             // Get the name of the points dataset of which the data changed and print to the console
             std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
 
-            // can you have multiple cluster sets?
             if (type == ClusterType) {
 
                 for (int i = 0; i < _clusterNames.size(); i++) {
@@ -537,10 +534,11 @@ void LineplotPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
 
         auto noPointsCluster = cluster.getNumberOfIndices();
         auto& indices = cluster.getIndices();
-       
 
-        _model.updateEndmember(dataset->getGuid(), i, cluster.getName(), cluster.getColor());
+
+        _model.updateClustersEndmember(dataset->getGuid(), i, cluster.getName(), cluster.getColor());
     }
+    
 }
 
 void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
@@ -580,9 +578,9 @@ void LineplotPlugin::initializeImageRGB() {
             dimensionNames << QString("Dim %1").arg(QString::number(dimensionIndex));
     }
 
-    _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setOptions(dimensionNames);
-    _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setOptions(dimensionNames);
-    _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setOptions(dimensionNames);
+    _mainToolbarAction.getWavelengthsRGBAction().getRedWavelengthAction().setOptions(dimensionNames);
+    _mainToolbarAction.getWavelengthsRGBAction().getGreenWavelengthAction().setOptions(dimensionNames);
+    _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setOptions(dimensionNames);
 
     float wavelengthR = 630;
     float wavelengthG = 532;
@@ -608,13 +606,13 @@ void LineplotPlugin::initializeImageRGB() {
         }
     }
 
-    _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setCurrentText(dimR);
-    _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setCurrentText(dimG);
-    _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setCurrentText(dimB);
+    _mainToolbarAction.getWavelengthsRGBAction().getRedWavelengthAction().setCurrentText(dimR);
+    _mainToolbarAction.getWavelengthsRGBAction().getGreenWavelengthAction().setCurrentText(dimG);
+    _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setCurrentText(dimB);
 
-    _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setDefaultText(dimR);
-    _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setDefaultText(dimG);
-    _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setDefaultText(dimB);
+    _mainToolbarAction.getWavelengthsRGBAction().getRedWavelengthAction().setDefaultText(dimR);
+    _mainToolbarAction.getWavelengthsRGBAction().getGreenWavelengthAction().setDefaultText(dimG);
+    _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setDefaultText(dimB);
 }
 
 void LineplotPlugin::changeRGBWavelengths(const float wavelength, int index) {
@@ -622,13 +620,13 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelength, int index) {
     QString newValue = QString::number(wavelength);
 
     if (index == 0) {
-        _mainToolbarAction.getGlobalSettingsAction().getRedWavelengthAction().setCurrentText(newValue);
+        _mainToolbarAction.getWavelengthsRGBAction().getRedWavelengthAction().setCurrentText(newValue);
     }
     else if (index == 1) {
-        _mainToolbarAction.getGlobalSettingsAction().getGreenWavelengthAction().setCurrentText(newValue);
+        _mainToolbarAction.getWavelengthsRGBAction().getGreenWavelengthAction().setCurrentText(newValue);
     }
     else if (index == 2) {
-        _mainToolbarAction.getGlobalSettingsAction().getBlueWavelengthAction().setCurrentText(newValue);
+        _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setCurrentText(newValue);
     }
 
 }

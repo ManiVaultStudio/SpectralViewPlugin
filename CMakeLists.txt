@@ -31,6 +31,8 @@ set(SOURCES
     src/MainToolbarAction.cpp
     src/GlobalSettingsAction.h
     src/GlobalSettingsAction.cpp
+    src/WavelengthsRGBAction.h
+    src/WavelengthsRGBAction.cpp
     src/EndmembersAction.cpp
     src/EndmembersAction.h
     src/EndmembersModel.cpp
