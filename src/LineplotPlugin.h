@@ -69,10 +69,10 @@ public:
 
     QString getDatasetName();
 
-    void updateMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
-    void spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
-    void spectralCorrelationMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType);
-    void updateThresholdAngle(float threshold, int mapType, int algorithmType);
+    void updateMap(QString endmemberName, std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
+    void spectralAngleMapper(QString endmemeberName, std::vector<float> endmemberData, float thresholdAngle, int mapType);
+    void spectralCorrelationMapper(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType);
+    void updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType);
     void computeAverageDataset(int width, int height, int numDimensions);
     void setSelection(std::vector<unsigned int> indices);
 
@@ -96,8 +96,10 @@ private:
     hdps::Dataset<Points>              _points;        /** Currently loaded points dataset */
     std::vector<QString>               _clusterNames;      /** Names of currently loaded cluster datasets */
     hdps::Dataset<Points>              _angleMap;
+    std::vector<float>                 _mapAngleData;
     hdps::Dataset<Images>              _mapAngleImage;
     hdps::Dataset<Points>              _corMap;
+    std::vector<float>                 _mapCorData;
     hdps::Dataset<Images>              _mapCorImage;
     std::vector<float>                 _angleDataset;
     std::vector<float>                 _corDataset;

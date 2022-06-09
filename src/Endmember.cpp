@@ -86,12 +86,12 @@ LineplotPlugin& Endmember::getLineplotPlugin()
     return _lineplotPlugin;
 }
 
-void Endmember::computeMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType) {
-    _lineplotPlugin.updateMap(endmemberData, angle, mapType, algorithmType);
+void Endmember::computeMap(QString endmemberName, std::vector<float> endmemberData, float angle, int mapType, int algorithmType) {
+    _lineplotPlugin.updateMap(endmemberName, endmemberData, angle, mapType, algorithmType);
 }
 
-void Endmember::updateThresholdAngle(float threshold, int mapType, int algorithmType) {
-    _lineplotPlugin.updateThresholdAngle(threshold, mapType, algorithmType);
+void Endmember::updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType) {
+    _lineplotPlugin.updateThresholdAngle(endmemberName, threshold, mapType, algorithmType);
 }
 
 std::vector<float> Endmember::resample(std::vector<float> parentDim) {

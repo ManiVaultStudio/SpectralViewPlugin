@@ -119,6 +119,7 @@ void LineplotPlugin::init()
     
         // Points dataset is about to be dropped
         if (dataType == PointType) {
+
             auto noPointsCandiateData = candidateDataset.get<Points>()->getNumPoints();
 
             // Establish drop region description
@@ -134,6 +135,7 @@ void LineplotPlugin::init()
 
                         initializeImageRGB();
                         _mainToolbarAction.setEnabled(true);
+                        _model.removeAllEndmembers();
                         });
                 }
                 else {
@@ -149,10 +151,26 @@ void LineplotPlugin::init()
                         if (!candidateDataset->isFull() || candidateDataset->isDerivedData()) {
 
                             DataHierarchyItems parents;
-
                             hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
+                            QString pointName = _points->getGuiName();
 
-                            if (parents.at(0)->getGuiName() == _points->getGuiName()) {
+                            if (!_points->isFull() || _points->isDerivedData()) {
+                                DataHierarchyItems pointParents;
+                                hdps::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
+                                pointName = pointParents.at(0)->getGuiName();
+                            }
+
+                            auto parent = candidateDataset->getParent();
+                            // Load as point positions when no dataset is currently loaded
+                            dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
+                                _points = candidateDataset.get<Points>();
+
+                                initializeImageRGB();
+                                _mainToolbarAction.setEnabled(true);
+                                _model.removeAllEndmembers();
+                                });
+
+                            if (parent.get<Points>()->getNumPoints() == _points->getNumPoints() && parents.at(0)->getGuiName() == pointName) {
 
                                 dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
 
@@ -166,7 +184,7 @@ void LineplotPlugin::init()
                                             });
 
                                         endmembersCheckDialog.exec();
-                                                   
+
                                     }
                                     else
                                         addDataset(candidateDataset);
@@ -183,6 +201,7 @@ void LineplotPlugin::init()
 
                                 initializeImageRGB();
                                 _mainToolbarAction.setEnabled(true);
+                                _model.removeAllEndmembers();
                                 });
                         }
                     }
@@ -198,34 +217,35 @@ void LineplotPlugin::init()
         }
 
         if (dataType == ClusterType) {
-           // const auto candidateDataset = _core->requestDataset<Clusters>(datasetId);
+            // const auto candidateDataset = _core->requestDataset<Clusters>(datasetId);
             const auto description = QString("Visualize every cluster in %1 as one line").arg(candidateDataset->getGuiName());
             bool isNewCluster = true;
 
             if (_points.isValid()) {
-                for (int i = 0; i < _clusterNames.size(); i++) {
-                    if (candidateDataset->getGuiName() == _clusterNames[i]) {
 
-                        dropRegions << new gui::DropWidget::DropRegion(this, "Clusters", "Cluster set is already in use", "exclamation-circle", false, [this]() {});
-                        isNewCluster = false;
-                        break;
-                    }
+                DataHierarchyItems parents;
+                hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
+                QString pointName = _points->getGuiName();
+
+                if (!_points->isFull() || _points->isDerivedData()) {
+                    DataHierarchyItems pointParents;
+                    hdps::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
+                    pointName = pointParents.at(0)->getGuiName();
                 }
-                if (isNewCluster) {
 
-                    DataHierarchyItems parents;
+                auto parent = candidateDataset->getParent();
 
-                    hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
+                if (parent.get<Points>()->getNumPoints() == _points->getNumPoints() && parents.at(0)->getGuiName() == pointName) {
 
-                    if (parents.at(0)->getGuiName() == _points->getGuiName()) {
+                    dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
+                        _clusterNames.push_back(candidateDataset->getGuiName());
+                        _noLoadedClusters.push_back(candidateDataset.get<Clusters>()->getClusters().size());
+                        addDataset(candidateDataset);
 
-                        dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
-                            _clusterNames.push_back(candidateDataset->getGuiName());
-                            _noLoadedClusters.push_back(candidateDataset.get<Clusters>()->getClusters().size());
-                            addDataset(candidateDataset);
-
-                            });
-                    }
+                        });
+                }
+                else {
+                    dropRegions << new DropWidget::DropRegion(this, "Warning", "Clusters have to be a child of and come from a set of same size as the loaded points", "exclamation-circle", false);
                 }
             }
             else {
@@ -341,8 +361,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
 
             if (type == ClusterType) {
-
-                for (int i = 0; i < _clusterNames.size(); i++) {
+               for (int i = 0; i < _clusterNames.size(); i++) {
                     if (_clusterNames[i] == datasetGuiName) {
                         auto noClusters = changedDataSet.get<Clusters>()->getClusters().size();
 
@@ -722,7 +741,7 @@ QString LineplotPlugin::getDatasetName() {
         return "";
 }
 
-void LineplotPlugin::updateMap(std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType) {
+void LineplotPlugin::updateMap(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType) {
 
     if (!_points.isValid()) {
         return;
@@ -742,8 +761,8 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
         if (algorithmType == 0) {
 
             _angleMap = _core->createDerivedDataset("endmemberAngleMapPoints", _points);
-
-            spectralAngleMapper(endmemberData, thresholdAngle, mapType);
+            
+            spectralAngleMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
             _mapAngleImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_angleMap));
             _mapAngleImage->setGuiName("endmemberAngleMap");
@@ -760,7 +779,7 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
 
             _corMap = _core->createDerivedDataset("endmemberCorMapPoints", _points);
 
-            spectralCorrelationMapper(endmemberData, thresholdAngle, mapType);
+            spectralCorrelationMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
             _mapCorImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_corMap));
             _mapCorImage->setGuiName("endmemberCorMap");
@@ -776,12 +795,16 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
     else {
 
         if (algorithmType == 0) {
-            spectralAngleMapper(endmemberData, thresholdAngle, mapType);
+            spectralAngleMapper(endmemberName, endmemberData, thresholdAngle, mapType);
+
+            _mapAngleImage->setNumberOfImages(_angleMap->getNumDimensions());
             _core->notifyDatasetChanged(_angleMap);
             _core->notifyDatasetChanged(_mapAngleImage);
         }
         else {
-            spectralCorrelationMapper(endmemberData, thresholdAngle, mapType);
+            spectralCorrelationMapper(endmemberName, endmemberData, thresholdAngle, mapType);
+
+            _mapCorImage->setNumberOfImages(_corMap->getNumDimensions());
             _core->notifyDatasetChanged(_corMap);
             _core->notifyDatasetChanged(_mapCorImage);
         }
@@ -791,7 +814,7 @@ void LineplotPlugin::updateMap(std::vector<float> endmemberData, float threshold
 }
 
 // implementation of spectral angle mapper and spectral correlation mapper
-void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float thresholdAngle, int mapType) {
+void LineplotPlugin::spectralAngleMapper(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType) {
     
     auto& children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
@@ -800,12 +823,35 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
     int width = imageSize.width();
     int height = imageSize.height();
 
-    _angleDataset.resize(width * height);
+    int imgDim = 1;
+    bool existingEndmember = false;
+    int currentDim = 0;
+
+    if (_mapAngleImage.isValid()) {
+        auto imgDimNames = _angleMap->getDimensionNames();
+        imgDim = _angleMap->getNumDimensions();
+
+        for (int i = 0; i < imgDim; i++) {
+            if (imgDimNames[i] == endmemberName) {
+                currentDim = i;
+                existingEndmember = true;
+                break;
+            }
+        }
+        if (!existingEndmember) {
+            currentDim = imgDim;
+            imgDim++;
+            imgDimNames.push_back(endmemberName);
+            _angleMap->setDimensionNames(imgDimNames);
+        }
+    }
+
+    _angleDataset.resize(width * height * imgDim);
 
     auto numDimensions = _points->getNumDimensions();
     auto noPoints = _points->getNumPoints();
 
-    std::vector<float> mapData(width * height);
+   _mapAngleData.resize(width * height * imgDim);
 
     float referenceSum = 0;
 
@@ -816,8 +862,9 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
     referenceSum = sqrt(referenceSum);
     float angle;
 
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
+    // qDebug() << currentDim;
+    for (int y = height -1; y >= 0; y--) {
+        for (int x = width - 1; x >= 0; x--) {
             float sum = 0;
             float pointSum = 0;
             int index = y * width + x;
@@ -828,9 +875,9 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
                 sum += endmemberData[v] * pointValue;
                 pointSum += pow(pointValue, 2);
             }
-        
+
             pointSum = sqrt(pointSum);
-          
+
             if (pointSum == 0 || referenceSum == 0) {
                 angle = 10;
             }
@@ -845,39 +892,59 @@ void LineplotPlugin::spectralAngleMapper(std::vector<float> endmemberData, float
                     angle = acos(value);
             }
 
-            _angleDataset[index] = angle;
+            //auto it1 = _angleDataset.begin() + index * imgDim + currentDim;
+            _angleDataset[index * imgDim + currentDim] = angle;
+
+            // auto it2 = _mapAngleData.begin() + index * imgDim + currentDim;
 
             if (mapType == 0) {
                 if (angle <= thresholdAngle) {
-                    mapData[index] = 1;                    
+                    //_mapAngleData.insert(it2, 1);
+                    _mapAngleData[index * imgDim + currentDim] = 1;
                 }
                 else {
-                    mapData[index] = 0;
+                    // _mapAngleData.insert(it2, 0);
+                    _mapAngleData[index * imgDim + currentDim] = 0;
                 }
             }
             else if (mapType == 1) {
                 if (angle <= thresholdAngle) {
-                    mapData[index] = 1 - 2 * angle / M_PI;
+                    //_mapAngleData.insert(it2, 1 - 2 * angle / M_PI);
+                    _mapAngleData[index * imgDim + currentDim] = 1 - 2 * angle / M_PI;
                 }
                 else {
-                    mapData[index] = 0;
+                    //_mapAngleData.insert(it2, 0);
+                    _mapAngleData[index * imgDim + currentDim] = 0;
                 }
             }
             else if (mapType == 2) {
                 if (pointSum != 0) {
-                    mapData[index] = 1 - 2 * angle / M_PI;
+                    //_mapAngleData.insert(it2, 1 - 2 * angle / M_PI);
+                    _mapAngleData[index * imgDim + currentDim] = 1 - 2 * angle / M_PI;
                 }
                 else {
-                    mapData[index] = 0;
+                    //_mapAngleData.insert(it2, 0);
+                    _mapAngleData[index * imgDim + currentDim] = 0;
+                }
+            }
+
+            if (imgDim >= 2) {
+                for (int oldIndex = imgDim - 2; oldIndex >= 0; oldIndex--) {
+                    _mapAngleData[index * imgDim + oldIndex] = _mapAngleData[index * (imgDim - 1) + oldIndex];
+                    _angleDataset[index * imgDim + oldIndex] = _angleDataset[index * (imgDim - 1) + oldIndex];
                 }
             }
         }
     }
 
-    _angleMap->setData(mapData.data(), noPoints, 1);
+    if (imgDim == 1) {
+        _angleMap->setDimensionNames({ endmemberName });
+    }
+
+    _angleMap->setData(_mapAngleData.data(), noPoints, imgDim);
 }
 
-void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData, float threshold, int mapType) {
+void LineplotPlugin::spectralCorrelationMapper(QString endmemberName, std::vector<float> endmemberData, float threshold, int mapType) {
 
     auto& children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
@@ -886,12 +953,36 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
     int width = imageSize.width();
     int height = imageSize.height();
 
-    _corDataset.resize(width * height);
+    int imgDim = 1;
+    bool existingEndmember = false;
+    int currentDim = 0;
+
+    if (_mapCorImage.isValid()) {
+        auto imgDimNames = _corMap->getDimensionNames();
+        imgDim = _corMap->getNumDimensions();
+
+        for (int i = 0; i < imgDim; i++) {
+            if (imgDimNames[i] == endmemberName) {
+                currentDim = i;
+                existingEndmember = true;
+                break;
+            }
+        }
+        if (!existingEndmember) {
+            currentDim = imgDim;
+            imgDim++;
+            imgDimNames.push_back(endmemberName);
+            _corMap->setDimensionNames(imgDimNames);
+        }
+
+    }
+
+    _corDataset.resize(width * height * imgDim);
 
     auto numDimensions = _points->getNumDimensions();
     auto noPoints = _points->getNumPoints();
 
-    std::vector<float> mapData(width * height);
+    _mapCorData.resize(width * height * imgDim);
 
     float referenceSum = 0;
     float referenceMean = 0;
@@ -939,38 +1030,49 @@ void LineplotPlugin::spectralCorrelationMapper(std::vector<float> endmemberData,
                     value = -1;
             }
             
-            _corDataset[index] = value;
+            _corDataset[index * imgDim + currentDim] = value;
 
             if (mapType == 0) {
 
                 if (value >= threshold)
-                    mapData[index] = 1;
+                    _mapCorData[index * imgDim + currentDim] = 1;
                 else
-                    mapData[index] = 0;
+                    _mapCorData[index * imgDim + currentDim] = 0;
             }
             else if (mapType == 1) {
                 if (value >= threshold) {
-                    mapData[index] = (value + 1) / 2;
+                    _mapCorData[index * imgDim + currentDim] = (value + 1) / 2;
                 }
                 else {
-                    mapData[index] = 0;
+                    _mapCorData[index * imgDim + currentDim] = 0;
                 }
             }
             else if (mapType == 2) {
                 if (pointSum != 0) {
-                    mapData[index] = (value + 1) / 2;
+                    _mapCorData[index * imgDim + currentDim] = (value + 1) / 2;
                 }
                 else {
-                    mapData[index] = 0;
+                    _mapCorData[index * imgDim + currentDim] = 0;
+                }
+            }
+
+            if (imgDim >= 2) {
+                for (int oldIndex = imgDim - 2; oldIndex >= 0; oldIndex--) {
+                    _mapCorData[index * imgDim + oldIndex] = _mapCorData[index * (imgDim - 1) + oldIndex];
+                    _corDataset[index * imgDim + oldIndex] = _corDataset[index * (imgDim - 1) + oldIndex];
                 }
             }
         }
     }
 
-    _corMap->setData(mapData.data(), noPoints, 1);
+    if (imgDim == 1) {
+        _corMap->setDimensionNames({ endmemberName });
+    }
+
+    _corMap->setData(_mapCorData.data(), noPoints, imgDim);
 }
 
-void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algorithmType) {    
+void LineplotPlugin::updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType) {    
 
     if ( (algorithmType == 0 && _angleDataset.size() != 0) || (algorithmType == 1 && _corDataset.size() != 0) ) {
 
@@ -984,7 +1086,23 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
         auto numDimensions = _points->getNumDimensions();
         auto noPoints = _points->getNumPoints();
 
-        std::vector<float> mapData(width * height);
+        int imgDim = 0;
+        int currentDim = 0;
+        std::vector<QString> imgDimNames;
+
+        if (algorithmType == 0) {
+            imgDimNames = _angleMap->getDimensionNames();
+            imgDim = _angleMap->getNumDimensions();
+        }
+        else if (algorithmType == 1) {
+            imgDimNames = _corMap->getDimensionNames();
+            imgDim = _corMap->getNumDimensions();           
+        }
+
+        for (int i = 0; i < imgDim; i++)
+            if (imgDimNames[i] == endmemberName)
+                currentDim = i;
+
         float value = 0;
 
         for (int y = 0; y < height; y++) {
@@ -994,71 +1112,73 @@ void LineplotPlugin::updateThresholdAngle(float threshold, int mapType, int algo
 
                 if (algorithmType == 0) {
 
-                    value = _angleDataset[index];
+                    value = _angleDataset[index * imgDim + currentDim];
 
                     if (mapType == 0) {
                         if (value <= threshold) {
-                            mapData[index] = 1;
+                            _mapAngleData[index * imgDim + currentDim] = 1;
                         }
                         else {
-                            mapData[index] = 0;
+                            _mapAngleData[index * imgDim + currentDim] = 0;
                         }
                     }
                     else if (mapType == 1) {
                         if (value <= threshold) {
-                            mapData[index] = 1 - 2 * value / M_PI;
+                            _mapAngleData[index * imgDim + currentDim] = 1 - 2 * value / M_PI;
                         }
                         else {
-                            mapData[index] = 0;
+                            _mapAngleData[index * imgDim + currentDim] = 0;
                         }
                     }
                     else if (mapType == 2) {
                         if (value > M_PI/2)
-                            mapData[index] = 0;
+                            _mapAngleData[index * imgDim + currentDim] = 0;
                         else
-                            mapData[index] = 1 - 2 * value / M_PI;
+                            _mapAngleData[index * imgDim + currentDim] = 1 - 2 * value / M_PI;
                     }
                 }
                 else if (algorithmType == 1) {
 
-                    value = _corDataset[index];
+                    value = _corDataset[index * imgDim + currentDim];
 
                     if (mapType == 0) {
                         if (value >= threshold) {
-                            mapData[index] = 1;
+                            _mapCorData[index * imgDim + currentDim] = 1;
                         }
                         else {
-                            mapData[index] = 0;
+                            _mapCorData[index * imgDim + currentDim] = 0;
                         }
                     }
                     else if (mapType == 1) {
                         if (value >= threshold) {
-                            mapData[index] = (value + 1) / 2;
+                            _mapCorData[index * imgDim + currentDim] = (value + 1) / 2;
                         }
                         else {
-                            mapData[index] = 0;
+                            _mapCorData[index * imgDim + currentDim] = 0;
                         }
                     }
                     else if (mapType == 2) {
 
                         if (value < -1)
-                            mapData[index] = 0;
+                            _mapCorData[index * imgDim + currentDim] = 0;
                         else
-                            mapData[index] = (value + 1) / 2; 
+                            _mapCorData[index * imgDim + currentDim] = (value + 1) / 2;
                     }
                 }
             }
         }
 
         if (algorithmType == 0) {
-            _angleMap->setData(mapData.data(), noPoints, 1);
+            _angleMap->setData(_mapAngleData.data(), noPoints, imgDim);
 
+            _mapAngleImage->setNumberOfImages(imgDim);
             _core->notifyDatasetChanged(_angleMap);
             _core->notifyDatasetChanged(_mapAngleImage);
         }
         else if (algorithmType == 1) {
-            _corMap->setData(mapData.data(), noPoints, 1);
+            _corMap->setData(_mapCorData.data(), noPoints, imgDim);
 
+            _mapCorImage->setNumberOfImages(imgDim);
             _core->notifyDatasetChanged(_corMap);
             _core->notifyDatasetChanged(_mapCorImage);
         }

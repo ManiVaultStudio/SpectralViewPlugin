@@ -127,6 +127,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
             connect(&endmember->getMapAction().getComputeAction(), &TriggerAction::triggered, this, [this, endmember]() {
                 
                 auto endmemberData = endmember->getData();
+                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 float threshold;
@@ -139,12 +140,14 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                     threshold = endmember->getMapAction().getThresholdAction().getValue();
                 }
 
-                endmember->computeMap(endmemberData, threshold, mapType, algorithm);
+                endmember->computeMap(endmemberName, endmemberData, threshold, mapType, algorithm);
                 });
 
             connect(&endmember->getMapAction().getMapTypeAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int index) {
                 
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
+                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
+
                 float threshold = 0;
 
                 if (index == 0 || index == 1) {
@@ -166,13 +169,14 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                     endmember->getMapAction().getThresholdAction().setEnabled(false);
                 }
 
-                endmember->updateThresholdAngle(threshold, index, algorithm);
+                endmember->updateThresholdAngle(endmemberName, threshold, index, algorithm);
                 
                 });
 
             connect(&endmember->getMapAction().getAlgorithmAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int algorithm) {
                 
                 float threshold = 0;
+                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
 
                 if (algorithm == 0)
@@ -195,13 +199,14 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 if (endmember->getMapAction().getUpdateAutoAction().isChecked()) {
                     auto endmemberData = endmember->getData();
                    
-                    endmember->computeMap(endmemberData, threshold, mapType, algorithm);
+                    endmember->computeMap(endmemberName, endmemberData, threshold, mapType, algorithm);
                 }
                 });
 
             connect(&endmember->getMapAction().getUpdateAutoAction(), &ToggleAction::toggled, this, [this, endmember](bool checked) {
 
                 float threshold;
+                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
 
                 if (endmember->getMapAction().getAlgorithmAction().getCurrentIndex() == 0) {
                     threshold = endmember->getMapAction().getAngleAction().getValue();
@@ -216,7 +221,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                         auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                         auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
 
-                        endmember->computeMap(endmemberData, threshold, mapType, algorithm);
+                        endmember->computeMap(endmemberName, endmemberData, threshold, mapType, algorithm);
                     }
                 }
                 });
@@ -226,18 +231,20 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
 
                 if (mapType != 2)
-                    endmember->updateThresholdAngle(value, mapType, algorithm);
+                    endmember->updateThresholdAngle(endmemberName, value, mapType, algorithm);
                 });
 
             connect(&endmember->getMapAction().getThresholdAction(), &DecimalAction::valueChanged, this, [this, endmember](float value) {
 
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
+                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
 
                 if (mapType != 2)
-                    endmember->updateThresholdAngle(value, mapType, algorithm);
+                    endmember->updateThresholdAngle(endmemberName, value, mapType, algorithm);
                 });
         }
         endInsertRows();   
@@ -251,7 +258,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
     }
 }
 
-void EndmembersModel::updateEndmember(QString datasetGuid, int index, QString name, QColor color) {
+void EndmembersModel::updateClustersEndmember(QString datasetGuid, int index, QString name, QColor color) {
 
     for (auto endmember : _endmembers) {
         if (endmember->getDataset()->getGuid() == datasetGuid && endmember->getIndex() == index) {
@@ -615,6 +622,14 @@ QVariant EndmembersModel::headerData(int section, Qt::Orientation orientation, i
     return QVariant();
 }
 
+void EndmembersModel::removeAllEndmembers() {
+
+    auto endmembersNo = _endmembers.length();
+
+    for (int i = 0; i < endmembersNo; i++) {
+        removeEndmember(0);
+    }
+}
 void EndmembersModel::removeEndmember(const std::uint32_t& row)
 {
     try

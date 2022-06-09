@@ -42,8 +42,8 @@ public:
     void highlightSelection(int row);
     void setData(std::vector<float> data);
     void setIndices(std::vector<unsigned int> indices);
-    void computeMap(std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
-    void updateThresholdAngle(float threshold, int mapType, int algorithmType);
+    void computeMap(QString endmemberName, std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
+    void updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType);
     std::vector<float> resample(std::vector<float> parentDim);
     int getIndex();
 

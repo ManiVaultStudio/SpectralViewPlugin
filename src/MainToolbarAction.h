@@ -1,7 +1,5 @@
 #pragma once
 
-//#include <actions/WidgetAction.h>
-//#include <actions/ToggleAction.h>
 #include "actions/WidgetActionStateWidget.h"
 #include "GlobalSettingsAction.h"
 #include "WavelengthsRGBAction.h"

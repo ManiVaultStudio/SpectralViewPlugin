@@ -106,13 +106,14 @@ public: // Endmember operations
     void saveEndmemberClusterVisibility(QString datasetGuid);
     void updateEndmemberClusterVisibility(QString datasetGuid);
 
-    void updateEndmember(QString datasetGuid, int index, QString name, QColor color);
+    void updateClustersEndmember(QString datasetGuid, int index, QString name, QColor color);
+
     /**
      * Remove an endmember from the model by row index
      * @param row Row index of the layer
      */
     void removeEndmember(const std::uint32_t& row);
-
+    void removeAllEndmembers();
     /**
      * Remove endmembers created from given dataset from the model
      * @param datasetGuid
