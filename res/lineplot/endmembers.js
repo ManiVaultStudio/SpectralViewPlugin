@@ -2,10 +2,16 @@ function addEndmembers(endmember, index) {
 
     _visibleEndmembers[index] = false;
 
-    var newYMax = d3.max(endmember, function (d) { return +d.CI_Right; });
+    var newYMax = d3.max(endmember, function (d) {
+        if (d.CI_Right != 0)
+            return +d.CI_Right;
+        else
+            return +d.y;
+    });
     var newYMin = d3.min(endmember, function (d) { return +d.CI_Left; });
 
     if (newYMax > maxY || newYMin < minY) {
+
         updateYAxis(newYMax, newYMin);
     }
 
