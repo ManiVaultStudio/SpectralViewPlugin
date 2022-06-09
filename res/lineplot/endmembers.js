@@ -2,8 +2,8 @@ function addEndmembers(endmember, index) {
 
     _visibleEndmembers[index] = false;
 
-    var newYMax = d3.max(endmember, function (d) { return +d.y; });
-    var newYMin = d3.max(endmember, function (d) { return +d.y; });
+    var newYMax = d3.max(endmember, function (d) { return +d.CI_Right; });
+    var newYMin = d3.min(endmember, function (d) { return +d.CI_Left; });
 
     if (newYMax > maxY || newYMin < minY) {
         updateYAxis(newYMax, newYMin);
@@ -26,6 +26,7 @@ function addEndmembers(endmember, index) {
         .attr("fill", d3.rgb(r, g, b))
         .attr("stroke", "none")
         .attr("id", "area" + index)
+        .style("opacity", 0)
         .attr("d", area);
 
     var newEndmember = _lineChart.append("path")
@@ -38,17 +39,10 @@ function addEndmembers(endmember, index) {
         .attr("id", "line" + index)
         .attr("d", line);
 
-    if (_checkedStd) {
-        newEndmemberStd.style("opacity", 0.1);
-    }
-    else {
-        newEndmemberStd.style("opacity", 0);
-    }
-
     // Save the lines for the endmembers
     _endmemberLines = _lineChart.selectAll(".endmembers").data(_endmembers);
 
-    // SAve the confidence intervals for the endmembers
+    // Save the confidence intervals for the endmembers
     _stdAreas = _lineChart.selectAll(".endmembersStd").data(_endmembers);
 
     if (_data) {

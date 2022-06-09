@@ -190,7 +190,6 @@ function drawLineChart(dur) {
     }
 
     if (_endmembers.length > 0) {
-
         _stdAreas
             .data(_endmembers)
             .transition().duration(dur)
@@ -199,8 +198,7 @@ function drawLineChart(dur) {
         _endmemberLines
             .data(_endmembers)
             .transition().duration(dur)
-            .attr("d", line);
-            
+            .attr("d", line);            
     }
 }
 
@@ -488,6 +486,8 @@ function setEndmemberRemoved(row) {
 
     _endmembers.splice(row, 1);
 
+    _endmemberLines = _lineChart.selectAll(".endmembers").data(_endmembers);
+    _stdAreas = _lineChart.selectAll(".endmembersStd").data(_endmembers);
 }
 
 function setHighlightSelection(row) {
