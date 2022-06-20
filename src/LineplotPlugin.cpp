@@ -928,7 +928,7 @@ void LineplotPlugin::spectralAngleMapper(QString endmemberName, std::vector<floa
                 }
             }
 
-            if (imgDim >= 2) {
+            if (imgDim >= 2 && !existingEndmember) {
                 for (int oldIndex = imgDim - 2; oldIndex >= 0; oldIndex--) {
                     _mapAngleData[index * imgDim + oldIndex] = _mapAngleData[index * (imgDim - 1) + oldIndex];
                     _angleDataset[index * imgDim + oldIndex] = _angleDataset[index * (imgDim - 1) + oldIndex];
@@ -1056,7 +1056,7 @@ void LineplotPlugin::spectralCorrelationMapper(QString endmemberName, std::vecto
                 }
             }
 
-            if (imgDim >= 2) {
+            if (imgDim >= 2 && !existingEndmember) {
                 for (int oldIndex = imgDim - 2; oldIndex >= 0; oldIndex--) {
                     _mapCorData[index * imgDim + oldIndex] = _mapCorData[index * (imgDim - 1) + oldIndex];
                     _corDataset[index * imgDim + oldIndex] = _corDataset[index * (imgDim - 1) + oldIndex];
