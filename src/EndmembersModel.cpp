@@ -126,7 +126,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
 
             connect(&endmember->getMapAction().getComputeAction(), &TriggerAction::triggered, this, [this, endmember]() {
                 
-                auto endmemberData = endmember->getData();
+                auto& endmemberData = endmember->getData();
                 auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
@@ -197,7 +197,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 }
 
                 if (endmember->getMapAction().getUpdateAutoAction().isChecked()) {
-                    auto endmemberData = endmember->getData();
+                    auto& endmemberData = endmember->getData();
                    
                     endmember->computeMap(endmemberName, endmemberData, threshold, mapType, algorithm);
                 }
@@ -217,7 +217,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
 
                 if (checked) {
                     if (endmember->getMapAction().getUpdateAutoAction().isChecked()) {
-                        auto endmemberData = endmember->getData();
+                        auto& endmemberData = endmember->getData();
                         auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                         auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
 

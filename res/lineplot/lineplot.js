@@ -577,7 +577,7 @@ function sendRGBWavelength(wavelength, index) {
 function resize() {
 
     width = window.innerWidth;
-    height = window.innerHeight - 200;
+    height = window.innerHeight - 100;
 
     if (width > _margin.left + _margin.right)
         _lineChartWidth = width - _margin.left - _margin.right;

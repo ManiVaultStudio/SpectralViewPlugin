@@ -453,7 +453,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 
         auto& parent = _points;
         auto numDimensions = parent->getNumDimensions();
-        
+
         _model.saveEndmemberClusterVisibility(dataset->getGuid());
         // remove clusters of this dataset
         _model.removeEndmembers(dataset->getGuid());
@@ -462,6 +462,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         for (int i = 0; i < noClusters; i++) {
 
             auto& cluster = clusters[i];
+
             auto noPointsCluster = cluster.getNumberOfIndices();
             auto& indices = cluster.getIndices();
 
@@ -537,6 +538,8 @@ void LineplotPlugin::addNewCluster(const Dataset<DatasetImpl>& dataset) {
         average[v] = computedAvg[v];
         std[v] = computedStd[v];
     }
+
+    endmember->setData(average);
 }
 
 void LineplotPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
