@@ -40,7 +40,8 @@ LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     _corDataset(),
     _averageDataset(),
     _noLoadedClusters(),
-    _clusterNames()
+    _clusterNames(),
+    _prevSelection()
 {
     setObjectName("Line Plot");
 
@@ -327,6 +328,9 @@ void LineplotPlugin::loadData(const Datasets& datasets) {
 
 void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
+    if (!_linePlotWidget.isVisible())
+        return;
+
     // Get smart pointer to dataset that changed
     const auto& changedDataSet = dataEvent->getDataset();
     auto type = changedDataSet->getDataType();
@@ -473,8 +477,6 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
 
             _model.addEndmember(endmember, i);
 
-            //if (average.size() == 0) {
-             //   qDebug() << "compute";
             average.resize(numDimensions);
             std.resize(numDimensions);
 
@@ -658,6 +660,11 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
     if (selection.isValid()) {
        
         auto selectedIndices = selection->indices;
+
+        if (selectedIndices == _prevSelection)
+            return;
+
+        _prevSelection = selectedIndices;
         auto noSelectedPoints = selection->getSelectionSize();
 
         if (noSelectedPoints > 0) {
@@ -677,9 +684,11 @@ void LineplotPlugin::setSelection(std::vector<unsigned int> indices) {
 }
 */
 
-std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverageSpectrum(Dataset<Points> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
+std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverageSpectrum(Dataset<DatasetImpl> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
 
-    auto numDimensions = source->getNumDimensions();
+    auto points = source.get<Points>();
+    
+    auto numDimensions = points->getNumDimensions();
     auto& children = source->getChildren({ ImageType });
 
     std::vector<float> averageSpectrum(numDimensions);
@@ -693,41 +702,47 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
         int height = imageSize.height();
 
         std::vector<float> confIntervalLeft(numDimensions);
-        std::vector <float> confIntervalRight(numDimensions);
+        std::vector<float> confIntervalRight(numDimensions);
 
-        for (int v = 0; v < numDimensions; v++) {
-            float sum = 0;
-
+        points->visitData([this, points, numDimensions, noPoints, &indices, &averageSpectrum, &standardDeviation, &confIntervalRight, &confIntervalLeft](auto pointData) {
             for (int i = 0; i < noPoints; i++) {
+                const auto index = indices.at(i);
+                const auto& spectrum = pointData[index];
 
-                auto index = indices.at(i);
-                sum += source->getValueAt(index * numDimensions + v);
+                for (int v = 0; v < numDimensions; v++) {
+                    averageSpectrum[v] += spectrum[v];
+                }
             }
 
-            float mean = noPoints == 0 ? 0 : sum / noPoints;
-            averageSpectrum[v] = mean;
+            for (int v = 0; v < numDimensions; v++) {
+                averageSpectrum[v] = noPoints == 0 ? 0 : averageSpectrum[v] / noPoints;
+            }
 
             if (noPoints > 1) {
-                // compute standard deviation per dimension                
-                float std = 0;
-
                 for (int i = 0; i < noPoints; i++) {
-                    auto index = indices.at(i);
-                    float value = source->getValueAt(index * numDimensions + v);
-                    std += (value - mean) * (value - mean);
+                    const auto index = indices.at(i);
+                    const auto& spectrum = pointData[index];
+
+                    for (int v = 0; v < numDimensions; v++) {
+                        const auto value = spectrum[v];
+                        const auto mean = averageSpectrum[v];
+                        standardDeviation[v] += (value - mean) * (value - mean);
+                    }
                 }
 
-                std = sqrt(std / noPoints);
-
-                standardDeviation[v] = std;
-                confIntervalRight[v] = mean + std;
-                confIntervalLeft[v] = mean - std;
+                for (int v = 0; v < numDimensions; v++) {
+                    const auto std = sqrt(standardDeviation[v] / noPoints);
+                    const auto mean = averageSpectrum[v];
+                    standardDeviation[v] = std;
+                    confIntervalRight[v] = mean + std;
+                    confIntervalLeft[v] = mean - std;
+                }
             }
-        }
+        });
 
         std::vector<QString> names;
-        if (source->getDimensionNames().size() == source->getNumDimensions()) {
-            names = source->getDimensionNames();
+        if (points->getDimensionNames().size() == points->getNumDimensions()) {
+            names = points->getDimensionNames();
         }
 
         _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions, dataOrigin);
@@ -865,7 +880,6 @@ void LineplotPlugin::spectralAngleMapper(QString endmemberName, std::vector<floa
     referenceSum = sqrt(referenceSum);
     float angle;
 
-    // qDebug() << currentDim;
     for (int y = height -1; y >= 0; y--) {
         for (int x = width - 1; x >= 0; x--) {
             float sum = 0;
