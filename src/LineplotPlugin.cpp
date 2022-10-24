@@ -555,11 +555,6 @@ void LineplotPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
     for (int i = 0; i < noClusters; i++) {
 
         auto& cluster = clusters[i];
-
-        auto noPointsCluster = cluster.getNumberOfIndices();
-        auto& indices = cluster.getIndices();
-
-
         _model.updateClustersEndmember(dataset->getGuid(), i, cluster.getName(), cluster.getColor());
     }
     
@@ -845,6 +840,9 @@ void LineplotPlugin::spectralAngleMapper(QString endmemberName, std::vector<floa
     bool existingEndmember = false;
     int currentDim = 0;
 
+    //qDebug() << "Width: " << width;
+    //qDebug() << "Height: " << height;
+
     if (_mapAngleImage.isValid()) {
         auto imgDimNames = _angleMap->getDimensionNames();
         imgDim = _angleMap->getNumDimensions();
@@ -880,19 +878,47 @@ void LineplotPlugin::spectralAngleMapper(QString endmemberName, std::vector<floa
     referenceSum = sqrt(referenceSum);
     float angle;
 
+    /*
+    std::vector<std::uint32_t> globalIndices;
+    _points->getGlobalIndices(globalIndices);
+
+    Dataset<Points> parent;
+
+    if (!_points->isFull())
+        parent = _points->getParent<Points>();
+        */
     for (int y = height -1; y >= 0; y--) {
         for (int x = width - 1; x >= 0; x--) {
             float sum = 0;
             float pointSum = 0;
             int index = y * width + x;
 
-            for (int v = 0; v < numDimensions; v++) {
-                auto pointValue = _points->getValueAt(index * numDimensions + v);
-
-                sum += endmemberData[v] * pointValue;
-                pointSum += pow(pointValue, 2);
+        //    if (_points->isFull()) {
+                for (int v = 0; v < numDimensions; v++) {
+                    auto pointValue = _points->getValueAt(index * numDimensions + v);
+               //     if (v == 0 || v == 1)
+               //         qDebug() << pointValue;
+                    sum += endmemberData[v] * pointValue;
+                    pointSum += pow(pointValue, 2);
+                }
+       //     }
+       /*     else {
+                int index2 = 0;
+                for (int g = 0; g < globalIndices.size(); g++) {
+                    if (globalIndices[g] == index) {
+                        index2 = g;
+                        break;
+                    }
+                }
+                for (int v = 0; v < numDimensions; v++) {
+                    auto pointValue = _points->getValueAt(index2 * numDimensions + v);
+                    //if (v == 0 || v == 1)
+                    //    qDebug() << pointValue;
+                    sum += endmemberData[v] * pointValue;
+                    pointSum += pow(pointValue, 2);
+                }
             }
-
+            */
             pointSum = sqrt(pointSum);
 
             if (pointSum == 0 || referenceSum == 0) {
@@ -1018,8 +1044,8 @@ void LineplotPlugin::spectralCorrelationMapper(QString endmemberName, std::vecto
     
     referenceSum = sqrt(referenceSum);
 
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
+    for (int y = height - 1; y >= 0; y--) {
+        for (int x = width - 1; x >= 0; x--) {
             float sum = 0;
             float pointSum = 0;
             int index = y * width + x;
