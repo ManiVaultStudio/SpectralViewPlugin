@@ -1,5 +1,5 @@
 #include "Endmember.h"
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 #include "SettingsAction.h"
 #include "DataHierarchyItem.h"
 
@@ -12,9 +12,9 @@
 
 #include <set>
 
-Endmember::Endmember(LineplotPlugin& lineplotPlugin, const Dataset<DatasetImpl>& dataset, int index) :
-    WidgetAction(&lineplotPlugin),
-    _lineplotPlugin(lineplotPlugin),
+Endmember::Endmember(SpectralViewPlugin& spectralViewPlugin, const Dataset<DatasetImpl>& dataset, int index) :
+    WidgetAction(&spectralViewPlugin),
+    _spectralViewPlugin(spectralViewPlugin),
     _active(false),
     _dataset(dataset),
     _data(),
@@ -61,37 +61,37 @@ void Endmember::setIndices(std::vector<unsigned int> indices) {
 
 void Endmember::sendColor(QColor endmemberColor, int row) {
     
-    _lineplotPlugin.getLineplotWidget().setEndmemberColor(endmemberColor, row);
+    _spectralViewPlugin.getLineplotWidget().setEndmemberColor(endmemberColor, row);
 }
 
 void Endmember::updateVisibility(bool toggled, int row) {
-    _lineplotPlugin.getLineplotWidget().setEndmemberVisibility(toggled, row);
+    _spectralViewPlugin.getLineplotWidget().setEndmemberVisibility(toggled, row);
 }
 
 void Endmember::sendEndmemberRemoved(int row) {
-    _lineplotPlugin.getLineplotWidget().setEndmemberRemoved(row);
+    _spectralViewPlugin.getLineplotWidget().setEndmemberRemoved(row);
 }
 
 void Endmember::highlightSelection(int row) {
-    _lineplotPlugin.getLineplotWidget().setHighlightSelection(row);
+    _spectralViewPlugin.getLineplotWidget().setHighlightSelection(row);
 }
 
 EndmembersAction& Endmember::getEndmembersAction()
 {
-    return _lineplotPlugin.getSettingsAction().getEndmembersAction();
+    return _spectralViewPlugin.getSettingsAction().getEndmembersAction();
 }
 
-LineplotPlugin& Endmember::getLineplotPlugin()
+SpectralViewPlugin& Endmember::getSpectralViewPlugin()
 {
-    return _lineplotPlugin;
+    return _spectralViewPlugin;
 }
 
 void Endmember::computeMap(QString endmemberName, std::vector<float> endmemberData, float angle, int mapType, int algorithmType) {
-    _lineplotPlugin.updateMap(endmemberName, endmemberData, angle, mapType, algorithmType);
+    _spectralViewPlugin.updateMap(endmemberName, endmemberData, angle, mapType, algorithmType);
 }
 
 void Endmember::updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType) {
-    _lineplotPlugin.updateThresholdAngle(endmemberName, threshold, mapType, algorithmType);
+    _spectralViewPlugin.updateThresholdAngle(endmemberName, threshold, mapType, algorithmType);
 }
 
 std::vector<float> Endmember::resample(std::vector<float> parentDim) {

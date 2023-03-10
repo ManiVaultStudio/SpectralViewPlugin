@@ -1,5 +1,5 @@
 #include "WavelengthsRGBAction.h"
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 
 #include <Application.h> 
 #include <QHBoxLayout>
@@ -8,9 +8,9 @@
 
 using namespace hdps;
 
-WavelengthsRGBAction::WavelengthsRGBAction(LineplotPlugin& lineplotPlugin) :
-    WidgetAction(reinterpret_cast<QObject*>(&lineplotPlugin)),
-    _lineplotPlugin(lineplotPlugin),
+WavelengthsRGBAction::WavelengthsRGBAction(SpectralViewPlugin& spectralViewPlugin) :
+    WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin)),
+    _spectralViewPlugin(spectralViewPlugin),
     _wavelengthsRGBEnabledAction(this, "Show RGB lines", true, true),
     _redWavelengthAction(this, "Red", { "630" }, "630", "630"),
     _greenWavelengthAction(this, "Green", { "532" }, "532", "532"),
@@ -26,7 +26,7 @@ WavelengthsRGBAction::WavelengthsRGBAction(LineplotPlugin& lineplotPlugin) :
 
     _wavelengthsRGBEnabledAction.setChecked(false);
     
-    auto& lineplotWidget = _lineplotPlugin.getLineplotWidget();
+    auto& lineplotWidget = _spectralViewPlugin.getLineplotWidget();
 
     // Update RGB lines enabled
     const auto updateRGBWavelengths = [this, &lineplotWidget]() {
@@ -94,7 +94,7 @@ WavelengthsRGBAction::Widget::Widget(QWidget* parent, WavelengthsRGBAction* wave
 
         auto layout = new QHBoxLayout();
 
-        layout->setMargin(0);
+        layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(showRGBWidget);
         layout->addWidget(redLabelWidget);
         layout->addWidget(redWidget);

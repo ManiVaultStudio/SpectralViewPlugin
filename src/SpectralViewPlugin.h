@@ -24,13 +24,13 @@ class Points;
 class Clusters;
 class Images;
 
-class LineplotPlugin : public ViewPlugin
+class SpectralViewPlugin : public ViewPlugin
 {
     Q_OBJECT
 
 public:
-    LineplotPlugin(const PluginFactory* factory);
-    ~LineplotPlugin() override;
+    SpectralViewPlugin(const PluginFactory* factory);
+    ~SpectralViewPlugin() override;
 
     void init() override;
 
@@ -107,9 +107,9 @@ private:
     std::vector<int>                   _noLoadedClusters;
     std::vector<unsigned int>          _prevSelection;
             
-    EndmembersModel             _model;                 /** Endmembers model */
+    EndmembersModel         _model;                 /** Endmembers model */
     QItemSelectionModel     _selectionModel;        /** Layers selection model */
-    LineplotWidget       _linePlotWidget;       /** Heatmap widget displaying cluster data */
+    LineplotWidget          _linePlotWidget;       /** Heatmap widget displaying cluster data */
     QSplitter               _splitter;             /** Splitter which divides the lineplot view and editor */
     hdps::gui::DropWidget   _dropWidget;            /** Widget allowing users to drop in data */
     MainToolbarAction       _mainToolbarAction;     /** Main toolbar action */
@@ -123,19 +123,19 @@ private:
 // Factory
 // =============================================================================
 
-class LineplotPluginFactory : public ViewPluginFactory
+class SpectralViewPluginFactory : public ViewPluginFactory
 {
     Q_INTERFACES(hdps::plugin::ViewPluginFactory hdps::plugin::PluginFactory)
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID   "nl.tudelft.LineplotPlugin"
-            FILE  "LineplotPlugin.json")
+        Q_PLUGIN_METADATA(IID   "nl.tudelft.SpectralViewPlugin"
+            FILE  "SpectralViewPlugin.json")
 
 public:
-    LineplotPluginFactory() {}
-    ~LineplotPluginFactory() override {}
+    SpectralViewPluginFactory() {}
+    ~SpectralViewPluginFactory() override {}
 
     /** Returns the plugin icon */
-    QIcon getIcon() const override;
+    QIcon getIcon() const;// override;
 
     ViewPlugin* produce() override;
 

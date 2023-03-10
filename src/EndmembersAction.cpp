@@ -1,6 +1,6 @@
 #include "EndmembersAction.h"
 #include "SettingsAction.h"
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 #include "LineplotWidget.h"
 
 #include <Application.h>
@@ -38,7 +38,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     _removeEndmemberAction(this, ""),
     _saveEndmembersAction(this, "")
 {
-    auto& lineplotPlugin = endmembersAction->getSettingsAction().getLineplotPlugin();
+    auto& spectralViewPlugin = endmembersAction->getSettingsAction().getSpectralViewPlugin();
 
     _removeEndmemberAction.setToolTip("Remove the selected endmember");
     _saveEndmembersAction.setToolTip("Save the checked endmembers in the list");
@@ -52,11 +52,11 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     auto treeView = new QTreeView();
 
     treeView->setFixedHeight(300);
-    treeView->setModel(&lineplotPlugin.getModel());
+    treeView->setModel(&spectralViewPlugin.getModel());
     treeView->setRootIsDecorated(false);
     treeView->setSelectionBehavior(QAbstractItemView::SelectRows);
     treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    treeView->setSelectionModel(&lineplotPlugin.getSelectionModel());
+    treeView->setSelectionModel(&spectralViewPlugin.getSelectionModel());
     treeView->setSortingEnabled(false);
 
     // Configure header view
@@ -75,7 +75,7 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     header->setSectionResizeMode(EndmembersModel::Color, QHeaderView::Fixed);
     header->setSectionResizeMode(EndmembersModel::Name, QHeaderView::Interactive);
 
-    layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(treeView);
 
     auto toolbarLayout = new QHBoxLayout();
@@ -94,8 +94,8 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
 
     setLayout(layout);
 
-    const auto modelSelectionChanged = [this, endmembersAction, &lineplotPlugin, treeView, layout]() -> void {
-        const auto selectedRows = lineplotPlugin.getSelectionModel().selectedRows();
+    const auto modelSelectionChanged = [this, endmembersAction, &spectralViewPlugin, treeView, layout]() -> void {
+        const auto selectedRows = spectralViewPlugin.getSelectionModel().selectedRows();
         const auto hasSelection = !selectedRows.isEmpty();
 
         GroupsAction::GroupActions groupActions;
@@ -108,45 +108,45 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
             
             /*
             if (endmember->getIndices().size() != 0) {
-                lineplotPlugin.setSelection(endmember->getIndices());
+                spectralViewPlugin.setSelection(endmember->getIndices());
             }
             */
 
             groupActions << &endmember->getGeneralAction() << &endmember->getMapAction();
         }
         else {
-            lineplotPlugin.getLineplotWidget().setHighlightSelection(-1);
+            spectralViewPlugin.getLineplotWidget().setHighlightSelection(-1);
         }
 
         endmembersAction->getCurrentEndmemberAction().setGroupActions(groupActions);
     };
 
     // Update various actions when the model is somehow changed (rows added/removed etc.)
-    const auto updateButtons = [this, &lineplotPlugin, treeView, layout]() -> void {
-        const auto selectedRows = lineplotPlugin.getSelectionModel().selectedRows();
+    const auto updateButtons = [this, &spectralViewPlugin, treeView, layout]() -> void {
+        const auto selectedRows = spectralViewPlugin.getSelectionModel().selectedRows();
         const auto hasSelection = !selectedRows.isEmpty();
 
         _removeEndmemberAction.setEnabled(hasSelection);
-        _saveEndmembersAction.setEnabled(lineplotPlugin.getModel().rowCount() > 0);
+        _saveEndmembersAction.setEnabled(spectralViewPlugin.getModel().rowCount() > 0);
 
         // Render
-        lineplotPlugin.getLineplotWidget().update();
+        spectralViewPlugin.getLineplotWidget().update();
 
     };
 
-    connect(&lineplotPlugin.getSelectionModel(), &QItemSelectionModel::selectionChanged, this, modelSelectionChanged);
-    connect(&lineplotPlugin.getSelectionModel(), &QItemSelectionModel::selectionChanged, this, updateButtons);
+    connect(&spectralViewPlugin.getSelectionModel(), &QItemSelectionModel::selectionChanged, this, modelSelectionChanged);
+    connect(&spectralViewPlugin.getSelectionModel(), &QItemSelectionModel::selectionChanged, this, updateButtons);
     connect(treeView->model(), &QAbstractListModel::rowsRemoved, updateButtons);
 
     // Select an endmember when it is inserted into the model
-    const auto onRowsInserted = [treeView, &lineplotPlugin, updateButtons](const QModelIndex& parent, int first, int last) {
+    const auto onRowsInserted = [treeView, &spectralViewPlugin, updateButtons](const QModelIndex& parent, int first, int last) {
 
         // Get model of inserted endmember
         const auto index = treeView->model()->index(first, 0);
 
         // Select the endmember if the index is valid
         if (index.isValid())
-            lineplotPlugin.getSelectionModel().select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+            spectralViewPlugin.getSelectionModel().select(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 
         // Update endmember position buttons
         updateButtons();
@@ -156,27 +156,27 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     connect(treeView->model(), &QAbstractListModel::rowsInserted, this, onRowsInserted);
 
     // Remove the endmember when the corresponding action is triggered
-    connect(&_removeEndmemberAction, &TriggerAction::triggered, this, [this, &lineplotPlugin, treeView]() {
-        const auto selectedRows = lineplotPlugin.getSelectionModel().selectedRows();
+    connect(&_removeEndmemberAction, &TriggerAction::triggered, this, [this, &spectralViewPlugin, treeView]() {
+        const auto selectedRows = spectralViewPlugin.getSelectionModel().selectedRows();
 
         if (selectedRows.isEmpty())
             return;
 
         auto rowIndex = selectedRows.first();
 
-        lineplotPlugin.getModel().removeEndmember(rowIndex);
+        spectralViewPlugin.getModel().removeEndmember(rowIndex);
 
         if (selectedRows.length() > 1) {
-            lineplotPlugin.getLineplotWidget().setHighlightSelection(rowIndex.row());
+            spectralViewPlugin.getLineplotWidget().setHighlightSelection(rowIndex.row());
         }
 
         });
 
     // Save the endmembers in the list when the corresponding action is triggered
-    connect(&_saveEndmembersAction, &TriggerAction::triggered, this, [this, &lineplotPlugin, treeView]() {
-        auto name = lineplotPlugin.getDatasetName();
+    connect(&_saveEndmembersAction, &TriggerAction::triggered, this, [this, &spectralViewPlugin, treeView]() {
+        auto name = spectralViewPlugin.getDatasetName();
 
-        lineplotPlugin.getModel().saveEndmembers(name);
+        spectralViewPlugin.getModel().saveEndmembers(name);
         });
 
     updateButtons();

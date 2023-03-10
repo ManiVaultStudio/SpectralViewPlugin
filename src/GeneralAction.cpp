@@ -1,7 +1,7 @@
 #include "GeneralAction.h"
 #include "Endmember.h"
 #include "EndmembersAction.h"
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 #include "ClusterData.h"
 #include <QtCore>
 
@@ -68,7 +68,7 @@ GeneralAction::GeneralAction(Endmember& endmember, int index) :
     _colorAction.initialize(endmemberColor, endmemberColor);
 
     const auto render = [this]() {
-        _endmember.getLineplotPlugin().getLineplotWidget().update();
+        _endmember.getSpectralViewPlugin().getLineplotWidget().update();
 
     };
 

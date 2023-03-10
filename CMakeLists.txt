@@ -1,30 +1,35 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.17)
 
-set(PROJECT "LinePlotPlugin")
+set(SVPLUGIN "SpectralViewPlugin")
 
-PROJECT(${PROJECT})
+PROJECT(${SVPLUGIN})
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP /permissive- /Zc:__cplusplus /W3")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG /NODEFAULTLIB:LIBCMT")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif(MSVC)
 
-find_package(Qt5 COMPONENTS Widgets WebEngineWidgets REQUIRED)
+# Normalize the incoming install path
+file(TO_CMAKE_PATH $ENV{HDPS_INSTALL_DIR} INSTALL_DIR)
+find_package(Qt6 6.3.1 COMPONENTS Widgets WebEngineWidgets Concurrent REQUIRED)
 
-qt5_add_resources(RESOURCE_FILES res/lineplot_resources.qrc)
+set(PLUGIN
+    src/SpectralViewPlugin.h
+    src/SpectralViewPlugin.cpp
+    src/EndmembersModel.cpp
+    src/EndmembersModel.h
+    src/Endmember.cpp
+    src/Endmember.h
+)
 
-set(SOURCES
-    src/LineplotPlugin.h
-    src/LineplotPlugin.cpp
-    src/LineplotWidget.h
-    src/LineplotWidget.cpp
+set(ACTIONS
     src/SettingsAction.h
     src/SettingsAction.cpp
     src/MainToolbarAction.h
@@ -35,42 +40,91 @@ set(SOURCES
     src/WavelengthsRGBAction.cpp
     src/EndmembersAction.cpp
     src/EndmembersAction.h
-    src/EndmembersModel.cpp
-    src/EndmembersModel.h
-    src/Endmember.cpp
-    src/Endmember.h
     src/GeneralAction.cpp
     src/GeneralAction.h
     src/MapAction.cpp
     src/MapAction.h
+)
+
+set(WIDGETS
+    src/LineplotWidget.h
+    src/LineplotWidget.cpp
     src/EndmembersCheckDialog.cpp
     src/EndmembersCheckDialog.h
-    src/LineplotPlugin.json
 )
 
-set(RESOURCES
-    res/lineplot_resources.qrc
+set(WEB
+	res/lineplot/lineplot.html
+	res/lineplot/lineplot.css
+	res/lineplot/lineplot.js
+	res/lineplot/lineplot.ui.js
+	res/lineplot/endmembers.js
+	res/lineplot/linesRGB.js	
+	res/jstools/debug_data.js
+	res/jstools/colormaps.js
+	res/jstools/globals.js
+	res/jstools/tools.bridge.js
+	res/jstools/ui.css	
+	res/jslibs/qwebchannel.js
+	res/jslibs/wNumb.min.js
+	res/jslibs/material.min.js
+	res/jslibs/d3.v4.js
+	res/jslibs/d3-scale-chromatic.js
+	res/jslibs/material.min.css
 )
 
-source_group( Plugin FILES ${SOURCES})
-source_group( Resources FILES ${RESOURCES})
-source_group( Resources\\generated FILES ${CMAKE_CURRENT_BINARY_DIR}/qrc_lineplot_resources.cpp)
-
-include_directories("$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/include/")
-
-add_library(${PROJECT} SHARED ${SOURCES} ${RESOURCES} ${RESOURCE_FILES})
-
-qt5_use_modules(${PROJECT} Widgets WebEngineWidgets)
-
-target_link_libraries(${PROJECT} Qt5::Widgets)
-target_link_libraries(${PROJECT} Qt5::WebEngineWidgets)
-target_link_libraries(${PROJECT} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/HDPS_Public.lib")
-target_link_libraries(${PROJECT} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/PointData.lib")
-target_link_libraries(${PROJECT} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/ClusterData.lib")
-target_link_libraries(${PROJECT} "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/lib/ImageData.lib")
-
-add_custom_command(TARGET ${PROJECT} POST_BUILD
-    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-    "$<TARGET_FILE:${PROJECT}>"
-    "$ENV{HDPS_INSTALL_DIR}/$<CONFIGURATION>/Plugins/$<TARGET_FILE_NAME:${PROJECT}>"
+set(AUX
+	res/lineplot_resources.qrc
+	src/SpectralViewPlugin.json
 )
+
+qt6_add_resources(RESOURCE_FILES res/lineplot_resources.qrc)
+
+set(SOURCES ${PLUGIN} ${ACTIONS} ${WIDGETS})
+
+source_group(Plugin FILES ${PLUGIN})
+source_group(Actions FILES ${ACTIONS})
+source_group(Widget FILES ${WIDGETS})
+source_group(Web FILES ${WEB})
+source_group(Aux FILES ${AUX})
+
+add_library(${SVPLUGIN} SHARED ${SOURCES} ${WEB} ${AUX} ${RESOURCE_FILES})
+
+target_include_directories(${SVPLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/include/")
+
+# Request C++17
+target_compile_features(${SVPLUGIN} PRIVATE cxx_std_17)
+
+target_link_libraries(${SVPLUGIN} PRIVATE Qt6::Widgets)
+target_link_libraries(${SVPLUGIN} PRIVATE Qt6::WebEngineWidgets)
+target_link_libraries(${SVPLUGIN} PRIVATE Qt6::Concurrent)
+
+if(MSVC)
+	set(LIB_SUFFIX "${CMAKE_STATIC_LIBRARY_SUFFIX}")
+else()
+	set(LIB_SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+endif()
+
+target_link_libraries(${SVPLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}HDPS_Public${LIB_SUFFIX}")
+target_link_libraries(${SVPLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}PointData${LIB_SUFFIX}")
+target_link_libraries(${SVPLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}ClusterData${LIB_SUFFIX}")
+target_link_libraries(${SVPLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}ImageData${LIB_SUFFIX}")
+
+install(TARGETS ${SVPLUGIN}
+	RUNTIME DESTINATION Plugins COMPONENT SHAREDLIB
+	LIBRARY DESTINATION Plugins COMPONENT LINKLIB
+	ARCHIVE DESTINATION lib COMPONENT LINKLIB
+)
+
+add_custom_command(TARGET ${SVPLUGIN} POST_BUILD
+	COMMAND "${CMAKE_COMMAND}"
+	--install ${CMAKE_CURRENT_BINARY_DIR}
+	--config $<CONFIGURATION>
+	--prefix ${INSTALL_DIR}/$<CONFIGURATION>
+)
+
+# Automatically set the debug environment (command + working directory) for MSVC in debug mode
+if(MSVC)
+	set_property(TARGET ${SVPLUGIN} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<IF:$<CONFIG:DEBUG>,${INSTALL_DIR}/debug,${INSTALL_DIR}/release>)
+	set_property(TARGET ${SVPLUGIN} PROPERTY VS_DEBUGGER_COMMAND $<IF:$<CONFIG:DEBUG>,${INSTALL_DIR}/debug/HDPS.exe,${INSTALL_DIR}/release/HDPS.exe>)
+endif()

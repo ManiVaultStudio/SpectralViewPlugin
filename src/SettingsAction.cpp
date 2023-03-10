@@ -1,5 +1,5 @@
 #include "SettingsAction.h"
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 #include "MainToolbarAction.h"
 
 #include <QMenu>
@@ -7,9 +7,9 @@
 
 using namespace hdps::gui;
 
-SettingsAction::SettingsAction(LineplotPlugin& lineplotPlugin) :
-    WidgetAction(&lineplotPlugin),
-    _lineplotPlugin(lineplotPlugin),
+SettingsAction::SettingsAction(SpectralViewPlugin& spectralViewPlugin) :
+    WidgetAction(&spectralViewPlugin),
+    _spectralViewPlugin(spectralViewPlugin),
     _endmembersAction(*this)
 {
     setText("Settings");
@@ -31,7 +31,7 @@ SettingsAction::Widget::Widget(QWidget* parent, SettingsAction* settingsAction) 
 
     auto layout = new QVBoxLayout();
 
-    layout->setMargin(4);
+    layout->setContentsMargins(4, 4, 4, 4);
     layout->addWidget(settingsAction->getEndmembersAction().createWidget(this));
 
     setLayout(layout);

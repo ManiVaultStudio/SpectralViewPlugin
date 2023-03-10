@@ -19,7 +19,7 @@ EndmembersCheckDialog::EndmembersCheckDialog(QWidget* parent, int noEndmembers) 
     
     auto layout = new QVBoxLayout();
 
-    layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(_groupAction.createWidget(this));
 
     setLayout(layout);

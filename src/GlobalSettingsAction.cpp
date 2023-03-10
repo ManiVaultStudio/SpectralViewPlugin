@@ -1,5 +1,5 @@
 #include "GlobalSettingsAction.h"
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 
 #include <Application.h> 
 
@@ -7,9 +7,9 @@
 
 using namespace hdps;
 
-GlobalSettingsAction::GlobalSettingsAction(LineplotPlugin& lineplotPlugin) :
-    WidgetAction(reinterpret_cast<QObject*>(&lineplotPlugin)),
-    _lineplotPlugin(lineplotPlugin),
+GlobalSettingsAction::GlobalSettingsAction(SpectralViewPlugin& spectralViewPlugin) :
+    WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin)),
+    _spectralViewPlugin(spectralViewPlugin),
     _showSelectionAction(this, "Show selection", true, true),
     _stdAreaEnabledAction(this, "Show std. dev.", true, true)
 {
@@ -22,7 +22,7 @@ GlobalSettingsAction::GlobalSettingsAction(LineplotPlugin& lineplotPlugin) :
     _stdAreaEnabledAction.setChecked(false);
     _showSelectionAction.setChecked(true);
     
-    auto& lineplotWidget = _lineplotPlugin.getLineplotWidget();
+    auto& lineplotWidget = _spectralViewPlugin.getLineplotWidget();
 
     const auto updateStdArea = [this, &lineplotWidget]() {
         lineplotWidget.enableStdArea(_stdAreaEnabledAction.isChecked());
@@ -68,7 +68,7 @@ GlobalSettingsAction::Widget::Widget(QWidget* parent, GlobalSettingsAction* glob
 
         auto layout = new QHBoxLayout();
 
-        layout->setMargin(0);
+        layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(showSelectionWidget);
         layout->addWidget(showStdWidget);
 

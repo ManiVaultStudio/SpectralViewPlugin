@@ -12,7 +12,7 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 
 using namespace hdps::gui;
 

@@ -3,7 +3,7 @@
 #include "EndmembersAction.h"
 #include <actions/WidgetAction.h>
 
-class LineplotPlugin;
+class SpectralViewPlugin;
 
 using namespace hdps::gui;
 
@@ -55,9 +55,9 @@ public:
 
     /**
      * Constructor
-     * @param LineplotPlugin Reference to line plot plugin
+     * @param SpectralViewPlugin Reference to line plot plugin
      */
-    SettingsAction(LineplotPlugin& lineplotPlugin);
+    SettingsAction(SpectralViewPlugin& spectralViewPlugin);
 
     /**
      * Get the context menu for the action
@@ -67,13 +67,13 @@ public:
     QMenu* getContextMenu(QWidget* parent = nullptr) override;
 
     /** Get reference to the line plot plugin */
-    LineplotPlugin& getLineplotPlugin() { return _lineplotPlugin; };
+    SpectralViewPlugin& getSpectralViewPlugin() { return _spectralViewPlugin; };
 
  public: // Action getters
 
     EndmembersAction& getEndmembersAction() { return _endmembersAction; }
 
 protected:
-    LineplotPlugin& _lineplotPlugin;     /** Reference to line plot plugin */
+    SpectralViewPlugin& _spectralViewPlugin;     /** Reference to line plot plugin */
     EndmembersAction            _endmembersAction;          /** Endmembers action */
 };

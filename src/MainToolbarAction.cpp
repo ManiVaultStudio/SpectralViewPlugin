@@ -1,5 +1,5 @@
 #include "MainToolbarAction.h"
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 #include "LineplotWidget.h"
 
 #include <Application.h>
@@ -7,11 +7,11 @@
 
 using namespace hdps::util;
 
-MainToolbarAction::MainToolbarAction(LineplotPlugin& lineplotPlugin) :
-	WidgetAction(&lineplotPlugin),
-	_lineplotPlugin(lineplotPlugin),
-	_globalSettingsAction(lineplotPlugin),
-    _wavelengthsRGBAction(lineplotPlugin)
+MainToolbarAction::MainToolbarAction(SpectralViewPlugin& spectralViewPlugin) :
+	WidgetAction(&spectralViewPlugin),
+    _spectralViewPlugin(spectralViewPlugin),
+	_globalSettingsAction(spectralViewPlugin),
+    _wavelengthsRGBAction(spectralViewPlugin)
 {
 	setText("Settings");
 
@@ -38,7 +38,7 @@ MainToolbarAction::Widget::Widget(QWidget* parent, MainToolbarAction* interactio
     setAutoFillBackground(true);
 
     _toolBarLayout.setSpacing(3);
-    _toolBarLayout.setMargin(4);
+    _toolBarLayout.setContentsMargins(4, 4, 4, 4);
     _toolBarLayout.setSizeConstraint(QLayout::SetFixedSize);
 
     addStateWidget(&interactionAction->_globalSettingsAction, 2);
@@ -53,7 +53,7 @@ MainToolbarAction::Widget::Widget(QWidget* parent, MainToolbarAction* interactio
 
     setLayout(&_layout);
 
-    _layout.setMargin(4);
+    _layout.setContentsMargins(4, 4, 4, 4);
 
     this->installEventFilter(this);
     _toolBarWidget.installEventFilter(this);
@@ -89,7 +89,7 @@ void MainToolbarAction::Widget::updateLayout()
         states[stateWidget] = Widget::State::Collapsed;
 
     const auto getWidth = [this, &states]() -> std::uint32_t {
-        std::uint32_t width = 2 * _layout.margin();
+        std::uint32_t width = _layout.contentsMargins().left() + _layout.contentsMargins().right();
 
         for (auto stateWidget : _stateWidgets)
             width += stateWidget->getSizeHint(states[stateWidget]).width();
@@ -120,5 +120,5 @@ void MainToolbarAction::Widget::updateLayout()
 
 LineplotWidget& MainToolbarAction::getLineplotWidget()
 {
-    return _lineplotPlugin.getLineplotWidget();
+    return _spectralViewPlugin.getLineplotWidget();
 }

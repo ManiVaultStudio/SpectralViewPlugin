@@ -6,7 +6,7 @@
 #include <QHBoxLayout>
 
 
-class LineplotPlugin;
+class SpectralViewPlugin;
 class LineplotWidget;
 
 /**
@@ -67,7 +67,7 @@ public:
      * Constructor
      * @param imageViewerPlugin Reference to image viewer plugin
      */
-    MainToolbarAction(LineplotPlugin& lineplotPlugin);
+    MainToolbarAction(SpectralViewPlugin& SpectralViewPlugin);
 
     QMenu* getContextMenu();
 
@@ -80,7 +80,7 @@ public: // Action getters
     WavelengthsRGBAction& getWavelengthsRGBAction() { return _wavelengthsRGBAction; }
 
 protected:
-    LineplotPlugin& _lineplotPlugin;                 /** Reference to image viewer plugin */
-    GlobalSettingsAction    _globalSettingsAction;          /** Global view settings action */
+    SpectralViewPlugin&     _spectralViewPlugin;    /** Reference to image viewer plugin */
+    GlobalSettingsAction    _globalSettingsAction;  /** Global view settings action */
     WavelengthsRGBAction    _wavelengthsRGBAction;
 };

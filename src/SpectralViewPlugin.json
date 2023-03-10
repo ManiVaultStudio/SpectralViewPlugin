@@ -1,5 +1,5 @@
 {
-    "name" : "Lineplot View",
+    "name" : "Spectral View",
     "version" : "1",
     "dependencies" : ["Points", "Cluster"]
 }

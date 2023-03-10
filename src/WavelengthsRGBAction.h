@@ -6,7 +6,7 @@
 
 using namespace hdps::gui;
 
-class LineplotPlugin;
+class SpectralViewPlugin;
 
 /**
  * Wavelengths RGB action class
@@ -49,7 +49,7 @@ public:
      * Constructor
      * @param imageViewerPlugin Reference to image viewer plugin
      */
-    WavelengthsRGBAction(LineplotPlugin& lineplotPlugin);
+    WavelengthsRGBAction(SpectralViewPlugin& spectralViewPlugin);
 
     /**
      * Get the context menu for the action
@@ -67,7 +67,7 @@ public: /** Action getters */
     OptionAction& getBlueWavelengthAction() { return _blueWavelengthAction; }
 
 protected:
-    LineplotPlugin& _lineplotPlugin;         /** Reference to image viewer plugin */
+    SpectralViewPlugin& _spectralViewPlugin;         /** Reference to image viewer plugin */
     ToggleAction    _wavelengthsRGBEnabledAction;
     OptionAction    _redWavelengthAction;
     OptionAction    _greenWavelengthAction;

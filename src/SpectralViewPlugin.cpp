@@ -1,7 +1,7 @@
 // Code based on HeatMapPlugin
 #pragma once
 
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 #include "EndmembersCheckDialog.h"
 
 #include "PointData.h"
@@ -18,12 +18,12 @@
 #include<tuple>
 
 
-Q_PLUGIN_METADATA(IID "nl.tudelft.LineplotPlugin")
+Q_PLUGIN_METADATA(IID "nl.tudelft.SpectralViewPlugin")
 
 using namespace hdps;
 using namespace hdps::gui;
 
-LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
+SpectralViewPlugin::SpectralViewPlugin(const PluginFactory* factory) :
     ViewPlugin(factory),
     _model(this),
     _selectionModel(&_model),
@@ -43,7 +43,7 @@ LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     _clusterNames(),
     _prevSelection()
 {
-    setObjectName("Line Plot");
+    setObjectName("Spectral Plot");
 
     getWidget().setContextMenuPolicy(Qt::CustomContextMenu);
     getWidget().setFocusPolicy(Qt::ClickFocus);
@@ -51,10 +51,10 @@ LineplotPlugin::LineplotPlugin(const PluginFactory* factory) :
     _mainToolbarAction.setEnabled(false);
 }
 
-LineplotPlugin::~LineplotPlugin() {
+SpectralViewPlugin::~SpectralViewPlugin() {
 }
 
-void LineplotPlugin::init()
+void SpectralViewPlugin::init()
 {
     _dropWidget.setDropIndicatorWidget(new DropWidget::DropIndicatorWidget(&getWidget(), "No data loaded", "Drag an item from the data hierarchy and drop it here to visualize data..."));
 
@@ -62,7 +62,7 @@ void LineplotPlugin::init()
 
     auto mainLayout = new QHBoxLayout();
 
-    mainLayout->setMargin(0);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
     getWidget().setLayout(mainLayout);
@@ -74,7 +74,7 @@ void LineplotPlugin::init()
     auto mainWidgetLayout = new QVBoxLayout();
 
     // Configure main layout
-    mainWidgetLayout->setMargin(0);
+    mainWidgetLayout->setContentsMargins(0, 0, 0, 0);
     mainWidgetLayout->setSpacing(0);
 
     // And add the toolbar, image viewer widget
@@ -111,7 +111,7 @@ void LineplotPlugin::init()
         const auto dataTypes = DataTypes({ PointType, ClusterType });
 
         // Get points dataset from the core
-        auto& candidateDataset = _core->requestDataset(datasetId);
+        auto candidateDataset = _core->requestDataset(datasetId);
 
         // Check if the data type can be dropped
         if (!dataTypes.contains(dataType)) {
@@ -283,12 +283,12 @@ void LineplotPlugin::init()
         updateWindowTitle();
         });
 
-    _eventListener.setEventCore(Application::core());
+    //_eventListener.setEventCore(Application::core());
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataAdded));
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataChanged));
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataSelectionChanged));
-    _eventListener.registerDataEventByType(PointType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
-    _eventListener.registerDataEventByType(ClusterType, std::bind(&LineplotPlugin::onDataEvent, this, std::placeholders::_1));
+    _eventListener.registerDataEventByType(PointType, std::bind(&SpectralViewPlugin::onDataEvent, this, std::placeholders::_1));
+    _eventListener.registerDataEventByType(ClusterType, std::bind(&SpectralViewPlugin::onDataEvent, this, std::placeholders::_1));
 
     const auto endmembersInsertedRemovedChanged = [this]() {
        // _dropWidget.setShowDropIndicator(_model.rowCount() == 0);
@@ -316,7 +316,7 @@ void LineplotPlugin::init()
         });
 }
 
-void LineplotPlugin::loadData(const Datasets& datasets) {
+void SpectralViewPlugin::loadData(const Datasets& datasets) {
 
     // Only load data if we at least have one set
     if (datasets.isEmpty())
@@ -326,7 +326,7 @@ void LineplotPlugin::loadData(const Datasets& datasets) {
         _points = datasets[0];
 }
 
-void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
+void SpectralViewPlugin::onDataEvent(hdps::DataEvent* dataEvent)
 {
     if (!_linePlotWidget.isVisible())
         return;
@@ -405,7 +405,7 @@ void LineplotPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     }
 }
 
-void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
+void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
     
     auto type = dataset->getDataType();
     auto& parent = _points;
@@ -424,7 +424,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
                 auto endmember = new Endmember(*this, dataset, -1);
                 _model.addEndmember(endmember, -1);
 
-                auto& endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
+                const auto& endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
                 endmember->setData(std::get<0>(endmemberData));
                 //endmember->setIndices(indices);
             }
@@ -480,9 +480,9 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             average.resize(numDimensions);
             std.resize(numDimensions);
 
-            auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
-            auto& computedAvg = std::get<0>(endmemberData);
-            auto& computedStd = std::get<1>(endmemberData);
+            const auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+            const auto& computedAvg = std::get<0>(endmemberData);
+            const auto& computedStd = std::get<1>(endmemberData);
 
             for (int v = 0; v < numDimensions; v++) {
                 average[v] = computedAvg[v];
@@ -511,7 +511,7 @@ void LineplotPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
     }
 }
 
-void LineplotPlugin::addNewCluster(const Dataset<DatasetImpl>& dataset) {
+void SpectralViewPlugin::addNewCluster(const Dataset<DatasetImpl>& dataset) {
     
     auto& clusters = dataset.get<Clusters>()->getClusters();
     auto noClusters = clusters.length();
@@ -532,9 +532,9 @@ void LineplotPlugin::addNewCluster(const Dataset<DatasetImpl>& dataset) {
     average.resize(numDimensions);
     std.resize(numDimensions);
 
-    auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
-    auto& computedAvg = std::get<0>(endmemberData);
-    auto& computedStd = std::get<1>(endmemberData);
+    const auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+    const auto& computedAvg = std::get<0>(endmemberData);
+    const auto& computedStd = std::get<1>(endmemberData);
 
     for (int v = 0; v < numDimensions; v++) {
         average[v] = computedAvg[v];
@@ -544,7 +544,7 @@ void LineplotPlugin::addNewCluster(const Dataset<DatasetImpl>& dataset) {
     endmember->setData(average);
 }
 
-void LineplotPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
+void SpectralViewPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
 
     auto& clusters = dataset.get<Clusters>()->getClusters();
     auto noClusters = clusters.length();
@@ -560,7 +560,7 @@ void LineplotPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
     
 }
 
-void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
+void SpectralViewPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
 
     auto type = dataset->getDataType();
     auto& parent = _points;
@@ -575,13 +575,13 @@ void LineplotPlugin::addAverageDataset(const Dataset<DatasetImpl>& dataset) {
             auto endmember = new Endmember(*this, dataset, 0);
             _model.addEndmember(endmember, 0);
 
-            auto& endmemberData = computeAverageSpectrum(parent, noPoints, indices, "endmember");
+            const auto& endmemberData = computeAverageSpectrum(parent, noPoints, indices, "endmember");
             endmember->setData(std::get<0>(endmemberData));
         }
     }
 }
 
-void LineplotPlugin::initializeImageRGB() {
+void SpectralViewPlugin::initializeImageRGB() {
 
     QStringList dimensionNames;
     auto numDimensions = _points->getNumDimensions();
@@ -634,7 +634,7 @@ void LineplotPlugin::initializeImageRGB() {
     _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setDefaultText(dimB);
 }
 
-void LineplotPlugin::changeRGBWavelengths(const float wavelength, int index) {
+void SpectralViewPlugin::changeRGBWavelengths(const float wavelength, int index) {
 
     QString newValue = QString::number(wavelength);
 
@@ -650,7 +650,7 @@ void LineplotPlugin::changeRGBWavelengths(const float wavelength, int index) {
 
 }
 
-void LineplotPlugin::updateSelection(Dataset<Points> selection) {
+void SpectralViewPlugin::updateSelection(Dataset<Points> selection) {
 
     if (selection.isValid()) {
        
@@ -670,7 +670,7 @@ void LineplotPlugin::updateSelection(Dataset<Points> selection) {
 }
 
 /*
-void LineplotPlugin::setSelection(std::vector<unsigned int> indices) {
+void SpectralViewPlugin::setSelection(std::vector<unsigned int> indices) {
     
     if (_points.isValid()) {
         _points->setSelectionIndices(indices);
@@ -679,19 +679,19 @@ void LineplotPlugin::setSelection(std::vector<unsigned int> indices) {
 }
 */
 
-std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverageSpectrum(Dataset<DatasetImpl> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
+std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAverageSpectrum(Dataset<DatasetImpl> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
 
     auto points = source.get<Points>();
     
     auto numDimensions = points->getNumDimensions();
-    auto& children = source->getChildren({ ImageType });
+    const auto& children = source->getChildren({ ImageType });
 
     std::vector<float> averageSpectrum(numDimensions);
     std::vector<float> standardDeviation(numDimensions);
 
     if (children.size() != 0) {
         auto imagesId = children[0].getDatasetGuid();
-        auto& images = _core->requestDataset<Images>(imagesId);
+        const auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
@@ -746,7 +746,7 @@ std::tuple<std::vector<float>, std::vector<float>> LineplotPlugin::computeAverag
     return { averageSpectrum, standardDeviation };
 }
 
-QString LineplotPlugin::getDatasetName() {
+QString SpectralViewPlugin::getDatasetName() {
     if (_points.isValid()) {
         return _points->getGuiName();
     }
@@ -754,7 +754,7 @@ QString LineplotPlugin::getDatasetName() {
         return "";
 }
 
-void LineplotPlugin::updateMap(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType) {
+void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType, int algorithmType) {
 
     if (!_points.isValid()) {
         return;
@@ -762,9 +762,9 @@ void LineplotPlugin::updateMap(QString endmemberName, std::vector<float> endmemb
 
     if ( (algorithmType == 0 && !_angleMap.isValid()) || (algorithmType == 1 && !_corMap.isValid()) ) {
 
-        auto& children = _points->getChildren({ ImageType });
+        const auto& children = _points->getChildren({ ImageType });
         auto imagesId = children[0].getDatasetGuid();
-        auto& images = _core->requestDataset<Images>(imagesId);
+        const auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
@@ -784,8 +784,8 @@ void LineplotPlugin::updateMap(QString endmemberName, std::vector<float> endmemb
             _mapAngleImage->setImageSize(QSize(width, height));
             _mapAngleImage->setNumberOfComponentsPerPixel(1);
 
-            _core->notifyDatasetAdded(_angleMap);
-            _core->notifyDatasetAdded(_mapAngleImage);
+            events().notifyDatasetAdded(_angleMap);
+            events().notifyDatasetAdded(_mapAngleImage);
 
         }
         else {
@@ -801,8 +801,8 @@ void LineplotPlugin::updateMap(QString endmemberName, std::vector<float> endmemb
             _mapCorImage->setImageSize(QSize(width, height));
             _mapCorImage->setNumberOfComponentsPerPixel(1);
 
-            _core->notifyDatasetAdded(_corMap);
-            _core->notifyDatasetAdded(_mapCorImage);
+            events().notifyDatasetAdded(_corMap);
+            events().notifyDatasetAdded(_mapCorImage);
         }
     }
     else {
@@ -811,15 +811,15 @@ void LineplotPlugin::updateMap(QString endmemberName, std::vector<float> endmemb
             spectralAngleMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
             _mapAngleImage->setNumberOfImages(_angleMap->getNumDimensions());
-            _core->notifyDatasetChanged(_angleMap);
-            _core->notifyDatasetChanged(_mapAngleImage);
+            events().notifyDatasetChanged(_angleMap);
+            events().notifyDatasetChanged(_mapAngleImage);
         }
         else {
             spectralCorrelationMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
             _mapCorImage->setNumberOfImages(_corMap->getNumDimensions());
-            _core->notifyDatasetChanged(_corMap);
-            _core->notifyDatasetChanged(_mapCorImage);
+            events().notifyDatasetChanged(_corMap);
+            events().notifyDatasetChanged(_mapCorImage);
         }
 
        
@@ -827,11 +827,11 @@ void LineplotPlugin::updateMap(QString endmemberName, std::vector<float> endmemb
 }
 
 // implementation of spectral angle mapper and spectral correlation mapper
-void LineplotPlugin::spectralAngleMapper(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType) {
+void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType) {
     
-    auto& children = _points->getChildren({ ImageType });
+    const auto& children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
-    auto& images = _core->requestDataset<Images>(imagesId);
+    const auto& images = _core->requestDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
     int height = imageSize.height();
@@ -987,11 +987,11 @@ void LineplotPlugin::spectralAngleMapper(QString endmemberName, std::vector<floa
     _angleMap->setData(_mapAngleData.data(), noPoints, imgDim);
 }
 
-void LineplotPlugin::spectralCorrelationMapper(QString endmemberName, std::vector<float> endmemberData, float threshold, int mapType) {
+void SpectralViewPlugin::spectralCorrelationMapper(QString endmemberName, std::vector<float> endmemberData, float threshold, int mapType) {
 
-    auto& children = _points->getChildren({ ImageType });
+    const auto& children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetGuid();
-    auto& images = _core->requestDataset<Images>(imagesId);
+    const auto& images = _core->requestDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
     int height = imageSize.height();
@@ -1115,13 +1115,13 @@ void LineplotPlugin::spectralCorrelationMapper(QString endmemberName, std::vecto
     _corMap->setData(_mapCorData.data(), noPoints, imgDim);
 }
 
-void LineplotPlugin::updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType) {    
+void SpectralViewPlugin::updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType) {
 
     if ( (algorithmType == 0 && _angleDataset.size() != 0) || (algorithmType == 1 && _corDataset.size() != 0) ) {
 
-        auto& children = _points->getChildren({ ImageType });
+        const auto& children = _points->getChildren({ ImageType });
         auto imagesId = children[0].getDatasetGuid();
-        auto& images = _core->requestDataset<Images>(imagesId);
+        const auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
@@ -1215,20 +1215,20 @@ void LineplotPlugin::updateThresholdAngle(QString endmemberName, float threshold
             _angleMap->setData(_mapAngleData.data(), noPoints, imgDim);
 
             _mapAngleImage->setNumberOfImages(imgDim);
-            _core->notifyDatasetChanged(_angleMap);
-            _core->notifyDatasetChanged(_mapAngleImage);
+            events().notifyDatasetChanged(_angleMap);
+            events().notifyDatasetChanged(_mapAngleImage);
         }
         else if (algorithmType == 1) {
             _corMap->setData(_mapCorData.data(), noPoints, imgDim);
 
             _mapCorImage->setNumberOfImages(imgDim);
-            _core->notifyDatasetChanged(_corMap);
-            _core->notifyDatasetChanged(_mapCorImage);
+            events().notifyDatasetChanged(_corMap);
+            events().notifyDatasetChanged(_mapCorImage);
         }
     }
 }
 
-void LineplotPlugin::computeAverageDataset(int width, int height, int numDimensions) {
+void SpectralViewPlugin::computeAverageDataset(int width, int height, int numDimensions) {
 
     _averageDataset.resize(width * height);
 
@@ -1248,7 +1248,7 @@ void LineplotPlugin::computeAverageDataset(int width, int height, int numDimensi
 }
 
 
-QIcon LineplotPluginFactory::getIcon() const
+QIcon SpectralViewPluginFactory::getIcon() const
 {
     return Application::getIconFont("FontAwesome").getIcon("chart-line");
 }
@@ -1257,12 +1257,12 @@ QIcon LineplotPluginFactory::getIcon() const
 // Factory
 // =============================================================================
 
-ViewPlugin* LineplotPluginFactory::produce()
+ViewPlugin* SpectralViewPluginFactory::produce()
 {
-    return new LineplotPlugin(this);
+    return new SpectralViewPlugin(this);
 }
 
-hdps::DataTypes LineplotPluginFactory::supportedDataTypes() const
+hdps::DataTypes SpectralViewPluginFactory::supportedDataTypes() const
 {
     DataTypes supportedTypes;
     supportedTypes.append(PointType);

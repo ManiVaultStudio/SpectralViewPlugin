@@ -15,7 +15,7 @@
 
 using namespace hdps::util;
 
-class LineplotPlugin;
+class SpectralViewPlugin;
 
 class Endmember : public WidgetAction
 {
@@ -25,16 +25,16 @@ public:
 
     /**
      * Constructor
-     * @param lineplotPlugin Reference to line plot plugin
+     * @param SpectralViewPlugin Reference to line plot plugin
      * @param dataset Smart pointer to dataset
      */
-    Endmember(LineplotPlugin& lineplotPlugin, const hdps::Dataset<hdps::DatasetImpl>& dataset, int index);
+    Endmember(SpectralViewPlugin& spectralViewPlugin, const hdps::Dataset<hdps::DatasetImpl>& dataset, int index);
 
     /** Destructor */
     virtual ~Endmember();
 
     /** Get reference to image viewer plugin */
-    LineplotPlugin& getLineplotPlugin();
+    SpectralViewPlugin& getSpectralViewPlugin();
 
     void sendColor(QColor endmemberColor, int row);
     void updateVisibility(bool toggled, int row);
@@ -73,7 +73,7 @@ public: /** Action getters */
     MapAction& getMapAction() { return _mapAction; }
 
 protected:
-    LineplotPlugin& _lineplotPlugin;                              /** Reference to line plot plugin */
+    SpectralViewPlugin& _spectralViewPlugin;                              /** Reference to line plot plugin */
     bool                                _active;                  /** Whether the layer is active (editable) */  
     hdps::Dataset<hdps::DatasetImpl>    _dataset;                 /** Smart pointer to endmember dataset */
     GeneralAction                       _generalAction;

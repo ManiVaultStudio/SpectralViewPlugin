@@ -1,7 +1,5 @@
 #pragma once
 
-#include "SelectionListener.h"
-
 #include "EndmembersModel.h"
 #include "widgets/WebWidget.h"
 #include <QMouseEvent>
@@ -12,7 +10,7 @@ class QWebChannel;
 
 class Cluster;
 
-class LineplotPlugin;
+class SpectralViewPlugin;
 class LineplotWidget;
 
 class LinePlotCommunicationObject : public hdps::gui::WebCommunicationObject
@@ -46,7 +44,7 @@ class LineplotWidget : public hdps::gui::WebWidget
 {
     Q_OBJECT
 public:
-    LineplotWidget(LineplotPlugin& lineplotPlugin);
+    LineplotWidget(SpectralViewPlugin& spectralViewPlugin);
     ~LineplotWidget() override;
     
     void addDataOption(const QString option);

@@ -6,7 +6,7 @@
 #include <PointData.h>
 #include "ClusterData.h"
 #include <ImageData/ImageData.h>
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 
 #include <QMessageBox>
 #include <QPainter>
@@ -25,7 +25,7 @@ EndmembersModel::EndmembersModel(QObject* parent) :
     _endmembers()
 {
     // Register for events for points datasets
-    _eventListener.setEventCore(Application::core());
+    //_eventListener.setEventCore(Application::core());
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataRemoved));
     _eventListener.registerDataEventByType(PointType, [this](DataEvent* dataEvent) {
 
@@ -43,7 +43,7 @@ EndmembersModel::EndmembersModel(QObject* parent) :
         });
 
     // Register for events for images datasets
-    _eventListener.setEventCore(Application::core());
+    //_eventListener.setEventCore(Application::core());
     _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataRemoved));
     _eventListener.registerDataEventByType(ImageType, [this](DataEvent* dataEvent) {
 
@@ -103,7 +103,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 if (type == ClusterType) {
                     auto& clusters = dataset.get<Clusters>()->getClusters();
                     clusters[decisionIndex].setColor(color);
-                    Application::core()->notifyDatasetChanged(dataset.get<Clusters>());
+                    events().notifyDatasetChanged(dataset.get<Clusters>());
                 }
                 
                 });
@@ -120,14 +120,14 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 if (type == ClusterType) {
                     auto& clusters = dataset.get<Clusters>()->getClusters();
                     clusters[decisionIndex].setName(name);
-                    Application::core()->notifyDatasetChanged(dataset.get<Clusters>());
+                    events().notifyDatasetChanged(dataset.get<Clusters>());
                 }
                 });
 
             connect(&endmember->getMapAction().getComputeAction(), &TriggerAction::triggered, this, [this, endmember]() {
                 
-                auto& endmemberData = endmember->getData();
-                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
+                const auto& endmemberData = endmember->getData();
+                const auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 float threshold;
@@ -146,7 +146,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
             connect(&endmember->getMapAction().getMapTypeAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int index) {
                 
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
-                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
+                const auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
 
                 float threshold = 0;
 
@@ -176,7 +176,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
             connect(&endmember->getMapAction().getAlgorithmAction(), &OptionAction::currentIndexChanged, this, [this, endmember](int algorithm) {
                 
                 float threshold = 0;
-                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
+                const auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
 
                 if (algorithm == 0)
@@ -197,7 +197,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 }
 
                 if (endmember->getMapAction().getUpdateAutoAction().isChecked()) {
-                    auto& endmemberData = endmember->getData();
+                    const auto& endmemberData = endmember->getData();
                    
                     endmember->computeMap(endmemberName, endmemberData, threshold, mapType, algorithm);
                 }
@@ -206,7 +206,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
             connect(&endmember->getMapAction().getUpdateAutoAction(), &ToggleAction::toggled, this, [this, endmember](bool checked) {
 
                 float threshold;
-                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
+                const auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
 
                 if (endmember->getMapAction().getAlgorithmAction().getCurrentIndex() == 0) {
                     threshold = endmember->getMapAction().getAngleAction().getValue();
@@ -217,7 +217,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
 
                 if (checked) {
                     if (endmember->getMapAction().getUpdateAutoAction().isChecked()) {
-                        auto& endmemberData = endmember->getData();
+                        const auto& endmemberData = endmember->getData();
                         auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
                         auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
 
@@ -231,7 +231,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
-                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
+                const auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
 
                 if (mapType != 2)
                     endmember->updateThresholdAngle(endmemberName, value, mapType, algorithm);
@@ -241,7 +241,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
 
                 auto algorithm = endmember->getMapAction().getAlgorithmAction().getCurrentIndex();
                 auto mapType = endmember->getMapAction().getMapTypeAction().getCurrentIndex();
-                auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
+                const auto& endmemberName = endmember->getGeneralAction().getNameAction().getString();
 
                 if (mapType != 2)
                     endmember->updateThresholdAngle(endmemberName, value, mapType, algorithm);
@@ -304,8 +304,8 @@ void EndmembersModel::saveEndmembers(QString name) {
         }
 
         QTextStream stream(&file);
-        stream << "ENVI ASCII Plot File Endmembers for " << name << " dataset" << endl;
-        stream << "Column 1: Wavelength" << endl;
+        stream << "ENVI ASCII Plot File Endmembers for " << name << " dataset" << Qt::endl;
+        stream << "Column 1: Wavelength" << Qt::endl;
         
         stream.setRealNumberNotation(QTextStream::FixedNotation);
         stream.setRealNumberPrecision(6);
@@ -318,7 +318,7 @@ void EndmembersModel::saveEndmembers(QString name) {
             // set the right name
             auto visible = _endmembers[i]->getGeneralAction().getVisibleAction().isChecked();
             if (visible) {
-                stream << "Column " << columnNo << ": " << _endmembers[i]->getGeneralAction().getNameAction().getString() << endl;
+                stream << "Column " << columnNo << ": " << _endmembers[i]->getGeneralAction().getNameAction().getString() << Qt::endl;
                 columnNo++;
                 lastIndex = i;
             }
@@ -343,7 +343,7 @@ void EndmembersModel::saveEndmembers(QString name) {
 
             //auto resampledEndmember = _endmembers[lastIndex]->resample(dimensions);
 
-            stream << "  " << _endmembers[lastIndex]->getData().at(v) << endl;
+            stream << "  " << _endmembers[lastIndex]->getData().at(v) << Qt::endl;
             //stream << "  " << resampledEndmember.at(v) << endl;
 
         }
@@ -664,8 +664,8 @@ void EndmembersModel::saveEndmemberClusterVisibility(QString datasetGuid) {
 
     for (auto endmember : _endmembers) {
         if (endmember->getDataset()->getGuid() == datasetGuid) {
-            auto& name = endmember->getGeneralAction().getNameAction().getString();
-            auto& color = endmember->getGeneralAction().getColorAction().getColor();
+            const auto& name = endmember->getGeneralAction().getNameAction().getString();
+            const auto& color = endmember->getGeneralAction().getColorAction().getColor();
             QString r = QString::number(color.red());
             QString g = QString::number(color.green());
             QString b = QString::number(color.blue());
@@ -680,8 +680,8 @@ void EndmembersModel::updateEndmemberClusterVisibility(QString datasetGuid) {
     if (_clusterVisibility.size() != 0) {
         for (auto endmember : _endmembers) {
             if (endmember->getDataset()->getGuid() == datasetGuid) {
-                auto& name = endmember->getGeneralAction().getNameAction().getString();
-                auto& color = endmember->getGeneralAction().getColorAction().getColor();
+                const auto& name = endmember->getGeneralAction().getNameAction().getString();
+                const auto& color = endmember->getGeneralAction().getColorAction().getColor();
                 QString r = QString::number(color.red());
                 QString g = QString::number(color.green());
                 QString b = QString::number(color.blue());

@@ -1,7 +1,7 @@
 #include "MapAction.h"
 #include "Endmember.h"
 #include "EndmembersAction.h"
-#include "LineplotPlugin.h"
+#include "SpectralViewPlugin.h"
 #include "ClusterData.h"
 #include <QtCore>
 

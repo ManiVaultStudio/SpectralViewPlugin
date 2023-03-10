@@ -5,7 +5,7 @@
 
 using namespace hdps::gui;
 
-class LineplotPlugin;
+class SpectralViewPlugin;
 
 /**
  * Global view settings action class
@@ -49,7 +49,7 @@ public:
      * Constructor
      * @param imageViewerPlugin Reference to image viewer plugin
      */
-    GlobalSettingsAction(LineplotPlugin& lineplotPlugin);
+    GlobalSettingsAction(SpectralViewPlugin& spectralViewPlugin);
 
     /**
      * Get the context menu for the action
@@ -65,7 +65,7 @@ public: /** Action getters */
     ToggleAction& getShowSelectionAction() { return _showSelectionAction; }
 
 protected:
-    LineplotPlugin& _lineplotPlugin;         /** Reference to image viewer plugin */
+    SpectralViewPlugin& _spectralViewPlugin;         /** Reference to image viewer plugin */
     ToggleAction    _stdAreaEnabledAction;
     ToggleAction    _showSelectionAction;
 };

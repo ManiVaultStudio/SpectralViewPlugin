@@ -21,7 +21,7 @@ void LinePlotCommunicationObject::js_setRGBWavelength(float wavelength, int inde
     _parent->js_setRGBWavelength(wavelength, index);
 }
 
-LineplotWidget::LineplotWidget(LineplotPlugin& lineplotPlugin) :
+LineplotWidget::LineplotWidget(SpectralViewPlugin& spectralViewPlugin) :
     loaded(false)
 {
     Q_INIT_RESOURCE(lineplot_resources);
