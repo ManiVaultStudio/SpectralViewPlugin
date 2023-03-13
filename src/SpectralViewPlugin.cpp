@@ -419,7 +419,7 @@ void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         auto& indices = points->indices;
 
         if (indices.size() != 0) {
-            for (int i = 0; i < noPoints; i++) {
+            for (unsigned int i = 0; i < noPoints; i++) {
 
                 auto endmember = new Endmember(*this, dataset, -1);
                 _model.addEndmember(endmember, -1);
@@ -436,9 +436,9 @@ void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             std::vector<float> endmemberData(numDimensions);
             std::vector<float> confInterval(numDimensions);
 
-            for (int i = 0; i < noPoints; i++) {
+            for (unsigned int i = 0; i < noPoints; i++) {
                 
-                for (int v = 0; v < numDimensions; v++) {
+                for (unsigned int v = 0; v < numDimensions; v++) {
                     endmemberData[v] = points->getValueAt(i * numDimensions + v);
                 }
 
@@ -484,7 +484,7 @@ void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             const auto& computedAvg = std::get<0>(endmemberData);
             const auto& computedStd = std::get<1>(endmemberData);
 
-            for (int v = 0; v < numDimensions; v++) {
+            for (unsigned int v = 0; v < numDimensions; v++) {
                 average[v] = computedAvg[v];
                 std[v] = computedStd[v];
             }
@@ -536,7 +536,7 @@ void SpectralViewPlugin::addNewCluster(const Dataset<DatasetImpl>& dataset) {
     const auto& computedAvg = std::get<0>(endmemberData);
     const auto& computedStd = std::get<1>(endmemberData);
 
-    for (int v = 0; v < numDimensions; v++) {
+    for (unsigned int v = 0; v < numDimensions; v++) {
         average[v] = computedAvg[v];
         std[v] = computedStd[v];
     }
@@ -610,7 +610,7 @@ void SpectralViewPlugin::initializeImageRGB() {
     QString dimB;
     float step = dimNames.at(1).toFloat() - dimNames.at(0).toFloat();
 
-    for (int v = 0; v < numDimensions; v++) {
+    for (unsigned int v = 0; v < numDimensions; v++) {
         auto dimName = dimNames.at(v);
         float dimValue = dimName.toFloat();
 
@@ -704,28 +704,28 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
                 const auto index = indices.at(i);
                 const auto& spectrum = pointData[index];
 
-                for (int v = 0; v < numDimensions; v++) {
+                for (unsigned int v = 0; v < numDimensions; v++) {
                     averageSpectrum[v] += spectrum[v];
                 }
             }
 
-            for (int v = 0; v < numDimensions; v++) {
+            for (unsigned int v = 0; v < numDimensions; v++) {
                 averageSpectrum[v] = noPoints == 0 ? 0 : averageSpectrum[v] / noPoints;
             }
 
             if (noPoints > 1) {
-                for (int i = 0; i < noPoints; i++) {
+                for (unsigned int i = 0; i < noPoints; i++) {
                     const auto index = indices.at(i);
                     const auto& spectrum = pointData[index];
 
-                    for (int v = 0; v < numDimensions; v++) {
+                    for (unsigned int v = 0; v < numDimensions; v++) {
                         const auto value = spectrum[v];
                         const auto mean = averageSpectrum[v];
                         standardDeviation[v] += (value - mean) * (value - mean);
                     }
                 }
 
-                for (int v = 0; v < numDimensions; v++) {
+                for (unsigned int v = 0; v < numDimensions; v++) {
                     const auto std = sqrt(standardDeviation[v] / noPoints);
                     const auto mean = averageSpectrum[v];
                     standardDeviation[v] = std;
@@ -871,7 +871,7 @@ void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<
 
     float referenceSum = 0;
 
-    for (int v = 0; v < numDimensions; v++) {
+    for (unsigned int v = 0; v < numDimensions; v++) {
         referenceSum += pow(endmemberData[v], 2);
     }
 
@@ -894,7 +894,7 @@ void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<
             int index = y * width + x;
 
         //    if (_points->isFull()) {
-                for (int v = 0; v < numDimensions; v++) {
+                for (unsigned int v = 0; v < numDimensions; v++) {
                     auto pointValue = _points->getValueAt(index * numDimensions + v);
                //     if (v == 0 || v == 1)
                //         qDebug() << pointValue;
@@ -1032,13 +1032,13 @@ void SpectralViewPlugin::spectralCorrelationMapper(QString endmemberName, std::v
 
     computeAverageDataset(width, height, numDimensions);
 
-    for (int v = 0; v < numDimensions; v++) {
+    for (unsigned int v = 0; v < numDimensions; v++) {
         referenceMean += endmemberData[v];
     }
 
     referenceMean = referenceMean / numDimensions;
 
-    for (int v = 0; v < numDimensions; v++) {
+    for (unsigned int v = 0; v < numDimensions; v++) {
         referenceSum += pow(endmemberData[v] - referenceMean, 2);
     }
     
@@ -1050,7 +1050,7 @@ void SpectralViewPlugin::spectralCorrelationMapper(QString endmemberName, std::v
             float pointSum = 0;
             int index = y * width + x;
 
-            for (int v = 0; v < numDimensions; v++) {
+            for (unsigned int v = 0; v < numDimensions; v++) {
                 auto pointValue = _points->getValueAt(index * numDimensions + v);
 
                 sum += (endmemberData[v] - referenceMean) * (pointValue - _averageDataset[index]);

@@ -283,7 +283,7 @@ void EndmembersModel::saveEndmembers(QString name) {
 
     std::vector<float> dimensions(noDim);
 
-    for (int v = 0; v < noDim; v++) {
+    for (unsigned int v = 0; v < noDim; v++) {
         dimensions[v] = dimNames[v].toFloat();
     }
 
@@ -324,7 +324,7 @@ void EndmembersModel::saveEndmembers(QString name) {
             }
         }
 
-        for (int v = 0; v < noDim; v++) {
+        for (unsigned int v = 0; v < noDim; v++) {
 
             stream << "  " << dimNames[v];
 
