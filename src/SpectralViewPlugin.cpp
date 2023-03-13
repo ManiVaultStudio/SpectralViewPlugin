@@ -15,8 +15,9 @@
 #include <QtDebug>
 #include <iostream>
 
-#include<tuple>
-
+#include <tuple>
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.SpectralViewPlugin")
 
@@ -424,7 +425,7 @@ void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
                 auto endmember = new Endmember(*this, dataset, -1);
                 _model.addEndmember(endmember, -1);
 
-                const auto& endmemberData = computeAverageSpectrum(parent, 1, { indices[i] }, "endmember");
+                const auto& endmemberData = computeAverageSpectrum(parent, 1u, { indices[i] }, "endmember");
                 endmember->setData(std::get<0>(endmemberData));
                 //endmember->setIndices(indices);
             }
@@ -679,7 +680,7 @@ void SpectralViewPlugin::setSelection(std::vector<unsigned int> indices) {
 }
 */
 
-std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAverageSpectrum(Dataset<DatasetImpl> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
+std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAverageSpectrum(Dataset<DatasetImpl> source, unsigned int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
 
     auto points = source.get<Points>();
     
@@ -700,7 +701,7 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
         std::vector<float> confIntervalRight(numDimensions);
 
         points->visitData([this, points, numDimensions, noPoints, &indices, &averageSpectrum, &standardDeviation, &confIntervalRight, &confIntervalLeft](auto pointData) {
-            for (int i = 0; i < noPoints; i++) {
+            for (unsigned int i = 0; i < noPoints; i++) {
                 const auto index = indices.at(i);
                 const auto& spectrum = pointData[index];
 
@@ -930,7 +931,7 @@ void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<
                 if (value > 1)
                     angle = 0;
                 else if (value < 0)
-                    angle = M_PI / 2;
+                    angle = static_cast<float>( M_PI / 2 );
                 else
                     angle = acos(value);
             }

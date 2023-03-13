@@ -47,7 +47,7 @@ public:
     void loadData(const hdps::Datasets& datasets) override;
 
 
-    std::tuple<std::vector<float>, std::vector<float>> computeAverageSpectrum(hdps::Dataset<hdps::DatasetImpl> source, int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
+    std::tuple<std::vector<float>, std::vector<float>> computeAverageSpectrum(hdps::Dataset<hdps::DatasetImpl> source, unsigned int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
     
 
 public:

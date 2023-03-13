@@ -28,22 +28,22 @@ MapAction::MapAction(Endmember& endmember) :
     auto& fontAwesome = Application::getIconFont("FontAwesome");
     _computeAction.setIcon(fontAwesome.getIcon("play"));
 
-    _thresholdAction.setDefaultValue(0.15);
-    _thresholdAction.defaultValueChanged(0.15);
+    _thresholdAction.setDefaultValue(0.15f);
+    _thresholdAction.defaultValueChanged(0.15f);
     _thresholdAction.setNumberOfDecimals(3);
     _thresholdAction.numberOfDecimalsChanged(3);
-    _thresholdAction.setRange(0, 1);
-    _thresholdAction.setSingleStep(0.05);
-    _thresholdAction.singleStepChanged(0.05);
+    _thresholdAction.setRange(0.f, 1.f);
+    _thresholdAction.setSingleStep(0.05f);
+    _thresholdAction.singleStepChanged(0.05f);
 
     _thresholdAction.setEnabled(false);
 
     _angleAction.setSuffix(" rad");
-    _angleAction.setDefaultValue(0.15);
-    _angleAction.defaultValueChanged(0.15);
+    _angleAction.setDefaultValue(0.15f);
+    _angleAction.defaultValueChanged(0.15f);
     _angleAction.setNumberOfDecimals(3);
     _angleAction.numberOfDecimalsChanged(3);
-    _angleAction.setRange(0, M_PI / 2);
-    _angleAction.setSingleStep(0.05);
-    _angleAction.singleStepChanged(0.05);
+    _angleAction.setRange(0.f, static_cast<float>(M_PI / 2));
+    _angleAction.setSingleStep(0.05f);
+    _angleAction.singleStepChanged(0.05f);
 }
