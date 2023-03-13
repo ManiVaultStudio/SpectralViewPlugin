@@ -1,7 +1,7 @@
 #pragma once
 
 #include "actions/WidgetActionStateWidget.h"
-#include "GlobalSettingsAction.h"
+#include "ViewSettingsAction.h"
 #include "WavelengthsRGBAction.h"
 #include <QHBoxLayout>
 
@@ -14,7 +14,7 @@ class LineplotWidget;
  *
  * Action class for main toolbar
  * 
- * MainToolbarAction, SettingsAction and GlobalSettingsAction 
+ * MainToolbarAction, SettingsAction and ViewSettingsAction 
  * based on the implementations in ImageViewerPlugin
  */
 class MainToolbarAction : public WidgetAction
@@ -76,11 +76,11 @@ public:
 
 public: // Action getters
 
-    GlobalSettingsAction& getGlobalSettingsAction() { return _globalSettingsAction; }
+    ViewSettingsAction& getViewSettingsAction() { return _ViewSettingsAction; }
     WavelengthsRGBAction& getWavelengthsRGBAction() { return _wavelengthsRGBAction; }
 
 protected:
     SpectralViewPlugin&     _spectralViewPlugin;    /** Reference to image viewer plugin */
-    GlobalSettingsAction    _globalSettingsAction;  /** Global view settings action */
+    ViewSettingsAction    _ViewSettingsAction;  /** Global view settings action */
     WavelengthsRGBAction    _wavelengthsRGBAction;
 };

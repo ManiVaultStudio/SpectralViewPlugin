@@ -34,8 +34,8 @@ set(ACTIONS
     src/SettingsAction.cpp
     src/MainToolbarAction.h
     src/MainToolbarAction.cpp
-    src/GlobalSettingsAction.h
-    src/GlobalSettingsAction.cpp
+    src/ViewSettingsAction.h
+    src/ViewSettingsAction.cpp
     src/WavelengthsRGBAction.h
     src/WavelengthsRGBAction.cpp
     src/EndmembersAction.cpp

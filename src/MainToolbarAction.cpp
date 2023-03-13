@@ -10,7 +10,7 @@ using namespace hdps::util;
 MainToolbarAction::MainToolbarAction(SpectralViewPlugin& spectralViewPlugin) :
 	WidgetAction(&spectralViewPlugin),
     _spectralViewPlugin(spectralViewPlugin),
-	_globalSettingsAction(spectralViewPlugin),
+	_ViewSettingsAction(spectralViewPlugin),
     _wavelengthsRGBAction(spectralViewPlugin)
 {
 	setText("Settings");
@@ -23,7 +23,7 @@ QMenu* MainToolbarAction::getContextMenu() {
 
     auto menu = new QMenu();
 
-    menu->addMenu(_globalSettingsAction.getContextMenu());
+    menu->addMenu(_ViewSettingsAction.getContextMenu());
 
     return menu;
 }
@@ -41,7 +41,7 @@ MainToolbarAction::Widget::Widget(QWidget* parent, MainToolbarAction* interactio
     _toolBarLayout.setContentsMargins(4, 4, 4, 4);
     _toolBarLayout.setSizeConstraint(QLayout::SetFixedSize);
 
-    addStateWidget(&interactionAction->_globalSettingsAction, 2);
+    addStateWidget(&interactionAction->_ViewSettingsAction, 2);
     addStateWidget(&interactionAction->_wavelengthsRGBAction, 1);
 
     _toolBarLayout.addStretch(1);

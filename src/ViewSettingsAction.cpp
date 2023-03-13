@@ -1,4 +1,4 @@
-#include "GlobalSettingsAction.h"
+#include "ViewSettingsAction.h"
 #include "SpectralViewPlugin.h"
 
 #include <Application.h> 
@@ -7,7 +7,7 @@
 
 using namespace hdps;
 
-GlobalSettingsAction::GlobalSettingsAction(SpectralViewPlugin& spectralViewPlugin) :
+ViewSettingsAction::ViewSettingsAction(SpectralViewPlugin& spectralViewPlugin) :
     WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin)),
     _spectralViewPlugin(spectralViewPlugin),
     _showSelectionAction(this, "Show selection", true, true),
@@ -31,7 +31,7 @@ GlobalSettingsAction::GlobalSettingsAction(SpectralViewPlugin& spectralViewPlugi
     connect(&_stdAreaEnabledAction, &ToggleAction::toggled, this, updateStdArea);
 }
 
-QMenu* GlobalSettingsAction::getContextMenu(QWidget* parent /*= nullptr*/)
+QMenu* ViewSettingsAction::getContextMenu(QWidget* parent /*= nullptr*/)
 {
     auto menu = new QMenu("Settings", parent);
 
@@ -46,14 +46,14 @@ QMenu* GlobalSettingsAction::getContextMenu(QWidget* parent /*= nullptr*/)
     return menu;
 }
 
-GlobalSettingsAction::Widget::Widget(QWidget* parent, GlobalSettingsAction* globalSettingsAction, const std::int32_t& widgetFlags) :
-    WidgetActionWidget(parent, globalSettingsAction, widgetFlags)
+ViewSettingsAction::Widget::Widget(QWidget* parent, ViewSettingsAction* ViewSettingsAction, const std::int32_t& widgetFlags) :
+    WidgetActionWidget(parent, ViewSettingsAction, widgetFlags)
 {
     auto layout = new QHBoxLayout();
 
     // Create widgets for actions
-    auto showStdWidget = globalSettingsAction->getStdAreaEnabledAction().createWidget(this);
-    auto showSelectionWidget = globalSettingsAction->getShowSelectionAction().createWidget(this);
+    auto showStdWidget = ViewSettingsAction->getStdAreaEnabledAction().createWidget(this);
+    auto showSelectionWidget = ViewSettingsAction->getShowSelectionAction().createWidget(this);
 
     if (widgetFlags & PopupLayout) {
 

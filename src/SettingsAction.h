@@ -12,7 +12,7 @@ using namespace hdps::gui;
  *
  * Action class for line plot plugin settings (panel on the right of the view)
  * 
- * MainToolbarAction, SettingsAction and GlobalSettingsAction 
+ * MainToolbarAction, SettingsAction and ViewSettingsAction 
  * based on the implementations in ImageViewerPlugin
  */
 class SettingsAction : public WidgetAction

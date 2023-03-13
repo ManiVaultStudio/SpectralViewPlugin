@@ -394,7 +394,7 @@ void SpectralViewPlugin::onDataEvent(hdps::DataEvent* dataEvent)
             // Get the selection set that changed
             const auto& selectionSet = changedDataSet->getSelection<Points>();
 
-            if(_points.isValid() && _mainToolbarAction.getGlobalSettingsAction().getShowSelectionAction().isChecked())
+            if(_points.isValid() && _mainToolbarAction.getViewSettingsAction().getShowSelectionAction().isChecked())
                 updateSelection(selectionSet);
 
             break;

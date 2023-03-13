@@ -12,10 +12,10 @@ class SpectralViewPlugin;
  *
  * Settings action class for global view settings
  *
- * MainToolbarAction, SettingsAction and GlobalSettingsAction 
+ * MainToolbarAction, SettingsAction and ViewSettingsAction 
  * based on the implementations in ImageViewerPlugin
  */
-class GlobalSettingsAction : public WidgetAction
+class ViewSettingsAction : public WidgetAction
 {
     Q_OBJECT
 
@@ -31,7 +31,7 @@ protected: // Widget
          * @param globalViewSettingsAction Pointer to global view settings action
          * @param widgetFlags Widget flags for the configuration of the widget (type)
          */
-        Widget(QWidget* parent, GlobalSettingsAction* globalViewSettingsAction, const std::int32_t& widgetFlags);
+        Widget(QWidget* parent, ViewSettingsAction* globalViewSettingsAction, const std::int32_t& widgetFlags);
     };
 
     /**
@@ -49,7 +49,7 @@ public:
      * Constructor
      * @param imageViewerPlugin Reference to image viewer plugin
      */
-    GlobalSettingsAction(SpectralViewPlugin& spectralViewPlugin);
+    ViewSettingsAction(SpectralViewPlugin& spectralViewPlugin);
 
     /**
      * Get the context menu for the action
