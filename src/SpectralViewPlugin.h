@@ -140,4 +140,6 @@ public:
     ViewPlugin* produce() override;
 
     hdps::DataTypes supportedDataTypes() const override;
+
+    PluginTriggerActions getPluginTriggerActions(const hdps::Datasets& datasets) const override;
 };

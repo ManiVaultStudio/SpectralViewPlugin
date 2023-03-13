@@ -1249,14 +1249,14 @@ void SpectralViewPlugin::computeAverageDataset(int width, int height, int numDim
 }
 
 
+// =============================================================================
+// Factory
+// =============================================================================
+
 QIcon SpectralViewPluginFactory::getIcon() const
 {
     return Application::getIconFont("FontAwesome").getIcon("chart-line");
 }
-
-// =============================================================================
-// Factory
-// =============================================================================
 
 ViewPlugin* SpectralViewPluginFactory::produce()
 {
@@ -1269,4 +1269,30 @@ hdps::DataTypes SpectralViewPluginFactory::supportedDataTypes() const
     supportedTypes.append(PointType);
     supportedTypes.append(ClusterType);
     return supportedTypes;
+}
+
+hdps::gui::PluginTriggerActions SpectralViewPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
+{
+    PluginTriggerActions pluginTriggerActions;
+
+    const auto getInstance = [this]() -> SpectralViewPlugin* {
+        return dynamic_cast<SpectralViewPlugin*>(plugins().requestViewPlugin(getKind()));
+    };
+
+    const auto numberOfDatasets = datasets.count();
+
+    if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
+        if (numberOfDatasets >= 1) {
+            if (datasets.first()->getDataType() == PointType) {
+                auto pluginTriggerAction = new PluginTriggerAction(const_cast<SpectralViewPluginFactory*>(this), this, "Spectral Viewer", "Load dataset in spectral Viewer", getIcon(), [this, getInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
+                    for (auto dataset : datasets)
+                        getInstance()->loadData(Datasets({ dataset }));
+                    });
+
+                pluginTriggerActions << pluginTriggerAction;
+            }
+        }
+    }
+
+    return pluginTriggerActions;
 }
