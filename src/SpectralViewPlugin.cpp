@@ -133,11 +133,7 @@ void SpectralViewPlugin::init()
                     
                     // Load as point positions when no dataset is currently loaded
                     dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
-                        _points = candidateDataset.get<Points>();
-
-                        initializeImageRGB();
-                        _mainToolbarAction.setEnabled(true);
-                        _model.removeAllEndmembers();
+                        loadData({ candidateDataset });
                         });
                 }
                 else {
@@ -323,8 +319,13 @@ void SpectralViewPlugin::loadData(const Datasets& datasets) {
     if (datasets.isEmpty())
         return;
     
-    if (datasets[0]->getDataType() == PointType && !_points.isValid())
-        _points = datasets[0];
+    if (datasets[0]->getDataType() != PointType)
+        return;
+
+     _points = datasets[0];
+    initializeImageRGB();
+    _mainToolbarAction.setEnabled(true);
+    _model.removeAllEndmembers();
 }
 
 void SpectralViewPlugin::onDataEvent(hdps::DataEvent* dataEvent)
@@ -739,6 +740,12 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
         std::vector<QString> names;
         if (points->getDimensionNames().size() == points->getNumDimensions()) {
             names = points->getDimensionNames();
+        }
+
+        for (auto& name : names)
+        {
+            if (name.startsWith("0"))
+                name.remove(0, 1);
         }
 
         _linePlotWidget.setData(averageSpectrum, confIntervalLeft, confIntervalRight, names, numDimensions, dataOrigin);
