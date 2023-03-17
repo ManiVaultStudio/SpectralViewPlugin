@@ -16,14 +16,14 @@ function addData() {
         newYMin = min1;
     }
 
-    if (newYMax > maxY || newYMin < minY) {
+    if (newYMax != maxY || newYMin != minY) {
         updateYAxis(newYMax, newYMin);
     }
 
     var newXMax = d3.max(_data, function (d) { return +d.x; });
     var newXMin = d3.min(_data, function (d) { return +d.x; });
 
-    if (newXMax > maxX || newXMin < minX) {
+    if (newXMax != maxX || newXMin != minX) {
         updateXAxis(newXMax, newXMin);
     }
 
@@ -66,11 +66,11 @@ function removeElement(name) {
 
 function updateXAxis(newXMax, newXMin) {
 
-    if (newXMax > maxX) {
+    if (newXMax != maxX) {
         maxX = newXMax;
     }
 
-    if (newXMin < minX) {
+    if (newXMin != minX) {
         minX = newXMin;
     }
 
@@ -85,10 +85,10 @@ function updateXAxis(newXMax, newXMin) {
 
 function updateYAxis(newYMax, newYMin) {
 
-    if (newYMax > maxY) {
+    if (newYMax != maxY) {
         maxY = newYMax;
     }
-    if (newYMin < minY) {
+    if (newYMin != minY) {
         minY = newYMin;
     }
 
