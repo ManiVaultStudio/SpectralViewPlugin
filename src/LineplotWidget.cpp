@@ -50,7 +50,7 @@ void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& conf
 {
     std::string _jsonObject = "";
 
-    //qDebug() << "Setting data";
+    //qDebug() << "Setting data " << QString::fromStdString(dataOrigin);
 
     std::string spectra;
 
