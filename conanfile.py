@@ -5,12 +5,11 @@ import os
 import shutil
 import pathlib
 import subprocess
-from rules_support import CoreBranchInfo, PluginBranchInfo
+from rules_support import PluginBranchInfo
 
 
-class SpectralViewConan(ConanFile):
-    """Class to package the SpectralViewPlugin using conan
-
+class SpectralViewPluginConan(ConanFile):
+    """Class to package SpectralViewPlugin using conan
     Packages both RELEASE and DEBUG.
     Uses rules_support (github.com/hdps/rulessupport) to derive
     versioninfo based on the branch naming convention
@@ -18,13 +17,11 @@ class SpectralViewConan(ConanFile):
     """
 
     name = "SpectralViewPlugin"
-    description = (
-        "View plugin for ManiVault for spectral data (e.g., ENVI)."
-    )
-    topics = ("manivault", "plugin", "data", "spectral")
+    description = "Viewer for viewing spectral data"
+    topics = ("hdps", "plugin", "image data", "loading")
     url = "https://github.com/hdps/SpectralViewPlugin"
     author = "B. van Lew b.van_lew@lumc.nl"  # conan recipe author
-    license = "MIT"  # conan recipe license
+    license = "MIT"
 
     short_paths = True
     generators = "CMakeDeps"
@@ -33,6 +30,8 @@ class SpectralViewConan(ConanFile):
     settings = {"os": None, "build_type": None, "compiler": None, "arch": None}
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": True, "fPIC": True}
+
+    # Qt requirement is inherited from hdps-core
 
     scm = {
         "type": "git",
@@ -59,8 +58,8 @@ class SpectralViewConan(ConanFile):
     def set_version(self):
         # Assign a version from the branch name
         branch_info = PluginBranchInfo(self.recipe_folder)
-        # print(f"Version from branch {branch_info.version}")
         self.version = branch_info.version
+        # print(f"Got version: {self.version}")
 
     def requirements(self):
         branch_info = PluginBranchInfo(self.__get_git_path())
@@ -104,13 +103,14 @@ class SpectralViewConan(ConanFile):
 
     def build(self):
         print("Build OS is : ", self.settings.os)
-        # If the user has no preference in HDPS_INSTALL_DIR simply set the install dir
+        # If the user has no preference in HDPS_INSTALL_DIR
+        # simply set the install dir
         if not os.environ.get("HDPS_INSTALL_DIR", None):
             os.environ["HDPS_INSTALL_DIR"] = os.path.join(self.build_folder, "install")
         print("HDPS_INSTALL_DIR: ", os.environ["HDPS_INSTALL_DIR"])
         self.install_dir = os.environ["HDPS_INSTALL_DIR"]
 
-        # The SpectralViewPlugin build expects the HDPS package to be in this install dir
+        # The SpectralViewPlugin plugins expect the HDPS package to be in this install dir
         hdps_pkg_root = self.deps_cpp_info["hdps-core"].rootpath
         print("Install dir type: ", self.install_dir)
         shutil.copytree(hdps_pkg_root, self.install_dir)
@@ -149,6 +149,10 @@ class SpectralViewConan(ConanFile):
             ]
         )
         self.copy(pattern="*", src=package_dir)
+        # Add the debug support files to the package
+        # (*.pdb) if building the Visual Studio version
+        if self.settings.compiler == "Visual Studio":
+            self.copy("*.pdb", dst="Debug/Plugins", keep_path=False)
 
     def package_info(self):
         self.cpp_info.debug.libdirs = ["Debug/lib"]
