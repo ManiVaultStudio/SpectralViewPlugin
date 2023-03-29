@@ -17,7 +17,7 @@ class SpectralViewPluginConan(ConanFile):
     as described in https://github.com/hdps/core/wiki/Branch-naming-rules
     """
 
-    name = "ENVILoaderPlugin"
+    name = "SpectralViewPlugin"
     description = "View spectral data in the ManiVault framework."
     topics = ("hdps", "plugin", "data", "Spectral view")
     url = "https://github.com/hdps/SpectralViewPlugin"
