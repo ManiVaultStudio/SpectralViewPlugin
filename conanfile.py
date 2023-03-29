@@ -5,11 +5,11 @@ import os
 import shutil
 import pathlib
 import subprocess
-from rules_support import CoreBranchInfo, PluginBranchInfo
+from rules_support import PluginBranchInfo
 
 
-class SpectralViewConan(ConanFile):
-    """Class to package the SpectralViewPlugin using conan
+class SpectralViewPluginConan(ConanFile):
+    """Class to package the SpectralView plugin using conan
 
     Packages both RELEASE and DEBUG.
     Uses rules_support (github.com/hdps/rulessupport) to derive
@@ -17,13 +17,11 @@ class SpectralViewConan(ConanFile):
     as described in https://github.com/hdps/core/wiki/Branch-naming-rules
     """
 
-    name = "SpectralViewPlugin"
-    description = (
-        "View plugin for ManiVault for spectral data (e.g., ENVI)."
-    )
-    topics = ("manivault", "plugin", "data", "spectral")
+    name = "ENVILoaderPlugin"
+    description = "View spectral data in the ManiVault framework."
+    topics = ("hdps", "plugin", "data", "Spectral view")
     url = "https://github.com/hdps/SpectralViewPlugin"
-    author = "B. van Lew b.van_lew@lumc.nl"  # conan recipe author
+    author = "B. van Lew b.van_lew@lumc.nl, adapted by T. Kroes"  # conan recipe author
     license = "MIT"  # conan recipe license
 
     short_paths = True
@@ -59,7 +57,6 @@ class SpectralViewConan(ConanFile):
     def set_version(self):
         # Assign a version from the branch name
         branch_info = PluginBranchInfo(self.recipe_folder)
-        # print(f"Version from branch {branch_info.version}")
         self.version = branch_info.version
 
     def requirements(self):
