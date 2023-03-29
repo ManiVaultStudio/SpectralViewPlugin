@@ -223,17 +223,17 @@ void SpectralViewPlugin::init()
 
                 DataHierarchyItems parents;
                 hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
-                QString pointName = _points->getGuiName();
+                QString pointsGuid = _points->getGuid();
 
                 if (!_points->isFull() || _points->isDerivedData()) {
                     DataHierarchyItems pointParents;
                     hdps::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
-                    pointName = pointParents.at(0)->getGuiName();
+                    pointsGuid = pointParents.at(0)->getDataset<Points>()->getGuid();
                 }
 
-                auto parent = candidateDataset->getParent();
+                const auto parent = parents.at(0)->getDataset<Points>();
 
-                if (parent.get<Points>()->getNumPoints() == _points->getNumPoints() && parents.at(0)->getGuiName() == pointName) {
+                if (parent->getNumPoints() == _points->getNumPoints() && parent->getGuid() == pointsGuid) {
 
                     dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
                         _clusterNames.push_back(candidateDataset->getGuiName());
