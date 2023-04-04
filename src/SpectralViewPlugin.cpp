@@ -4,8 +4,8 @@
 #include "SpectralViewPlugin.h"
 #include "EndmembersCheckDialog.h"
 
-#include "PointData.h"
-#include "ClusterData.h"
+#include "PointData/PointData.h"
+#include "ClusterData/ClusterData.h"
 #include "event/Event.h"
 #include "ImageData/Images.h"
 
