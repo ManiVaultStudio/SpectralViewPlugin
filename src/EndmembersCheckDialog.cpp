@@ -1,5 +1,5 @@
 #include "EndmembersCheckDialog.h"
-#include "PointData.h"
+#include "PointData/PointData.h"
 
 EndmembersCheckDialog::EndmembersCheckDialog(QWidget* parent, int noEndmembers) :
     QDialog(parent),

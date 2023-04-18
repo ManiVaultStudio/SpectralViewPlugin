@@ -8,9 +8,10 @@
 #include <event/EventListener.h>
 #include <actions/WidgetAction.h>
 #include <Set.h>
-#include <ImageData/Images.h>
 
-#include "PointData.h"
+#include <ImageData/Images.h>
+#include <PointData/PointData.h>
+
 #include <QMenu>
 
 using namespace hdps::util;

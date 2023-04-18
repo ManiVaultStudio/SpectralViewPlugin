@@ -8,7 +8,7 @@
 #include "SettingsAction.h"
 
 #include "Dataset.h"
-#include "PointData.h"
+#include "PointData/PointData.h"
 #include "Set.h"
 
 #include <widgets/DropWidget.h>

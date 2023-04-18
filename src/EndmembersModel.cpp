@@ -3,9 +3,10 @@
 #include <Application.h>
 #include <util/Exception.h>
 #include <event/Event.h>
-#include <PointData.h>
-#include "ClusterData.h"
+#include <PointData/PointData.h>
+#include <ClusterData/ClusterData.h>
 #include <ImageData/ImageData.h>
+
 #include "SpectralViewPlugin.h"
 
 #include <QMessageBox>

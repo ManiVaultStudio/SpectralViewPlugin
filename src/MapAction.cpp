@@ -2,7 +2,8 @@
 #include "Endmember.h"
 #include "EndmembersAction.h"
 #include "SpectralViewPlugin.h"
-#include "ClusterData.h"
+#include "ClusterData/ClusterData.h"
+
 #include <QtCore>
 
 MapAction::MapAction(Endmember& endmember) :

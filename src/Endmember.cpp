@@ -4,7 +4,7 @@
 #include "DataHierarchyItem.h"
 
 #include <util/Exception.h>
-#include <ClusterData.h>
+#include <ClusterData/ClusterData.h>
 
 #include <QPainter>
 #include <QFontMetrics>
