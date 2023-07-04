@@ -8,10 +8,10 @@
 using namespace hdps;
 
 ViewSettingsAction::ViewSettingsAction(SpectralViewPlugin& spectralViewPlugin) :
-    WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin)),
+    WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin), "ViewSettingsAction"),
     _spectralViewPlugin(spectralViewPlugin),
-    _showSelectionAction(this, "Show selection", true, true),
-    _stdAreaEnabledAction(this, "Show std. dev.", true, true)
+    _showSelectionAction(this, "Show selection", true),
+    _stdAreaEnabledAction(this, "Show std. dev.", true)
 {
     setIcon(Application::getIconFont("FontAwesome").getIcon("cog"));
     setText("Global settings");
@@ -62,7 +62,7 @@ ViewSettingsAction::Widget::Widget(QWidget* parent, ViewSettingsAction* ViewSett
         layout->addWidget(showSelectionWidget, 0, 0);
         layout->addWidget(showStdWidget, 1, 0);
 
-        setPopupLayout(layout);
+        setLayout(layout);
     }
     else { 
 

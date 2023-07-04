@@ -1,8 +1,6 @@
 #pragma once
 
 #include "actions/WidgetActionStateWidget.h"
-#include "ViewSettingsAction.h"
-#include "WavelengthsRGBAction.h"
 #include <QHBoxLayout>
 
 
@@ -81,6 +79,4 @@ public: // Action getters
 
 protected:
     SpectralViewPlugin&     _spectralViewPlugin;    /** Reference to image viewer plugin */
-    ViewSettingsAction    _ViewSettingsAction;  /** Global view settings action */
-    WavelengthsRGBAction    _wavelengthsRGBAction;
 };

@@ -9,12 +9,12 @@
 using namespace hdps;
 
 WavelengthsRGBAction::WavelengthsRGBAction(SpectralViewPlugin& spectralViewPlugin) :
-    WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin)),
+    WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin), "WavelengthsRGBAction"),
     _spectralViewPlugin(spectralViewPlugin),
-    _wavelengthsRGBEnabledAction(this, "Show RGB lines", true, true),
-    _redWavelengthAction(this, "Red", { "630" }, "630", "630"),
-    _greenWavelengthAction(this, "Green", { "532" }, "532", "532"),
-    _blueWavelengthAction(this, "Blue", { "464" }, "464", "464")
+    _wavelengthsRGBEnabledAction(this, "Show RGB lines", true),
+    _redWavelengthAction(this, "Red", { "630" }, "630"),
+    _greenWavelengthAction(this, "Green", { "532" }, "532"),
+    _blueWavelengthAction(this, "Blue", { "464" }, "464")
 {
     setIcon(Application::getIconFont("FontAwesome").getIcon("grip-lines-vertical"));
     setText("RGB Wavelengths Settings");
@@ -88,7 +88,7 @@ WavelengthsRGBAction::Widget::Widget(QWidget* parent, WavelengthsRGBAction* wave
         layout->addWidget(blueLabelWidget, 3, 0);
         layout->addWidget(blueWidget, 3, 1);
 
-        setPopupLayout(layout);
+        setLayout(layout);
     }
     else { 
 

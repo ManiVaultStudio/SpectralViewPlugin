@@ -27,14 +27,14 @@ EndmembersModel::EndmembersModel(QObject* parent) :
 {
     // Register for events for points datasets
     //_eventListener.setEventCore(Application::core());
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataRemoved));
-    _eventListener.registerDataEventByType(PointType, [this](DataEvent* dataEvent) {
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetRemoved));
+    _eventListener.registerDataEventByType(PointType, [this](DatasetEvent* dataEvent) {
 
         switch (dataEvent->getType())
         {
-        case EventType::DataRemoved:
+        case EventType::DatasetRemoved:
         {
-            removeEndmember(dataEvent->getDataset()->getGuid());
+            removeEndmember(dataEvent->getDataset()->getId());
             break;
         }
 
@@ -45,14 +45,14 @@ EndmembersModel::EndmembersModel(QObject* parent) :
 
     // Register for events for images datasets
     //_eventListener.setEventCore(Application::core());
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataRemoved));
-    _eventListener.registerDataEventByType(ImageType, [this](DataEvent* dataEvent) {
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetRemoved));
+    _eventListener.registerDataEventByType(ImageType, [this](DatasetEvent* dataEvent) {
 
         switch (dataEvent->getType())
         {
-        case EventType::DataRemoved:
+        case EventType::DatasetRemoved:
         {
-            removeEndmember(dataEvent->getDataset()->getGuid());
+            removeEndmember(dataEvent->getDataset()->getId());
             break;
         }
 
@@ -104,7 +104,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 if (type == ClusterType) {
                     auto& clusters = dataset.get<Clusters>()->getClusters();
                     clusters[decisionIndex].setColor(color);
-                    events().notifyDatasetChanged(dataset.get<Clusters>());
+                    events().notifyDatasetDataChanged(dataset.get<Clusters>());
                 }
                 
                 });
@@ -121,7 +121,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
                 if (type == ClusterType) {
                     auto& clusters = dataset.get<Clusters>()->getClusters();
                     clusters[decisionIndex].setName(name);
-                    events().notifyDatasetChanged(dataset.get<Clusters>());
+                    events().notifyDatasetDataChanged(dataset.get<Clusters>());
                 }
                 });
 
@@ -262,7 +262,7 @@ void EndmembersModel::addEndmember(Endmember* endmember, int decisionIndex) {
 void EndmembersModel::updateClustersEndmember(QString datasetGuid, int index, QString name, QColor color) {
 
     for (auto endmember : _endmembers) {
-        if (endmember->getDataset()->getGuid() == datasetGuid && endmember->getIndex() == index) {
+        if (endmember->getDataset()->getId() == datasetGuid && endmember->getIndex() == index) {
             if (endmember->getGeneralAction().getNameAction().getString() != name)
                 endmember->getGeneralAction().getNameAction().setString(name);
             else if (endmember->getGeneralAction().getColorAction().getColor() != color)
@@ -664,7 +664,7 @@ void EndmembersModel::saveEndmemberClusterVisibility(QString datasetGuid) {
     _clusterVisibility.reserve(_endmembers.length());
 
     for (auto endmember : _endmembers) {
-        if (endmember->getDataset()->getGuid() == datasetGuid) {
+        if (endmember->getDataset()->getId() == datasetGuid) {
             const auto& name = endmember->getGeneralAction().getNameAction().getString();
             const auto& color = endmember->getGeneralAction().getColorAction().getColor();
             QString r = QString::number(color.red());
@@ -680,7 +680,7 @@ void EndmembersModel::updateEndmemberClusterVisibility(QString datasetGuid) {
 
     if (_clusterVisibility.size() != 0) {
         for (auto endmember : _endmembers) {
-            if (endmember->getDataset()->getGuid() == datasetGuid) {
+            if (endmember->getDataset()->getId() == datasetGuid) {
                 const auto& name = endmember->getGeneralAction().getNameAction().getString();
                 const auto& color = endmember->getGeneralAction().getColorAction().getColor();
                 QString r = QString::number(color.red());
@@ -702,7 +702,7 @@ void EndmembersModel::removeEndmembers(QString datasetGuid) {
 
     for (int i = 0; i < noEndmembers; i++) {
         
-        if (_endmembers[i]->getDataset()->getGuid() == datasetGuid) {
+        if (_endmembers[i]->getDataset()->getId() == datasetGuid) {
             startIndex = i;
             break;
         }
@@ -710,7 +710,7 @@ void EndmembersModel::removeEndmembers(QString datasetGuid) {
 
     for (int i = 0; i < noEndmembers; i++) {
 
-        if (_endmembers[i]->getDataset()->getGuid() == datasetGuid) {
+        if (_endmembers[i]->getDataset()->getId() == datasetGuid) {
             noClusters++;
         }
     }

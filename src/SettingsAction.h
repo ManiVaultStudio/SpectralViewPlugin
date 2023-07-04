@@ -74,6 +74,6 @@ public:
     EndmembersAction& getEndmembersAction() { return _endmembersAction; }
 
 protected:
-    SpectralViewPlugin& _spectralViewPlugin;     /** Reference to line plot plugin */
-    EndmembersAction            _endmembersAction;          /** Endmembers action */
+    SpectralViewPlugin&     _spectralViewPlugin;    /** Reference to line plot plugin */
+    EndmembersAction        _endmembersAction;      /** Endmembers action */
 };

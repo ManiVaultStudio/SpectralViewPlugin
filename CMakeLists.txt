@@ -29,11 +29,13 @@ set(PLUGIN
     src/Endmember.h
 )
 
+set(PLUGIN_MOC_HEADERS
+	src/SpectralViewPlugin.h
+)
+
 set(ACTIONS
     src/SettingsAction.h
     src/SettingsAction.cpp
-    src/MainToolbarAction.h
-    src/MainToolbarAction.cpp
     src/ViewSettingsAction.h
     src/ViewSettingsAction.cpp
     src/WavelengthsRGBAction.h
@@ -89,6 +91,9 @@ source_group(Web FILES ${WEB})
 source_group(Aux FILES ${AUX})
 
 add_library(${SVPLUGIN} SHARED ${SOURCES} ${WEB} ${AUX} ${RESOURCE_FILES})
+
+qt_wrap_cpp(SV_PARAMETERS_MOC ${PLUGIN_MOC_HEADERS} TARGET ${SVPLUGIN})
+target_sources(${SVPLUGIN} PRIVATE ${SV_PARAMETERS_MOC})
 
 target_include_directories(${SVPLUGIN} PRIVATE "${INSTALL_DIR}/$<CONFIGURATION>/include/")
 

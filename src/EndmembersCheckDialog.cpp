@@ -6,16 +6,16 @@ EndmembersCheckDialog::EndmembersCheckDialog(QWidget* parent, int noEndmembers) 
     _numberOfEndmembersAction(this, "Number of endmembers to load"),
     _loadAction(this, "Load"),
     _closeAction(this, "Don't load"),
-    _groupAction(this)
+    _groupAction(this, "EndmemberGroupAction")
 {
     setWindowTitle(tr("Check number of endmembers"));
 
     _numberOfEndmembersAction.setString(QString::number(noEndmembers));
     _numberOfEndmembersAction.setEnabled(false);
 
-    _groupAction << _numberOfEndmembersAction;
-    _groupAction << _closeAction;
-    _groupAction << _loadAction;
+    _groupAction.addAction(&_numberOfEndmembersAction);
+    _groupAction.addAction(&_closeAction);
+    _groupAction.addAction(&_loadAction);
     
     auto layout = new QVBoxLayout();
 

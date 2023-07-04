@@ -10,6 +10,7 @@
 #include "ImageData/Images.h"
 
 #include "DataHierarchyItem.h"
+#include "DatasetsMimeData.h"
 
 #include <QtCore>
 #include <QtDebug>
@@ -31,7 +32,7 @@ SpectralViewPlugin::SpectralViewPlugin(const PluginFactory* factory) :
     _splitter(Qt::Horizontal, &getWidget()),
     _linePlotWidget(*this),
     _dropWidget(&_linePlotWidget),
-    _mainToolbarAction(*this),
+    _mainToolbarAction(this, "Main Toolbar"),
     _settingsAction(*this),
     _angleMap(),
     _mapAngleImage(),
@@ -42,7 +43,9 @@ SpectralViewPlugin::SpectralViewPlugin(const PluginFactory* factory) :
     _averageDataset(),
     _noLoadedClusters(),
     _clusterNames(),
-    _prevSelection()
+    _prevSelection(),
+    _viewSettingsAction(*this),
+    _wavelengthsRGBAction(*this)
 {
     setObjectName("Spectral Plot");
 
@@ -50,6 +53,10 @@ SpectralViewPlugin::SpectralViewPlugin(const PluginFactory* factory) :
     getWidget().setFocusPolicy(Qt::ClickFocus);
 
     _mainToolbarAction.setEnabled(false);
+
+    _mainToolbarAction.addAction(&_viewSettingsAction, 2, GroupAction::Horizontal);
+    _mainToolbarAction.addAction(&_wavelengthsRGBAction, 1, GroupAction::Horizontal);
+
 }
 
 SpectralViewPlugin::~SpectralViewPlugin() {
@@ -100,25 +107,28 @@ void SpectralViewPlugin::init()
     _dropWidget.initialize([this](const QMimeData* mimeData) -> DropWidget::DropRegions {
         DropWidget::DropRegions dropRegions;
 
-        const auto mimeText = mimeData->text();
-        const auto tokens = mimeText.split("\n");
+        const auto datasetsMimeData = dynamic_cast<const DatasetsMimeData*>(mimeData);
 
-        if (tokens.count() == 1)
+        if (datasetsMimeData == nullptr)
             return dropRegions;
 
-        const auto datasetGuiName = tokens[0];
-        const auto datasetId = tokens[1];
-        const auto dataType = DataType(tokens[2]);
-        const auto dataTypes = DataTypes({ PointType, ClusterType });
+        if (datasetsMimeData->getDatasets().count() > 1)
+            return dropRegions;
 
-        // Get points dataset from the core
-        auto candidateDataset = _core->requestDataset(datasetId);
+        const auto dataset = datasetsMimeData->getDatasets().first();
+        const auto datasetGuiName = dataset->text();
+        const auto datasetId = dataset->getId();
+        const auto dataType = dataset->getDataType();
+        const auto dataTypes = DataTypes({ PointType, ClusterType });
 
         // Check if the data type can be dropped
         if (!dataTypes.contains(dataType)) {
             dropRegions << new DropWidget::DropRegion(this, "Incompatible data", "This type of data is not supported", "exclamation-circle", false);
         }
-    
+
+        // Get points dataset from the core
+        auto candidateDataset = _core->requestDataset(datasetId);
+
         // Points dataset is about to be dropped
         if (dataType == PointType) {
 
@@ -155,7 +165,7 @@ void SpectralViewPlugin::init()
                             if (!_points->isFull() || _points->isDerivedData()) {
                                 DataHierarchyItems pointParents;
                                 hdps::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
-                                pointName = pointParents.at(0)->getGuiName();
+                                pointName = pointParents.at(0)->getDatasetReference()->getGuiName();
                             }
 
                             auto parent = candidateDataset->getParent();
@@ -168,7 +178,7 @@ void SpectralViewPlugin::init()
                                 _model.removeAllEndmembers();
                                 });
 
-                            if (parent.get<Points>()->getNumPoints() == _points->getNumPoints() && parents.at(0)->getGuiName() == pointName) {
+                            if (parent.get<Points>()->getNumPoints() == _points->getNumPoints() && parents.at(0)->getDatasetReference()->getGuiName() == pointName) {
 
                                 dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
 
@@ -223,17 +233,17 @@ void SpectralViewPlugin::init()
 
                 DataHierarchyItems parents;
                 hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
-                QString pointsGuid = _points->getGuid();
+                QString pointsGuid = _points->getId();
 
                 if (!_points->isFull() || _points->isDerivedData()) {
                     DataHierarchyItems pointParents;
                     hdps::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
-                    pointsGuid = pointParents.at(0)->getDataset<Points>()->getGuid();
+                    pointsGuid = pointParents.at(0)->getDataset<Points>()->getId();
                 }
 
                 const auto parent = parents.at(0)->getDataset<Points>();
 
-                if (parent->getNumPoints() == _points->getNumPoints() && parent->getGuid() == pointsGuid) {
+                if (parent->getNumPoints() == _points->getNumPoints() && parent->getId() == pointsGuid) {
 
                     dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
                         _clusterNames.push_back(candidateDataset->getGuiName());
@@ -273,17 +283,17 @@ void SpectralViewPlugin::init()
     connect(&_linePlotWidget, SIGNAL(changeRGBWavelengths(float, int)), SLOT(changeRGBWavelengths(float, int)));
 
     // Respond when the name of the dataset in the dataset reference changes
-    connect(&_points, &Dataset<Points>::dataGuiNameChanged, this, [this, updateWindowTitle](const QString& oldDatasetName, const QString& newDatasetName) {
+    connect(&_points, &Dataset<Points>::guiNameChanged, this, [this, updateWindowTitle]() {
 
         // Only show the drop indicator when nothing is loaded in the dataset reference
-        _dropWidget.setShowDropIndicator(newDatasetName.isEmpty());
+        _dropWidget.setShowDropIndicator(_points->getGuiName().isEmpty());
         updateWindowTitle();
         });
 
     //_eventListener.setEventCore(Application::core());
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataAdded));
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataChanged));
-    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DataSelectionChanged));
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetAdded));
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataChanged));
+    _eventListener.addSupportedEventType(static_cast<std::uint32_t>(EventType::DatasetDataSelectionChanged));
     _eventListener.registerDataEventByType(PointType, std::bind(&SpectralViewPlugin::onDataEvent, this, std::placeholders::_1));
     _eventListener.registerDataEventByType(ClusterType, std::bind(&SpectralViewPlugin::onDataEvent, this, std::placeholders::_1));
 
@@ -328,7 +338,7 @@ void SpectralViewPlugin::loadData(const Datasets& datasets) {
     _model.removeAllEndmembers();
 }
 
-void SpectralViewPlugin::onDataEvent(hdps::DataEvent* dataEvent)
+void SpectralViewPlugin::onDataEvent(hdps::DatasetEvent* dataEvent)
 {
     if (!_linePlotWidget.isVisible())
         return;
@@ -339,17 +349,17 @@ void SpectralViewPlugin::onDataEvent(hdps::DataEvent* dataEvent)
     
     // Get GUI name of the dataset that changed
     const auto datasetGuiName = changedDataSet->getGuiName();
-    const auto datasetGuid = changedDataSet->getGuid();
+    const auto datasetGuid = changedDataSet->getId();
  
     switch (dataEvent->getType()) {
 
         // Event which gets triggered when a dataset is added to the system.
-        case EventType::DataAdded:
+        case EventType::DatasetAdded:
         {
             _linePlotWidget.addDataOption(dataEvent->getDataset()->getGuiName());
 
             // Cast the data event to a data added event
-            const auto dataAddedEvent = static_cast<DataAddedEvent*>(dataEvent);
+            const auto dataAddedEvent = static_cast<DatasetAddedEvent*>(dataEvent);
 
             // Get the GUI name of the added points dataset and print to the console
             std::cout << datasetGuiName.toStdString() << " was added" << std::endl;            
@@ -358,10 +368,10 @@ void SpectralViewPlugin::onDataEvent(hdps::DataEvent* dataEvent)
         }
 
         // Event which gets triggered when the data contained in a dataset changes.
-        case EventType::DataChanged:
+        case EventType::DatasetDataChanged:
         {
             // Cast the data event to a data changed event
-            const auto dataChangedEvent = static_cast<DataChangedEvent*>(dataEvent);
+            const auto dataChangedEvent = static_cast<DatasetDataChangedEvent*>(dataEvent);
 
             // Get the name of the points dataset of which the data changed and print to the console
             std::cout << datasetGuiName.toStdString() << " data changed" << std::endl;
@@ -388,15 +398,15 @@ void SpectralViewPlugin::onDataEvent(hdps::DataEvent* dataEvent)
         }
 
         // Points dataset selection has changed
-        case EventType::DataSelectionChanged:
+        case EventType::DatasetDataSelectionChanged:
         {
             // Cast the data event to a data selection changed event
-            const auto dataSelectionChangedEvent = static_cast<DataSelectionChangedEvent*>(dataEvent);
+            const auto dataSelectionChangedEvent = static_cast<DatasetDataSelectionChangedEvent*>(dataEvent);
 
             // Get the selection set that changed
             const auto& selectionSet = changedDataSet->getSelection<Points>();
 
-            if(_points.isValid() && _mainToolbarAction.getViewSettingsAction().getShowSelectionAction().isChecked())
+            if(_points.isValid() && _viewSettingsAction.getShowSelectionAction().isChecked())
                 updateSelection(selectionSet);
 
             break;
@@ -460,9 +470,9 @@ void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         auto& parent = _points;
         auto numDimensions = parent->getNumDimensions();
 
-        _model.saveEndmemberClusterVisibility(dataset->getGuid());
+        _model.saveEndmemberClusterVisibility(dataset->getId());
         // remove clusters of this dataset
-        _model.removeEndmembers(dataset->getGuid());
+        _model.removeEndmembers(dataset->getId());
         
         // add clsuters
         for (int i = 0; i < noClusters; i++) {
@@ -509,7 +519,7 @@ void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             endmember->setData(average);
             //endmember->setIndices(indices);
         }
-        _model.updateEndmemberClusterVisibility(dataset->getGuid());
+        _model.updateEndmemberClusterVisibility(dataset->getId());
     }
 }
 
@@ -557,7 +567,7 @@ void SpectralViewPlugin::updateDataset(const Dataset<DatasetImpl>& dataset) {
     for (int i = 0; i < noClusters; i++) {
 
         auto& cluster = clusters[i];
-        _model.updateClustersEndmember(dataset->getGuid(), i, cluster.getName(), cluster.getColor());
+        _model.updateClustersEndmember(dataset->getId(), i, cluster.getName(), cluster.getColor());
     }
     
 }
@@ -599,9 +609,9 @@ void SpectralViewPlugin::initializeImageRGB() {
             dimensionNames << QString("Dim %1").arg(QString::number(dimensionIndex));
     }
 
-    _mainToolbarAction.getWavelengthsRGBAction().getRedWavelengthAction().setOptions(dimensionNames);
-    _mainToolbarAction.getWavelengthsRGBAction().getGreenWavelengthAction().setOptions(dimensionNames);
-    _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setOptions(dimensionNames);
+    _wavelengthsRGBAction.getRedWavelengthAction().setOptions(dimensionNames);
+    _wavelengthsRGBAction.getGreenWavelengthAction().setOptions(dimensionNames);
+    _wavelengthsRGBAction.getBlueWavelengthAction().setOptions(dimensionNames);
 
     float wavelengthR = 630;
     float wavelengthG = 532;
@@ -627,13 +637,13 @@ void SpectralViewPlugin::initializeImageRGB() {
         }
     }
 
-    _mainToolbarAction.getWavelengthsRGBAction().getRedWavelengthAction().setCurrentText(dimR);
-    _mainToolbarAction.getWavelengthsRGBAction().getGreenWavelengthAction().setCurrentText(dimG);
-    _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setCurrentText(dimB);
+    _wavelengthsRGBAction.getRedWavelengthAction().setCurrentText(dimR);
+    _wavelengthsRGBAction.getGreenWavelengthAction().setCurrentText(dimG);
+    _wavelengthsRGBAction.getBlueWavelengthAction().setCurrentText(dimB);
 
-    _mainToolbarAction.getWavelengthsRGBAction().getRedWavelengthAction().setDefaultText(dimR);
-    _mainToolbarAction.getWavelengthsRGBAction().getGreenWavelengthAction().setDefaultText(dimG);
-    _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setDefaultText(dimB);
+    //_wavelengthsRGBAction.getRedWavelengthAction().setDefaultText(dimR);
+    //_wavelengthsRGBAction.getGreenWavelengthAction().setDefaultText(dimG);
+    //_wavelengthsRGBAction.getBlueWavelengthAction().setDefaultText(dimB);
 }
 
 void SpectralViewPlugin::changeRGBWavelengths(const float wavelength, int index) {
@@ -641,13 +651,13 @@ void SpectralViewPlugin::changeRGBWavelengths(const float wavelength, int index)
     QString newValue = QString::number(wavelength);
 
     if (index == 0) {
-        _mainToolbarAction.getWavelengthsRGBAction().getRedWavelengthAction().setCurrentText(newValue);
+        _wavelengthsRGBAction.getRedWavelengthAction().setCurrentText(newValue);
     }
     else if (index == 1) {
-        _mainToolbarAction.getWavelengthsRGBAction().getGreenWavelengthAction().setCurrentText(newValue);
+        _wavelengthsRGBAction.getGreenWavelengthAction().setCurrentText(newValue);
     }
     else if (index == 2) {
-        _mainToolbarAction.getWavelengthsRGBAction().getBlueWavelengthAction().setCurrentText(newValue);
+        _wavelengthsRGBAction.getBlueWavelengthAction().setCurrentText(newValue);
     }
 
 }
@@ -692,7 +702,7 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
     std::vector<float> standardDeviation(numDimensions);
 
     if (children.size() != 0) {
-        auto imagesId = children[0].getDatasetGuid();
+        auto imagesId = children[0].getDatasetId();
         const auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
@@ -771,7 +781,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
     if ( (algorithmType == 0 && !_angleMap.isValid()) || (algorithmType == 1 && !_corMap.isValid()) ) {
 
         const auto& children = _points->getChildren({ ImageType });
-        auto imagesId = children[0].getDatasetGuid();
+        auto imagesId = children[0].getDatasetId();
         const auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
@@ -786,7 +796,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
             spectralAngleMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
             _mapAngleImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_angleMap));
-            _mapAngleImage->setGuiName("endmemberAngleMap");
+            _mapAngleImage->setText("endmemberAngleMap");
             _mapAngleImage->setType(ImageData::Type::Stack);
             _mapAngleImage->setNumberOfImages(1);
             _mapAngleImage->setImageSize(QSize(width, height));
@@ -803,7 +813,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
             spectralCorrelationMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
             _mapCorImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_corMap));
-            _mapCorImage->setGuiName("endmemberCorMap");
+            _mapCorImage->setText("endmemberCorMap");
             _mapCorImage->setType(ImageData::Type::Stack);
             _mapCorImage->setNumberOfImages(1);
             _mapCorImage->setImageSize(QSize(width, height));
@@ -819,15 +829,15 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
             spectralAngleMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
             _mapAngleImage->setNumberOfImages(_angleMap->getNumDimensions());
-            events().notifyDatasetChanged(_angleMap);
-            events().notifyDatasetChanged(_mapAngleImage);
+            events().notifyDatasetDataChanged(_angleMap);
+            events().notifyDatasetDataChanged(_mapAngleImage);
         }
         else {
             spectralCorrelationMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
             _mapCorImage->setNumberOfImages(_corMap->getNumDimensions());
-            events().notifyDatasetChanged(_corMap);
-            events().notifyDatasetChanged(_mapCorImage);
+            events().notifyDatasetDataChanged(_corMap);
+            events().notifyDatasetDataChanged(_mapCorImage);
         }
 
        
@@ -838,7 +848,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
 void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType) {
     
     const auto& children = _points->getChildren({ ImageType });
-    auto imagesId = children[0].getDatasetGuid();
+    auto imagesId = children[0].getDatasetId();
     const auto& images = _core->requestDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
@@ -998,7 +1008,7 @@ void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<
 void SpectralViewPlugin::spectralCorrelationMapper(QString endmemberName, std::vector<float> endmemberData, float threshold, int mapType) {
 
     const auto& children = _points->getChildren({ ImageType });
-    auto imagesId = children[0].getDatasetGuid();
+    auto imagesId = children[0].getDatasetId();
     const auto& images = _core->requestDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
@@ -1128,7 +1138,7 @@ void SpectralViewPlugin::updateThresholdAngle(QString endmemberName, float thres
     if ( (algorithmType == 0 && _angleDataset.size() != 0) || (algorithmType == 1 && _corDataset.size() != 0) ) {
 
         const auto& children = _points->getChildren({ ImageType });
-        auto imagesId = children[0].getDatasetGuid();
+        auto imagesId = children[0].getDatasetId();
         const auto& images = _core->requestDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
@@ -1223,15 +1233,15 @@ void SpectralViewPlugin::updateThresholdAngle(QString endmemberName, float thres
             _angleMap->setData(_mapAngleData.data(), noPoints, imgDim);
 
             _mapAngleImage->setNumberOfImages(imgDim);
-            events().notifyDatasetChanged(_angleMap);
-            events().notifyDatasetChanged(_mapAngleImage);
+            events().notifyDatasetDataChanged(_angleMap);
+            events().notifyDatasetDataChanged(_mapAngleImage);
         }
         else if (algorithmType == 1) {
             _corMap->setData(_mapCorData.data(), noPoints, imgDim);
 
             _mapCorImage->setNumberOfImages(imgDim);
-            events().notifyDatasetChanged(_corMap);
-            events().notifyDatasetChanged(_mapCorImage);
+            events().notifyDatasetDataChanged(_corMap);
+            events().notifyDatasetDataChanged(_mapCorImage);
         }
     }
 }

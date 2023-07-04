@@ -14,9 +14,9 @@ using namespace hdps;
 using namespace hdps::gui;
 
 EndmembersAction::EndmembersAction(SettingsAction& settingsAction) :
-    WidgetAction(reinterpret_cast<QObject*>(&settingsAction)),
+    WidgetAction(reinterpret_cast<QObject*>(&settingsAction), "EndmembersAction"),
     _settingsAction(settingsAction),
-    _currentEndmemberAction(this),
+    _currentEndmemberAction(this, "currentEndmemberAction"),
     _rng(0)
 {
     setText("Endmembers");
@@ -35,8 +35,8 @@ QColor EndmembersAction::getRandomLayerColor()
 
 EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAction) :
     WidgetActionWidget(parent, endmembersAction),
-    _removeEndmemberAction(this, ""),
-    _saveEndmembersAction(this, "")
+    _removeEndmemberAction(this, "Remove Endmember"),
+    _saveEndmembersAction(this, "Save Endmembers")
 {
     auto& spectralViewPlugin = endmembersAction->getSettingsAction().getSpectralViewPlugin();
 

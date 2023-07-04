@@ -7,10 +7,10 @@
 #include <QtCore>
 
 MapAction::MapAction(Endmember& endmember) :
-    GroupAction(&endmember, true),
+    GroupAction(&endmember, "MapAction", true),
     _endmember(endmember),
-    _algorithmAction(this, "Algorithm", {"Spectral Angle Mapper", "Spectral Correlation Mapper"}, "Spectral Angle Mapper", "Spectral Angle Mapper"),
-    _mapTypeAction(this, "Map type", { "Binary", "Threshold distance", "Distance based"}, "Binary", "Binary"),
+    _algorithmAction(this, "Algorithm", {"Spectral Angle Mapper", "Spectral Correlation Mapper"}, "Spectral Angle Mapper"),
+    _mapTypeAction(this, "Map type", { "Binary", "Threshold distance", "Distance based"}, "Binary"),
     _angleAction(this, "Angle"),
     _thresholdAction(this, "Threshold"),
     _updateAutoAction(this, "Update automatically"),
@@ -29,8 +29,8 @@ MapAction::MapAction(Endmember& endmember) :
     auto& fontAwesome = Application::getIconFont("FontAwesome");
     _computeAction.setIcon(fontAwesome.getIcon("play"));
 
-    _thresholdAction.setDefaultValue(0.15f);
-    _thresholdAction.defaultValueChanged(0.15f);
+    //_thresholdAction.setDefaultValue(0.15f);
+    //_thresholdAction.defaultValueChanged(0.15f);
     _thresholdAction.setNumberOfDecimals(3);
     _thresholdAction.numberOfDecimalsChanged(3);
     _thresholdAction.setRange(0.f, 1.f);
@@ -40,8 +40,8 @@ MapAction::MapAction(Endmember& endmember) :
     _thresholdAction.setEnabled(false);
 
     _angleAction.setSuffix(" rad");
-    _angleAction.setDefaultValue(0.15f);
-    _angleAction.defaultValueChanged(0.15f);
+    //_angleAction.setDefaultValue(0.15f);
+    //_angleAction.defaultValueChanged(0.15f);
     _angleAction.setNumberOfDecimals(3);
     _angleAction.numberOfDecimalsChanged(3);
     _angleAction.setRange(0.f, static_cast<float>(M_PI / 2));

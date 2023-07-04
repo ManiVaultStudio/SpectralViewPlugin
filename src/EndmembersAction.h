@@ -67,7 +67,7 @@ public: // Action getters
     GroupsAction& getCurrentEndmemberAction() { return _currentEndmemberAction; }
 
 protected:
-    SettingsAction& _settingsAction;        /** Reference to settings action */
+    SettingsAction&     _settingsAction;        /** Reference to settings action */
     GroupsAction        _currentEndmemberAction;    /** Current endmember action */
     QRandomGenerator    _rng;                   /** Random number generator for pseudo-random colors */
 };

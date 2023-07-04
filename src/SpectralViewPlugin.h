@@ -4,14 +4,16 @@
 
 #include "EndmembersModel.h"
 #include "LineplotWidget.h"
-#include "MainToolbarAction.h"
 #include "SettingsAction.h"
+#include "ViewSettingsAction.h"
+#include "WavelengthsRGBAction.h"
 
 #include "Dataset.h"
 #include "PointData/PointData.h"
 #include "Set.h"
 
 #include <widgets/DropWidget.h>
+#include <actions/HorizontalToolbarAction.h>
 
 #include <QList>
 #include <QItemSelectionModel>
@@ -34,7 +36,7 @@ public:
 
     void init() override;
 
-    void onDataEvent(hdps::DataEvent* dataEvent);
+    void onDataEvent(hdps::DatasetEvent* dataEvent);
 
     /**
      * Add dataset to the viewer
@@ -74,13 +76,11 @@ public:
     void spectralCorrelationMapper(QString endmemberName, std::vector<float> endmemberData, float thresholdAngle, int mapType);
     void updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType);
     void computeAverageDataset(int width, int height, int numDimensions);
-    void setSelection(std::vector<unsigned int> indices);
-
-
+    //void setSelection(std::vector<unsigned int> indices);
 
 public: // Action getters
 
-    MainToolbarAction& getMainToolbarAction() { return _mainToolbarAction; }
+    HorizontalToolbarAction& getMainToolbarAction() { return _mainToolbarAction; }
     SettingsAction& getSettingsAction() { return _settingsAction; }
 
 protected slots:
@@ -93,29 +93,33 @@ private:
     void updateSelection(hdps::Dataset<Points> selection);
     //std::vector<float> createRGBImage(int dimR, int dimG, int dimB);
 
-    hdps::Dataset<Points>              _points;        /** Currently loaded points dataset */
-    std::vector<QString>               _clusterNames;      /** Names of currently loaded cluster datasets */
-    hdps::Dataset<Points>              _angleMap;
-    std::vector<float>                 _mapAngleData;
-    hdps::Dataset<Images>              _mapAngleImage;
-    hdps::Dataset<Points>              _corMap;
-    std::vector<float>                 _mapCorData;
-    hdps::Dataset<Images>              _mapCorImage;
-    std::vector<float>                 _angleDataset;
-    std::vector<float>                 _corDataset;
-    std::vector<float>                 _averageDataset;
-    std::vector<int>                   _noLoadedClusters;
-    std::vector<unsigned int>          _prevSelection;
+    hdps::Dataset<Points>       _points;                /** Currently loaded points dataset */
+    std::vector<QString>        _clusterNames;          /** Names of currently loaded cluster datasets */
+    hdps::Dataset<Points>       _angleMap;
+    std::vector<float>          _mapAngleData;
+    hdps::Dataset<Images>       _mapAngleImage;
+    hdps::Dataset<Points>       _corMap;
+    std::vector<float>          _mapCorData;
+    hdps::Dataset<Images>       _mapCorImage;
+    std::vector<float>          _angleDataset;
+    std::vector<float>          _corDataset;
+    std::vector<float>          _averageDataset;
+    std::vector<int>            _noLoadedClusters;
+    std::vector<unsigned int>   _prevSelection;
             
-    EndmembersModel         _model;                 /** Endmembers model */
-    QItemSelectionModel     _selectionModel;        /** Layers selection model */
-    LineplotWidget          _linePlotWidget;       /** Heatmap widget displaying cluster data */
-    QSplitter               _splitter;             /** Splitter which divides the lineplot view and editor */
-    hdps::gui::DropWidget   _dropWidget;            /** Widget allowing users to drop in data */
-    MainToolbarAction       _mainToolbarAction;     /** Main toolbar action */
-    SettingsAction          _settingsAction;        /** Line chart settings action */
+    EndmembersModel             _model;                 /** Endmembers model */
+    QItemSelectionModel         _selectionModel;        /** Layers selection model */
+    LineplotWidget              _linePlotWidget;        /** Heatmap widget displaying cluster data */
+    QSplitter                   _splitter;              /** Splitter which divides the lineplot view and editor */
+    hdps::gui::DropWidget       _dropWidget;            /** Widget allowing users to drop in data */
 
-    hdps::EventListener     _eventListener;     /** Listen to HDPS events */
+    SettingsAction              _settingsAction;        /** Line chart settings action */
+
+    HorizontalToolbarAction     _mainToolbarAction;     /** Main toolbar action */
+    ViewSettingsAction          _viewSettingsAction;    /** Global view settings action */
+    WavelengthsRGBAction        _wavelengthsRGBAction;
+
+    hdps::EventListener         _eventListener;         /** Listen to HDPS events */
 };
 
 

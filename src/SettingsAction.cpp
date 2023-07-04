@@ -1,6 +1,5 @@
 #include "SettingsAction.h"
 #include "SpectralViewPlugin.h"
-#include "MainToolbarAction.h"
 
 #include <QMenu>
 #include <QHeaderView>
@@ -8,7 +7,7 @@
 using namespace hdps::gui;
 
 SettingsAction::SettingsAction(SpectralViewPlugin& spectralViewPlugin) :
-    WidgetAction(&spectralViewPlugin),
+    WidgetAction(&spectralViewPlugin, "SettingsAction"),
     _spectralViewPlugin(spectralViewPlugin),
     _endmembersAction(*this)
 {

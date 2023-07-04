@@ -8,10 +8,8 @@
 using namespace hdps::util;
 
 MainToolbarAction::MainToolbarAction(SpectralViewPlugin& spectralViewPlugin) :
-	WidgetAction(&spectralViewPlugin),
-    _spectralViewPlugin(spectralViewPlugin),
-	_ViewSettingsAction(spectralViewPlugin),
-    _wavelengthsRGBAction(spectralViewPlugin)
+	WidgetAction(&spectralViewPlugin, "MainToolbarAction"),
+    _spectralViewPlugin(spectralViewPlugin)
 {
 	setText("Settings");
 

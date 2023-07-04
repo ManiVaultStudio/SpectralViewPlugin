@@ -13,7 +13,7 @@
 #include <set>
 
 Endmember::Endmember(SpectralViewPlugin& spectralViewPlugin, const Dataset<DatasetImpl>& dataset, int index) :
-    WidgetAction(&spectralViewPlugin),
+    WidgetAction(&spectralViewPlugin, "Endmember"),
     _spectralViewPlugin(spectralViewPlugin),
     _active(false),
     _dataset(dataset),
@@ -33,9 +33,9 @@ Endmember::Endmember(SpectralViewPlugin& spectralViewPlugin, const Dataset<Datas
     }
 
     // Update dataset name action when the images dataset GUI name changes
-    connect(&_dataset, &Dataset<Points>::dataGuiNameChanged, this, [this](const QString& oldGuiName, const QString& newGuiName) {
-        _generalAction.getDatasetNameAction().setString(newGuiName);
-        _generalAction.getNameAction().setDefaultString(newGuiName);
+    connect(&_dataset, &Dataset<Points>::guiNameChanged, this, [this]() {
+        _generalAction.getDatasetNameAction().setString(_dataset->getGuiName());
+        //_generalAction.getNameAction().setDefaultString(newGuiName);
         });
 
 }

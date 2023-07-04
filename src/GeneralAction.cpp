@@ -7,9 +7,9 @@
 #include <QtCore>
 
 GeneralAction::GeneralAction(Endmember& endmember, int index) :
-    GroupAction(&endmember, true),
+    GroupAction(&endmember, "GeneralAction", true),
     _endmember(endmember),
-    _visibleAction(this, "Visible", true, true),
+    _visibleAction(this, "Visible", true),
     _datasetNameAction(this, "Dataset name"),
     _colorAction(this, "Color"),
     _nameAction(this, "Name")
@@ -43,11 +43,11 @@ GeneralAction::GeneralAction(Endmember& endmember, int index) :
 
             // Set layer name and default name
             _nameAction.setString(guiName + " average");
-            _nameAction.setDefaultString(guiName + "average");
+            //_nameAction.setDefaultString(guiName + "average");
         }
         else {
             _nameAction.setString(guiName);
-            _nameAction.setDefaultString(guiName);
+            //_nameAction.setDefaultString(guiName);
         }
 
         endmemberColor = _endmember.getEndmembersAction().getRandomLayerColor();
@@ -62,11 +62,11 @@ GeneralAction::GeneralAction(Endmember& endmember, int index) :
         auto endmemberName = clusters[index].getName();
 
         _nameAction.setString(endmemberName);
-        _nameAction.setDefaultString(endmemberName);
+        //_nameAction.setDefaultString(endmemberName);
     }
 
     // Assign the color and default color
-    _colorAction.initialize(endmemberColor, endmemberColor);
+    _colorAction.setColor(endmemberColor);
 
     const auto render = [this]() {
         _endmember.getSpectralViewPlugin().getLineplotWidget().update();
