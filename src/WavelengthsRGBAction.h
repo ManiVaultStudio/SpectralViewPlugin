@@ -4,7 +4,7 @@
 #include <actions/ToggleAction.h>
 #include <actions/OptionAction.h>
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 class SpectralViewPlugin;
 

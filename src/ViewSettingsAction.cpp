@@ -5,7 +5,7 @@
 
 #include <QHBoxLayout>
 
-using namespace hdps;
+using namespace mv;
 
 ViewSettingsAction::ViewSettingsAction(SpectralViewPlugin& spectralViewPlugin) :
     WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin), "ViewSettingsAction"),

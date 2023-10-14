@@ -5,7 +5,7 @@
 
 class SpectralViewPlugin;
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 /**
  * Settings action class

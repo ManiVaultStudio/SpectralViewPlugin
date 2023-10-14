@@ -6,7 +6,7 @@
 
 
 
-using namespace hdps;
+using namespace mv;
 
 WavelengthsRGBAction::WavelengthsRGBAction(SpectralViewPlugin& spectralViewPlugin) :
     WidgetAction(reinterpret_cast<QObject*>(&spectralViewPlugin), "WavelengthsRGBAction"),

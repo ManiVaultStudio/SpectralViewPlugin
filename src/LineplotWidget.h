@@ -13,7 +13,7 @@ class Cluster;
 class SpectralViewPlugin;
 class LineplotWidget;
 
-class LinePlotCommunicationObject : public hdps::gui::WebCommunicationObject
+class LinePlotCommunicationObject : public mv::gui::WebCommunicationObject
 {
     Q_OBJECT
 public:
@@ -40,7 +40,7 @@ private:
     LineplotWidget* _parent;
 };
 
-class LineplotWidget : public hdps::gui::WebWidget
+class LineplotWidget : public mv::gui::WebWidget
 {
     Q_OBJECT
 public:

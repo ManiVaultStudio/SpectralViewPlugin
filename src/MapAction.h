@@ -8,7 +8,7 @@
 
 class Endmember;
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 /**
  * General action class
@@ -29,7 +29,7 @@ public:
 
     /** Get reference to parent endmember */
     Endmember& getEndmember() { return _endmember; }
-    // hdps::Dataset<hdps::DatasetImpl>& getDataset() { return _dataset; }
+    // mv::Dataset<mv::DatasetImpl>& getDataset() { return _dataset; }
 
 public: /** Action getters */
 

@@ -10,8 +10,8 @@
 #include <QTreeView>
 #include <QHeaderView>
 
-using namespace hdps;
-using namespace hdps::gui;
+using namespace mv;
+using namespace mv::gui;
 
 EndmembersAction::EndmembersAction(SettingsAction& settingsAction) :
     WidgetAction(reinterpret_cast<QObject*>(&settingsAction), "EndmembersAction"),

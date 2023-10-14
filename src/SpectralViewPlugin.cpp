@@ -22,8 +22,8 @@
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.SpectralViewPlugin")
 
-using namespace hdps;
-using namespace hdps::gui;
+using namespace mv;
+using namespace mv::gui;
 
 SpectralViewPlugin::SpectralViewPlugin(const PluginFactory* factory) :
     ViewPlugin(factory),
@@ -159,12 +159,12 @@ void SpectralViewPlugin::init()
                         if (!candidateDataset->isFull() || candidateDataset->isDerivedData()) {
 
                             DataHierarchyItems parents;
-                            hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
+                            mv::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
                             QString pointName = _points->getGuiName();
 
                             if (!_points->isFull() || _points->isDerivedData()) {
                                 DataHierarchyItems pointParents;
-                                hdps::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
+                                mv::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
                                 pointName = pointParents.at(0)->getDatasetReference()->getGuiName();
                             }
 
@@ -232,12 +232,12 @@ void SpectralViewPlugin::init()
             if (_points.isValid()) {
 
                 DataHierarchyItems parents;
-                hdps::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
+                mv::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
                 QString pointsGuid = _points->getId();
 
                 if (!_points->isFull() || _points->isDerivedData()) {
                     DataHierarchyItems pointParents;
-                    hdps::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
+                    mv::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
                     pointsGuid = pointParents.at(0)->getDataset<Points>()->getId();
                 }
 
@@ -338,7 +338,7 @@ void SpectralViewPlugin::loadData(const Datasets& datasets) {
     _model.removeAllEndmembers();
 }
 
-void SpectralViewPlugin::onDataEvent(hdps::DatasetEvent* dataEvent)
+void SpectralViewPlugin::onDataEvent(mv::DatasetEvent* dataEvent)
 {
     if (!_linePlotWidget.isVisible())
         return;
@@ -795,7 +795,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
             
             spectralAngleMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
-            _mapAngleImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_angleMap));
+            _mapAngleImage = _core->addDataset<Images>("Images", "images", mv::Dataset<mv::DatasetImpl>(*_angleMap));
             _mapAngleImage->setText("endmemberAngleMap");
             _mapAngleImage->setType(ImageData::Type::Stack);
             _mapAngleImage->setNumberOfImages(1);
@@ -812,7 +812,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
 
             spectralCorrelationMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
-            _mapCorImage = _core->addDataset<Images>("Images", "images", hdps::Dataset<hdps::DatasetImpl>(*_corMap));
+            _mapCorImage = _core->addDataset<Images>("Images", "images", mv::Dataset<mv::DatasetImpl>(*_corMap));
             _mapCorImage->setText("endmemberCorMap");
             _mapCorImage->setType(ImageData::Type::Stack);
             _mapCorImage->setNumberOfImages(1);
@@ -1280,7 +1280,7 @@ ViewPlugin* SpectralViewPluginFactory::produce()
     return new SpectralViewPlugin(this);
 }
 
-hdps::DataTypes SpectralViewPluginFactory::supportedDataTypes() const
+mv::DataTypes SpectralViewPluginFactory::supportedDataTypes() const
 {
     DataTypes supportedTypes;
     supportedTypes.append(PointType);
@@ -1288,7 +1288,7 @@ hdps::DataTypes SpectralViewPluginFactory::supportedDataTypes() const
     return supportedTypes;
 }
 
-hdps::gui::PluginTriggerActions SpectralViewPluginFactory::getPluginTriggerActions(const hdps::Datasets& datasets) const
+mv::gui::PluginTriggerActions SpectralViewPluginFactory::getPluginTriggerActions(const mv::Datasets& datasets) const
 {
     PluginTriggerActions pluginTriggerActions;
 

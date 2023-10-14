@@ -4,7 +4,7 @@
 #include <QMenu>
 #include <QHeaderView>
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 SettingsAction::SettingsAction(SpectralViewPlugin& spectralViewPlugin) :
     WidgetAction(&spectralViewPlugin, "SettingsAction"),

@@ -19,7 +19,7 @@
 #include <iostream>
 
 
-using namespace hdps;
+using namespace mv;
 
 EndmembersModel::EndmembersModel(QObject* parent) :
     QAbstractListModel(parent),
@@ -275,7 +275,7 @@ void EndmembersModel::saveEndmembers(QString name) {
 
     DataHierarchyItems parents;
 
-    hdps::DataHierarchyItem::getParents(_endmembers[0]->getDataset()->getDataHierarchyItem(), parents);
+    mv::DataHierarchyItem::getParents(_endmembers[0]->getDataset()->getDataHierarchyItem(), parents);
 
     auto parent = parents.at(0)->getDataset();
     auto points = parent.get<Points>();

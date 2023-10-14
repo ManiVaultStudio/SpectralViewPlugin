@@ -7,7 +7,7 @@
 class QMenu;
 class SettingsAction;
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 /**
  * Endmembers action class

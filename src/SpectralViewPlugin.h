@@ -19,8 +19,8 @@
 #include <QItemSelectionModel>
 #include <QSplitter>
 
-using namespace hdps::plugin;
-using namespace hdps::util;
+using namespace mv::plugin;
+using namespace mv::util;
 
 class Points;
 class Clusters;
@@ -36,20 +36,20 @@ public:
 
     void init() override;
 
-    void onDataEvent(hdps::DatasetEvent* dataEvent);
+    void onDataEvent(mv::DatasetEvent* dataEvent);
 
     /**
      * Add dataset to the viewer
      * @param dataset Smart pointer to dataset
      */
-    void addDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
-    void updateDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
-    void addNewCluster(const hdps::Dataset<hdps::DatasetImpl>& dataset);
-    void addAverageDataset(const hdps::Dataset<hdps::DatasetImpl>& dataset);
-    void loadData(const hdps::Datasets& datasets) override;
+    void addDataset(const mv::Dataset<mv::DatasetImpl>& dataset);
+    void updateDataset(const mv::Dataset<mv::DatasetImpl>& dataset);
+    void addNewCluster(const mv::Dataset<mv::DatasetImpl>& dataset);
+    void addAverageDataset(const mv::Dataset<mv::DatasetImpl>& dataset);
+    void loadData(const mv::Datasets& datasets) override;
 
 
-    std::tuple<std::vector<float>, std::vector<float>> computeAverageSpectrum(hdps::Dataset<hdps::DatasetImpl> source, unsigned int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
+    std::tuple<std::vector<float>, std::vector<float>> computeAverageSpectrum(mv::Dataset<mv::DatasetImpl> source, unsigned int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
     
 
 public:
@@ -90,17 +90,17 @@ protected slots:
 
 private:
     void initializeImageRGB();
-    void updateSelection(hdps::Dataset<Points> selection);
+    void updateSelection(mv::Dataset<Points> selection);
     //std::vector<float> createRGBImage(int dimR, int dimG, int dimB);
 
-    hdps::Dataset<Points>       _points;                /** Currently loaded points dataset */
+    mv::Dataset<Points>       _points;                /** Currently loaded points dataset */
     std::vector<QString>        _clusterNames;          /** Names of currently loaded cluster datasets */
-    hdps::Dataset<Points>       _angleMap;
+    mv::Dataset<Points>       _angleMap;
     std::vector<float>          _mapAngleData;
-    hdps::Dataset<Images>       _mapAngleImage;
-    hdps::Dataset<Points>       _corMap;
+    mv::Dataset<Images>       _mapAngleImage;
+    mv::Dataset<Points>       _corMap;
     std::vector<float>          _mapCorData;
-    hdps::Dataset<Images>       _mapCorImage;
+    mv::Dataset<Images>       _mapCorImage;
     std::vector<float>          _angleDataset;
     std::vector<float>          _corDataset;
     std::vector<float>          _averageDataset;
@@ -111,7 +111,7 @@ private:
     QItemSelectionModel         _selectionModel;        /** Layers selection model */
     LineplotWidget              _linePlotWidget;        /** Heatmap widget displaying cluster data */
     QSplitter                   _splitter;              /** Splitter which divides the lineplot view and editor */
-    hdps::gui::DropWidget       _dropWidget;            /** Widget allowing users to drop in data */
+    mv::gui::DropWidget       _dropWidget;            /** Widget allowing users to drop in data */
 
     SettingsAction              _settingsAction;        /** Line chart settings action */
 
@@ -119,7 +119,7 @@ private:
     ViewSettingsAction          _viewSettingsAction;    /** Global view settings action */
     WavelengthsRGBAction        _wavelengthsRGBAction;
 
-    hdps::EventListener         _eventListener;         /** Listen to HDPS events */
+    mv::EventListener         _eventListener;         /** Listen to HDPS events */
 };
 
 
@@ -129,7 +129,7 @@ private:
 
 class SpectralViewPluginFactory : public ViewPluginFactory
 {
-    Q_INTERFACES(hdps::plugin::ViewPluginFactory hdps::plugin::PluginFactory)
+    Q_INTERFACES(mv::plugin::ViewPluginFactory mv::plugin::PluginFactory)
         Q_OBJECT
         Q_PLUGIN_METADATA(IID   "nl.tudelft.SpectralViewPlugin"
             FILE  "SpectralViewPlugin.json")
@@ -143,7 +143,7 @@ public:
 
     ViewPlugin* produce() override;
 
-    hdps::DataTypes supportedDataTypes() const override;
+    mv::DataTypes supportedDataTypes() const override;
 
-    PluginTriggerActions getPluginTriggerActions(const hdps::Datasets& datasets) const override;
+    PluginTriggerActions getPluginTriggerActions(const mv::Datasets& datasets) const override;
 };

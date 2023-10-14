@@ -167,5 +167,5 @@ public: // Endmember operations
 protected:
     QVector<Endmember*>                   _endmembers;        /** Endmembers data */
     std::unordered_map<QString, bool>       _clusterVisibility;
-    hdps::EventListener     _eventListener;
+    mv::EventListener     _eventListener;
 };

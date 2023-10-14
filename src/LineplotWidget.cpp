@@ -31,7 +31,7 @@ LineplotWidget::LineplotWidget(SpectralViewPlugin& spectralViewPlugin) :
     setAcceptDrops(true);
     setMouseTracking(true);
 
-    setWindowIcon(hdps::Application::getIconFont("FontAwesome").getIcon("chart-line"));
+    setWindowIcon(mv::Application::getIconFont("FontAwesome").getIcon("chart-line"));
 }
 
 LineplotWidget::~LineplotWidget() {

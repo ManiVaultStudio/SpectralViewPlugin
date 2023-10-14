@@ -14,7 +14,7 @@
 
 #include "SpectralViewPlugin.h"
 
-using namespace hdps::gui;
+using namespace mv::gui;
 
 // =============================================================================
 // Check the number of endmembers to load

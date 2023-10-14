@@ -14,7 +14,7 @@
 
 #include <QMenu>
 
-using namespace hdps::util;
+using namespace mv::util;
 
 class SpectralViewPlugin;
 
@@ -29,7 +29,7 @@ public:
      * @param SpectralViewPlugin Reference to line plot plugin
      * @param dataset Smart pointer to dataset
      */
-    Endmember(SpectralViewPlugin& spectralViewPlugin, const hdps::Dataset<hdps::DatasetImpl>& dataset, int index);
+    Endmember(SpectralViewPlugin& spectralViewPlugin, const mv::Dataset<mv::DatasetImpl>& dataset, int index);
 
     /** Destructor */
     virtual ~Endmember();
@@ -67,7 +67,7 @@ public:
 public: /** Action getters */
 
     EndmembersAction& getEndmembersAction();
-    hdps::Dataset<hdps::DatasetImpl>& getDataset() { return _dataset; }
+    mv::Dataset<mv::DatasetImpl>& getDataset() { return _dataset; }
     std::vector<float> getData() { return _data;  }
     //std::vector<unsigned int> getIndices() { return _indices; }
     GeneralAction& getGeneralAction() { return _generalAction; }
@@ -76,7 +76,7 @@ public: /** Action getters */
 protected:
     SpectralViewPlugin& _spectralViewPlugin;                              /** Reference to line plot plugin */
     bool                                _active;                  /** Whether the layer is active (editable) */  
-    hdps::Dataset<hdps::DatasetImpl>    _dataset;                 /** Smart pointer to endmember dataset */
+    mv::Dataset<mv::DatasetImpl>    _dataset;                 /** Smart pointer to endmember dataset */
     GeneralAction                       _generalAction;
     MapAction                           _mapAction;
     std::vector<float>                  _data;                    /** Smart pointer to endmember data */
