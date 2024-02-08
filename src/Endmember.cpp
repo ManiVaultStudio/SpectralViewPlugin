@@ -1,16 +1,13 @@
 #include "Endmember.h"
-#include "SpectralViewPlugin.h"
+
 #include "SettingsAction.h"
-#include "DataHierarchyItem.h"
+#include "SpectralViewPlugin.h"
 
-#include <util/Exception.h>
 #include <ClusterData/ClusterData.h>
+#include <util/Exception.h>
 
-#include <QPainter>
-#include <QFontMetrics>
 #include <QDebug>
-
-#include <set>
+#include <QFontMetrics>
 
 Endmember::Endmember(SpectralViewPlugin& spectralViewPlugin, const Dataset<DatasetImpl>& dataset, int index) :
     WidgetAction(&spectralViewPlugin, "Endmember"),

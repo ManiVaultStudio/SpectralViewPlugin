@@ -4,13 +4,8 @@
 #include "GeneralAction.h"
 #include "MapAction.h"
 
-#include <util/Interpolation.h>
-#include <event/EventListener.h>
 #include <actions/WidgetAction.h>
 #include <Set.h>
-
-#include <ImageData/Images.h>
-#include <PointData/PointData.h>
 
 #include <QMenu>
 
@@ -42,7 +37,7 @@ public:
     void sendEndmemberRemoved(int row);
     void highlightSelection(int row);
     void setData(std::vector<float> data);
-    void setIndices(std::vector<unsigned int> indices);
+    //void setIndices(std::vector<unsigned int> indices);
     void computeMap(QString endmemberName, std::vector<float> endmemberData, float angle, int mapType, int algorithmType);
     void updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType);
     std::vector<float> resample(std::vector<float> parentDim);
@@ -56,13 +51,13 @@ public:
     //QMenu* getContextMenu(QWidget* parent = nullptr);
 
     /** Activate the endmember */
-    void activate();
+    //void activate();
 
     /** De-activate the endmember */
-    void deactivate();
+    //void deactivate();
 
     /** Get whether the layer is active or not */
-    bool isActive() const;
+    //bool isActive() const;
 
 public: /** Action getters */
 
