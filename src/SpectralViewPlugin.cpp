@@ -127,7 +127,7 @@ void SpectralViewPlugin::init()
         }
 
         // Get points dataset from the core
-        auto candidateDataset = _core->requestDataset(datasetId);
+        auto candidateDataset = mv::data().getDataset(datasetId);
 
         // Points dataset is about to be dropped
         if (dataType == PointType) {
@@ -158,13 +158,11 @@ void SpectralViewPlugin::init()
 
                         if (!candidateDataset->isFull() || candidateDataset->isDerivedData()) {
 
-                            DataHierarchyItems parents;
-                            mv::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
+                            DataHierarchyItems parents = candidateDataset->getDataHierarchyItem().getParents();
                             QString pointName = _points->getGuiName();
 
                             if (!_points->isFull() || _points->isDerivedData()) {
-                                DataHierarchyItems pointParents;
-                                mv::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
+                                DataHierarchyItems pointParents = _points->getDataHierarchyItem().getParents();;
                                 pointName = pointParents.at(0)->getDatasetReference()->getGuiName();
                             }
 
@@ -225,22 +223,19 @@ void SpectralViewPlugin::init()
         }
 
         if (dataType == ClusterType) {
-            // const auto candidateDataset = _core->requestDataset<Clusters>(datasetId);
             const auto description = QString("Visualize every cluster in %1 as one line").arg(candidateDataset->getGuiName());
             bool isNewCluster = true;
 
             if (_points.isValid()) {
 
-                DataHierarchyItems parents;
-                mv::DataHierarchyItem::getParents(candidateDataset->getDataHierarchyItem(), parents);
                 QString pointsGuid = _points->getId();
 
                 if (!_points->isFull() || _points->isDerivedData()) {
-                    DataHierarchyItems pointParents;
-                    mv::DataHierarchyItem::getParents(_points->getDataHierarchyItem(), pointParents);
+                    DataHierarchyItems pointParents = _points->getDataHierarchyItem().getParents();
                     pointsGuid = pointParents.at(0)->getDataset<Points>()->getId();
                 }
 
+                DataHierarchyItems parents = candidateDataset->getDataHierarchyItem().getParents();
                 const auto parent = parents.at(0)->getDataset<Points>();
 
                 if (parent->getNumPoints() == _points->getNumPoints() && parent->getId() == pointsGuid) {
@@ -703,7 +698,7 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
 
     if (children.size() != 0) {
         auto imagesId = children[0].getDatasetId();
-        const auto& images = _core->requestDataset<Images>(imagesId);
+        const auto& images = mv::data().getDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
@@ -782,7 +777,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
 
         const auto& children = _points->getChildren({ ImageType });
         auto imagesId = children[0].getDatasetId();
-        const auto& images = _core->requestDataset<Images>(imagesId);
+        const auto& images = mv::data().getDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
@@ -791,11 +786,11 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
 
         if (algorithmType == 0) {
 
-            _angleMap = _core->createDerivedDataset("endmemberAngleMapPoints", _points);
+            _angleMap = mv::data().createDerivedDataset("endmemberAngleMapPoints", _points);
             
             spectralAngleMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
-            _mapAngleImage = _core->addDataset<Images>("Images", "images", mv::Dataset<mv::DatasetImpl>(*_angleMap));
+            _mapAngleImage = mv::data().createDataset<Images>("Images", "images", mv::Dataset<mv::DatasetImpl>(*_angleMap));
             _mapAngleImage->setText("endmemberAngleMap");
             _mapAngleImage->setType(ImageData::Type::Stack);
             _mapAngleImage->setNumberOfImages(1);
@@ -808,11 +803,11 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
         }
         else {
 
-            _corMap = _core->createDerivedDataset("endmemberCorMapPoints", _points);
+            _corMap = mv::data().createDerivedDataset("endmemberCorMapPoints", _points);
 
             spectralCorrelationMapper(endmemberName, endmemberData, thresholdAngle, mapType);
 
-            _mapCorImage = _core->addDataset<Images>("Images", "images", mv::Dataset<mv::DatasetImpl>(*_corMap));
+            _mapCorImage = mv::data().createDataset<Images>("Images", "images", mv::Dataset<mv::DatasetImpl>(*_corMap));
             _mapCorImage->setText("endmemberCorMap");
             _mapCorImage->setType(ImageData::Type::Stack);
             _mapCorImage->setNumberOfImages(1);
@@ -849,7 +844,7 @@ void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<
     
     const auto& children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetId();
-    const auto& images = _core->requestDataset<Images>(imagesId);
+    const auto& images = mv::data().getDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
     int height = imageSize.height();
@@ -1009,7 +1004,7 @@ void SpectralViewPlugin::spectralCorrelationMapper(QString endmemberName, std::v
 
     const auto& children = _points->getChildren({ ImageType });
     auto imagesId = children[0].getDatasetId();
-    const auto& images = _core->requestDataset<Images>(imagesId);
+    const auto& images = mv::data().getDataset<Images>(imagesId);
     auto imageSize = images->getImageSize();
     int width = imageSize.width();
     int height = imageSize.height();
@@ -1139,7 +1134,7 @@ void SpectralViewPlugin::updateThresholdAngle(QString endmemberName, float thres
 
         const auto& children = _points->getChildren({ ImageType });
         auto imagesId = children[0].getDatasetId();
-        const auto& images = _core->requestDataset<Images>(imagesId);
+        const auto& images = mv::data().getDataset<Images>(imagesId);
         auto imageSize = images->getImageSize();
         int width = imageSize.width();
         int height = imageSize.height();
