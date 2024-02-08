@@ -1,7 +1,9 @@
 #include "MapAction.h"
+
 #include "Endmember.h"
 #include "EndmembersAction.h"
 #include "SpectralViewPlugin.h"
+
 #include "ClusterData/ClusterData.h"
 
 #include <QtCore>
@@ -17,6 +19,13 @@ MapAction::MapAction(Endmember& endmember) :
     _computeAction(this, "Perform algorithm")
 {
     setText("Mapping");
+
+    addAction(&_algorithmAction);
+    addAction(&_mapTypeAction);
+    addAction(&_angleAction);
+    addAction(&_thresholdAction);
+    addAction(&_updateAutoAction);
+    addAction(&_computeAction);
 
     // Set tooltips
     _algorithmAction.setToolTip("Choose algorithm for mapping");
