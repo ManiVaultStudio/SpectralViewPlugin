@@ -12,11 +12,11 @@
 #include "PointData/PointData.h"
 #include "Set.h"
 
-#include <widgets/DropWidget.h>
 #include <actions/HorizontalToolbarAction.h>
+#include <widgets/DropWidget.h>
 
-#include <QList>
 #include <QItemSelectionModel>
+#include <QList>
 #include <QSplitter>
 
 using namespace mv::plugin;
@@ -48,10 +48,8 @@ public:
     void addAverageDataset(const mv::Dataset<mv::DatasetImpl>& dataset);
     void loadData(const mv::Datasets& datasets) override;
 
-
     std::tuple<std::vector<float>, std::vector<float>> computeAverageSpectrum(mv::Dataset<mv::DatasetImpl> source, unsigned int noPoints, std::vector<unsigned int> indices, std::string dataOrigin);
     
-
 public:
 
     /** Get the layers model */
@@ -93,14 +91,14 @@ private:
     void updateSelection(mv::Dataset<Points> selection);
     //std::vector<float> createRGBImage(int dimR, int dimG, int dimB);
 
-    mv::Dataset<Points>       _points;                /** Currently loaded points dataset */
+    mv::Dataset<Points>         _points;                /** Currently loaded points dataset */
     std::vector<QString>        _clusterNames;          /** Names of currently loaded cluster datasets */
-    mv::Dataset<Points>       _angleMap;
+    mv::Dataset<Points>         _angleMap;
     std::vector<float>          _mapAngleData;
-    mv::Dataset<Images>       _mapAngleImage;
-    mv::Dataset<Points>       _corMap;
+    mv::Dataset<Images>         _mapAngleImage;
+    mv::Dataset<Points>         _corMap;
     std::vector<float>          _mapCorData;
-    mv::Dataset<Images>       _mapCorImage;
+    mv::Dataset<Images>         _mapCorImage;
     std::vector<float>          _angleDataset;
     std::vector<float>          _corDataset;
     std::vector<float>          _averageDataset;
@@ -111,7 +109,7 @@ private:
     QItemSelectionModel         _selectionModel;        /** Layers selection model */
     LineplotWidget              _linePlotWidget;        /** Heatmap widget displaying cluster data */
     QSplitter                   _splitter;              /** Splitter which divides the lineplot view and editor */
-    mv::gui::DropWidget       _dropWidget;            /** Widget allowing users to drop in data */
+    mv::gui::DropWidget         _dropWidget;            /** Widget allowing users to drop in data */
 
     SettingsAction              _settingsAction;        /** Line chart settings action */
 
@@ -119,7 +117,7 @@ private:
     ViewSettingsAction          _viewSettingsAction;    /** Global view settings action */
     WavelengthsRGBAction        _wavelengthsRGBAction;
 
-    mv::EventListener         _eventListener;         /** Listen to HDPS events */
+    mv::EventListener           _eventListener;         /** Listen to HDPS events */
 };
 
 

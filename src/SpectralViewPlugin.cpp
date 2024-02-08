@@ -1,20 +1,18 @@
-// Code based on HeatMapPlugin
-#pragma once
-
 #include "SpectralViewPlugin.h"
+
 #include "EndmembersCheckDialog.h"
 
-#include "PointData/PointData.h"
 #include "ClusterData/ClusterData.h"
 #include "event/Event.h"
 #include "ImageData/Images.h"
+#include "PointData/PointData.h"
 
 #include "DataHierarchyItem.h"
 #include "DatasetsMimeData.h"
 
+#include <iostream>
 #include <QtCore>
 #include <QtDebug>
-#include <iostream>
 
 #include <tuple>
 #define _USE_MATH_DEFINES
