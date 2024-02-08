@@ -388,6 +388,8 @@ void SpectralViewPlugin::onDataEvent(mv::DatasetEvent* dataEvent)
                     }                    
                 }
             }
+
+            break;
         }
 
         // Points dataset selection has changed
@@ -795,8 +797,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
             _mapAngleImage->setImageSize(QSize(width, height));
             _mapAngleImage->setNumberOfComponentsPerPixel(1);
 
-            events().notifyDatasetAdded(_angleMap);
-            events().notifyDatasetAdded(_mapAngleImage);
+            events().notifyDatasetDataChanged(_mapAngleImage);
 
         }
         else {
@@ -812,8 +813,7 @@ void SpectralViewPlugin::updateMap(QString endmemberName, std::vector<float> end
             _mapCorImage->setImageSize(QSize(width, height));
             _mapCorImage->setNumberOfComponentsPerPixel(1);
 
-            events().notifyDatasetAdded(_corMap);
-            events().notifyDatasetAdded(_mapCorImage);
+            events().notifyDatasetDataChanged(_mapCorImage);
         }
     }
     else {
@@ -902,7 +902,7 @@ void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<
         for (int x = width - 1; x >= 0; x--) {
             float sum = 0;
             float pointSum = 0;
-            int index = y * width + x;
+            int64_t index = static_cast<int64_t>(y) * width + x;
 
         //    if (_points->isFull()) {
                 for (unsigned int v = 0; v < numDimensions; v++) {
@@ -991,11 +991,13 @@ void SpectralViewPlugin::spectralAngleMapper(QString endmemberName, std::vector<
         }
     }
 
+    _angleMap->setData(_mapAngleData.data(), noPoints, imgDim);
+    events().notifyDatasetDataChanged(_angleMap);
+
     if (imgDim == 1) {
         _angleMap->setDimensionNames({ endmemberName });
+        events().notifyDatasetDataDimensionsChanged(_angleMap);
     }
-
-    _angleMap->setData(_mapAngleData.data(), noPoints, imgDim);
 }
 
 void SpectralViewPlugin::spectralCorrelationMapper(QString endmemberName, std::vector<float> endmemberData, float threshold, int mapType) {
@@ -1059,7 +1061,7 @@ void SpectralViewPlugin::spectralCorrelationMapper(QString endmemberName, std::v
         for (int x = width - 1; x >= 0; x--) {
             float sum = 0;
             float pointSum = 0;
-            int index = y * width + x;
+            int64_t index = static_cast<int64_t>(y) * width + x;
 
             for (unsigned int v = 0; v < numDimensions; v++) {
                 auto pointValue = _points->getValueAt(index * numDimensions + v);
@@ -1119,11 +1121,14 @@ void SpectralViewPlugin::spectralCorrelationMapper(QString endmemberName, std::v
         }
     }
 
+    _corMap->setData(_mapCorData.data(), noPoints, imgDim);
+    events().notifyDatasetDataChanged(_corMap);
+
     if (imgDim == 1) {
         _corMap->setDimensionNames({ endmemberName });
+        events().notifyDatasetDataDimensionsChanged(_corMap);
     }
 
-    _corMap->setData(_mapCorData.data(), noPoints, imgDim);
 }
 
 void SpectralViewPlugin::updateThresholdAngle(QString endmemberName, float threshold, int mapType, int algorithmType) {
@@ -1162,7 +1167,7 @@ void SpectralViewPlugin::updateThresholdAngle(QString endmemberName, float thres
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
 
-                int index = y * width + x;
+                int64_t index = static_cast<int64_t>(y) * width + x;
 
                 if (algorithmType == 0) {
 
