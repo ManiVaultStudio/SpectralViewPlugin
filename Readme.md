@@ -1,11 +1,14 @@
 
 # Spectral Viewer Plugin [![Actions Status](https://github.com/ManiVaultStudio/SpectralViewPlugin/actions/workflows/build.yml/badge.svg)](https://github.com/ManiVaultStudio/SpectralViewPlugin/actions)
-Viewer plugin for hyperspectral data in the ManiVault framework.
+Viewer plugin for hyperspectral image data in the [ManiVault](https://github.com/ManiVaultStudio/core) framework.
 
 ```bash
 git clone git@github.com:ManiVaultStudio/SpectralViewPlugin.git
 ```
-![Spectral Viewer together with an image viewer and scatterplot](https://github.com/ManiVaultStudio/core/assets/58806453/1957eb15-af49-4e2a-bea5-752a6f1fab5c "Spectral Viewer")
+<p align="center">
+  <img src="https://github.com/ManiVaultStudio/core/assets/58806453/1957eb15-af49-4e2a-bea5-752a6f1fab5c" alt="t-SNE and HSNE embeddings">
+  Spectral viewer (center bottom) together with an image viewer and scatterplot, showing the average spectra of three sets of pixels (clusters in the t-SNE embedding). The image viewer shows a false-color representation of the data - the spectral viewer is used to set the wavelengths that are mapped to the RGB channels.
+</p>
 
 ## Usage
 How to use:
