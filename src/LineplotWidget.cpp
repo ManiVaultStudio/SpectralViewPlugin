@@ -48,34 +48,73 @@ void LineplotWidget::addDataOption(const QString option)
 
 void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions, std::string dataOrigin)
 {
-    std::string _jsonObject = "";
+    assert(dimNames.size() == numDimensions);
 
-    //qDebug() << "Setting data " << QString::fromStdString(dataOrigin);
+    // Check dimension names before parsing data
+    std::vector<std::string> numericDimNames;
 
-    std::string spectra;
+    // check if dimension name contains a) only numbers or "." b) numbers and trailing units c) text
+    // if a) use the number b) remove the unit c) replace names with numeric dimension count
+    auto determineNumberAndExtract = [](const std::string & input) -> std::pair<bool, std::string> {
+        std::regex numberRegex(R"(\d+(\.\d+)?(\s*[a-zA-Z]+)?)");
+        std::smatch match;
+
+        if (std::regex_match(input, match, numberRegex)) {
+            std::string extractedNumbers = std::regex_replace(match[0].str(), std::regex(R"([^\d.])"), "");
+            return std::make_pair(true, extractedNumbers);
+        }
+        else {
+            return std::make_pair(false, "00");
+        }
+    };
+
+    bool replaceAllNames = false;
+    for (const auto& dimName : dimNames)
+    {
+        auto res = determineNumberAndExtract(dimName.toStdString());
+
+        if (!res.first)
+        {
+            replaceAllNames = true;
+            break;
+        }
+
+        numericDimNames.push_back(res.second);
+    }
+
+    if (replaceAllNames)
+    {
+        numericDimNames.resize(numDimensions);
+        for (size_t i = 0; i < numericDimNames.size(); i++)
+            numericDimNames[i] = std::to_string(i);
+    }
+
+    // create json string that will be passed to js
+    std::string jsonObject = "[\n";
 
     for (int i = 0; i < numDimensions; i++) {
-        std::string yVal = std::to_string(yVals.at(i));
-        std::string ci_left = std::to_string(confIntervalLeft.at(i));
-        std::string ci_right = std::to_string(confIntervalRight.at(i));
-        spectra = spectra + "{ \"x\": " + dimNames.at(i).toStdString() + ", \"y\": " + yVal +
-                    ", \"CI_Left\": " + ci_left + ", \"CI_Right\": " + ci_right;
+        jsonObject +=
+            "{ \"x\": " + 
+            numericDimNames.at(i) +
+            ", \"y\": " + 
+            std::to_string(yVals.at(i)) +
+            ", \"CI_Left\": " + 
+            std::to_string(confIntervalLeft.at(i)) +
+            ", \"CI_Right\": " + 
+            std::to_string(confIntervalRight.at(i)) +
+            " }";
 
-        if (i == numDimensions - 1)
-            spectra = spectra + +" }";
-        else
-            spectra = spectra + " },\n";
+        if (i < numDimensions - 1)
+            jsonObject += ",\n";
     }
 
-    _jsonObject = "[\n" + spectra + "\n]";
-
-    //qDebug() << _jsonObject.c_str();
+    jsonObject += "\n]";
 
     if (dataOrigin == "selection") {
-        emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
+        emit _communicationObject->qt_setData(QString(jsonObject.c_str()));
     }
     else if (dataOrigin == "endmember") {
-        emit _communicationObject->qt_setEndmember(QString(_jsonObject.c_str()));
+        emit _communicationObject->qt_setEndmember(QString(jsonObject.c_str()));
     }
 }
 
