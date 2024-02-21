@@ -1,22 +1,20 @@
 #include "EndmembersModel.h"
 
 #include <Application.h>
-#include <util/Exception.h>
-#include <event/Event.h>
-#include <PointData/PointData.h>
 #include <ClusterData/ClusterData.h>
+#include <DataHierarchyItem.h>
+#include <event/Event.h>
 #include <ImageData/ImageData.h>
+#include <PointData/PointData.h>
+#include <util/Exception.h>
 
-#include "SpectralViewPlugin.h"
-
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QPainter>
-#include <QFileDialog>
 
-#include <stdexcept>
 #include <iomanip>
-#include <DataHierarchyItem.h>
 #include <iostream>
+#include <stdexcept>
 
 
 using namespace mv;
@@ -273,13 +271,11 @@ void EndmembersModel::updateClustersEndmember(QString datasetGuid, int index, QS
 
 void EndmembersModel::saveEndmembers(QString name) {
 
-    DataHierarchyItems parents;
-
-    mv::DataHierarchyItem::getParents(_endmembers[0]->getDataset()->getDataHierarchyItem(), parents);
+    DataHierarchyItems parents = _endmembers[0]->getDataset()->getDataHierarchyItem().getParents();
 
     auto parent = parents.at(0)->getDataset();
     auto points = parent.get<Points>();
-    auto dimNames = points->getDimensionNames();
+    auto& dimNames = points->getDimensionNames();
     auto noDim = points->getNumDimensions();
 
     std::vector<float> dimensions(noDim);

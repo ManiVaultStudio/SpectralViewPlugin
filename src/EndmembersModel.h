@@ -1,7 +1,7 @@
 #pragma once
 
-#include "event/EventListener.h"
 #include "Endmember.h"
+#include "event/EventListener.h"
 
 #include <QAbstractListModel>
 

@@ -1,7 +1,9 @@
 #include "GeneralAction.h"
+
 #include "Endmember.h"
 #include "EndmembersAction.h"
 #include "SpectralViewPlugin.h"
+
 #include "ClusterData/ClusterData.h"
 
 #include <QtCore>
@@ -16,13 +18,17 @@ GeneralAction::GeneralAction(Endmember& endmember, int index) :
 {
     setText("General");
 
+    addAction(&_visibleAction);
+    addAction(&_datasetNameAction);
+    addAction(&_colorAction);
+    addAction(&_nameAction);
+
     _datasetNameAction.setEnabled(false);
 
     // Set tooltips
     _visibleAction.setToolTip("Visibility of the endmember");
     _datasetNameAction.setToolTip("Name of the endmember dataset");
     _nameAction.setToolTip("Name of the endmember");
-
 
     auto dataset = _endmember.getDataset();
     auto type = dataset->getDataType();

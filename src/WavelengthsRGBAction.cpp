@@ -1,10 +1,9 @@
 #include "WavelengthsRGBAction.h"
+
 #include "SpectralViewPlugin.h"
 
 #include <Application.h> 
 #include <QHBoxLayout>
-
-
 
 using namespace mv;
 

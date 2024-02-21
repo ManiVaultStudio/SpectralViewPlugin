@@ -1,8 +1,8 @@
 #include "SettingsAction.h"
+
 #include "SpectralViewPlugin.h"
 
 #include <QMenu>
-#include <QHeaderView>
 
 using namespace mv::gui;
 
