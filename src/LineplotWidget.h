@@ -1,14 +1,12 @@
 #pragma once
 
-#include "EndmembersModel.h"
 #include "widgets/WebWidget.h"
-#include <QMouseEvent>
 
 class QWebEngineView;
 class QWebEnginePage;
 class QWebChannel;
 
-class Cluster;
+class QMouseEvent;
 
 class SpectralViewPlugin;
 class LineplotWidget;
@@ -44,11 +42,11 @@ class LineplotWidget : public mv::gui::WebWidget
 {
     Q_OBJECT
 public:
-    LineplotWidget(SpectralViewPlugin& spectralViewPlugin);
+    LineplotWidget();
     ~LineplotWidget() override;
     
     void addDataOption(const QString option);
-    void setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions, std::string dataOrigin);
+    void setData(const std::vector<float>& yVals, const std::vector<float>& confIntervalLeft, const std::vector<float>& confIntervalRight, const std::vector<QString>& dimNames, const int numDimensions, const std::string& dataOrigin);
     void setEndmemberColor(QColor endmemberColor, int row);
     void setEndmemberVisibility(bool toggled, int row);
     void setEndmemberRemoved(int row);

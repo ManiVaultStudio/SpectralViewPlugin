@@ -1,13 +1,15 @@
 #include "LineplotWidget.h"
 
-#include "ClusterData/ClusterData.h"
-#include "util/FileUtil.h"
-
-#include <QVBoxLayout>
+#include "Application.h"
 
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
+#include <regex>
+#include <string>
+#include <utility>
 
+#include <QMouseEvent>
 
 LinePlotCommunicationObject::LinePlotCommunicationObject(LineplotWidget* parent)
     :
@@ -21,7 +23,7 @@ void LinePlotCommunicationObject::js_setRGBWavelength(float wavelength, int inde
     _parent->js_setRGBWavelength(wavelength, index);
 }
 
-LineplotWidget::LineplotWidget(SpectralViewPlugin& spectralViewPlugin) :
+LineplotWidget::LineplotWidget() :
     loaded(false)
 {
     Q_INIT_RESOURCE(lineplot_resources);
@@ -46,7 +48,7 @@ void LineplotWidget::addDataOption(const QString option)
         dataOptionBuffer.append(option);
 }
 
-void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions, std::string dataOrigin)
+void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<float>& confIntervalLeft, const std::vector<float>& confIntervalRight, const std::vector<QString>& dimNames, const int numDimensions, const std::string& dataOrigin)
 {
     assert(dimNames.size() == numDimensions);
 
