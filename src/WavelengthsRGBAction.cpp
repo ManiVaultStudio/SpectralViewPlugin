@@ -46,7 +46,6 @@ WavelengthsRGBAction::WavelengthsRGBAction(SpectralViewPlugin& spectralViewPlugi
         };
 
     connect(&_redWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget, dimToFloat](const QString& newWavelength) {
-
         lineplotWidget.updateRGBLine(dimToFloat(newWavelength), 0);
         });
     connect(&_greenWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget, dimToFloat](const QString& newWavelength) {

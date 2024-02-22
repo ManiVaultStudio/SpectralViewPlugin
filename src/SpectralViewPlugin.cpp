@@ -10,13 +10,13 @@
 #include "DataHierarchyItem.h"
 #include "DatasetsMimeData.h"
 
-#include <iostream>
 #include <QtCore>
 #include <QtDebug>
 
-#include <tuple>
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <iostream>
+#include <tuple>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.SpectralViewPlugin")
 
@@ -631,10 +631,6 @@ void SpectralViewPlugin::initializeImageRGB() {
     _wavelengthsRGBAction.getRedWavelengthAction().setCurrentText(dimR);
     _wavelengthsRGBAction.getGreenWavelengthAction().setCurrentText(dimG);
     _wavelengthsRGBAction.getBlueWavelengthAction().setCurrentText(dimB);
-
-    //_wavelengthsRGBAction.getRedWavelengthAction().setDefaultText(dimR);
-    //_wavelengthsRGBAction.getGreenWavelengthAction().setDefaultText(dimG);
-    //_wavelengthsRGBAction.getBlueWavelengthAction().setDefaultText(dimB);
 }
 
 void SpectralViewPlugin::changeRGBWavelengths(const float wavelength, int index) {

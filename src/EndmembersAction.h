@@ -1,10 +1,10 @@
 #pragma once
 
-#include "actions/Actions.h"
+#include "actions/GroupsAction.h"
+#include "actions/WidgetAction.h"
 
 #include <QRandomGenerator>
 
-class QMenu;
 class SettingsAction;
 
 using namespace mv::gui;

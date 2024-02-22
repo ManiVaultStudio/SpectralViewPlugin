@@ -4,15 +4,15 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <iostream>
 #include <regex>
 #include <string>
 #include <utility>
 
+#include <QColor>
 #include <QMouseEvent>
 
-LinePlotCommunicationObject::LinePlotCommunicationObject(LineplotWidget* parent)
-    :
+LinePlotCommunicationObject::LinePlotCommunicationObject(LineplotWidget* parent) :
+    mv::gui::WebCommunicationObject(),
     _parent(parent)
 {
 
@@ -24,10 +24,13 @@ void LinePlotCommunicationObject::js_setRGBWavelength(float wavelength, int inde
 }
 
 LineplotWidget::LineplotWidget() :
+    mv::gui::WebWidget(),
+    _communicationObject(new LinePlotCommunicationObject(this)),
+    dataOptionBuffer(),
     loaded(false)
 {
     Q_INIT_RESOURCE(lineplot_resources);
-    _communicationObject = new LinePlotCommunicationObject(this);
+
     init(_communicationObject);
     
     setAcceptDrops(true);

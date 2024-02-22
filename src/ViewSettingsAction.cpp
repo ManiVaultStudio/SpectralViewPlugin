@@ -1,4 +1,5 @@
 #include "ViewSettingsAction.h"
+
 #include "SpectralViewPlugin.h"
 
 #include <Application.h> 

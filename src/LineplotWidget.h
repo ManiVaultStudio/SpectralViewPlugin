@@ -2,10 +2,6 @@
 
 #include "widgets/WebWidget.h"
 
-class QWebEngineView;
-class QWebEnginePage;
-class QWebChannel;
-
 class QMouseEvent;
 
 class SpectralViewPlugin;
