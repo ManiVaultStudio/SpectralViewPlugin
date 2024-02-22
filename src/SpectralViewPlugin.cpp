@@ -10,13 +10,13 @@
 #include "DataHierarchyItem.h"
 #include "DatasetsMimeData.h"
 
-#include <iostream>
 #include <QtCore>
 #include <QtDebug>
 
-#include <tuple>
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <iostream>
+#include <tuple>
 
 Q_PLUGIN_METADATA(IID "nl.tudelft.SpectralViewPlugin")
 
@@ -28,7 +28,7 @@ SpectralViewPlugin::SpectralViewPlugin(const PluginFactory* factory) :
     _model(this),
     _selectionModel(&_model),
     _splitter(Qt::Horizontal, &getWidget()),
-    _linePlotWidget(*this),
+    _linePlotWidget(),
     _dropWidget(&_linePlotWidget),
     _mainToolbarAction(this, "Main Toolbar"),
     _settingsAction(*this),
@@ -415,35 +415,32 @@ void SpectralViewPlugin::onDataEvent(mv::DatasetEvent* dataEvent)
 void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
     
     auto type = dataset->getDataType();
-    auto& parent = _points;
     
     if (type == PointType) {
 
-        auto numDimensions = parent.get<Points>()->getNumDimensions();
-
         auto points = dataset.get<Points>();
-        auto noPoints = points->getNumPoints();
+        auto numPoints = points->getNumPoints();
         auto& indices = points->indices;
 
         if (indices.size() != 0) {
-            for (unsigned int i = 0; i < noPoints; i++) {
+            for (unsigned int i = 0; i < numPoints; i++) {
 
                 auto endmember = new Endmember(*this, dataset, -1);
                 _model.addEndmember(endmember, -1);
 
-                const auto& endmemberData = computeAverageSpectrum(parent, 1u, { indices[i] }, "endmember");
+                const auto& endmemberData = computeAverageSpectrum(_points, 1u, { indices[i] }, "endmember");
                 endmember->setData(std::get<0>(endmemberData));
                 //endmember->setIndices(indices);
             }
         }
         else {
             auto numDimensions = points->getNumDimensions();
-            auto dimNames = points->getDimensionNames();
+            const auto& dimNames = points->getDimensionNames();
 
             std::vector<float> endmemberData(numDimensions);
             std::vector<float> confInterval(numDimensions);
 
-            for (unsigned int i = 0; i < noPoints; i++) {
+            for (size_t i = 0; i < numPoints; i++) {
                 
                 for (unsigned int v = 0; v < numDimensions; v++) {
                     endmemberData[v] = points->getValueAt(i * numDimensions + v);
@@ -462,8 +459,7 @@ void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
         auto& clusters = dataset.get<Clusters>()->getClusters();
         auto noClusters = clusters.length();
 
-        auto& parent = _points;
-        auto numDimensions = parent->getNumDimensions();
+        auto numDimensions = _points->getNumDimensions();
 
         _model.saveEndmemberClusterVisibility(dataset->getId());
         // remove clusters of this dataset
@@ -487,7 +483,7 @@ void SpectralViewPlugin::addDataset(const Dataset<DatasetImpl>& dataset) {
             average.resize(numDimensions);
             std.resize(numDimensions);
 
-            const auto& endmemberData = computeAverageSpectrum(parent, noPointsCluster, indices, "endmember");
+            const auto& endmemberData = computeAverageSpectrum(_points, noPointsCluster, indices, "endmember");
             const auto& computedAvg = std::get<0>(endmemberData);
             const auto& computedStd = std::get<1>(endmemberData);
 
@@ -592,7 +588,7 @@ void SpectralViewPlugin::initializeImageRGB() {
 
     QStringList dimensionNames;
     auto numDimensions = _points->getNumDimensions();
-    auto& dimNames = _points->getDimensionNames();
+    const auto& dimNames = _points->getDimensionNames();
 
     // Populate dimension names
     if (dimNames.size() == _points->getNumDimensions()) {
@@ -618,7 +614,7 @@ void SpectralViewPlugin::initializeImageRGB() {
     float step = dimNames.at(1).toFloat() - dimNames.at(0).toFloat();
 
     for (unsigned int v = 0; v < numDimensions; v++) {
-        auto dimName = dimNames.at(v);
+        const auto& dimName = dimNames.at(v);
         float dimValue = dimName.toFloat();
 
         if (abs(wavelengthR - dimValue) < step) {
@@ -635,24 +631,27 @@ void SpectralViewPlugin::initializeImageRGB() {
     _wavelengthsRGBAction.getRedWavelengthAction().setCurrentText(dimR);
     _wavelengthsRGBAction.getGreenWavelengthAction().setCurrentText(dimG);
     _wavelengthsRGBAction.getBlueWavelengthAction().setCurrentText(dimB);
-
-    //_wavelengthsRGBAction.getRedWavelengthAction().setDefaultText(dimR);
-    //_wavelengthsRGBAction.getGreenWavelengthAction().setDefaultText(dimG);
-    //_wavelengthsRGBAction.getBlueWavelengthAction().setDefaultText(dimB);
 }
 
 void SpectralViewPlugin::changeRGBWavelengths(const float wavelength, int index) {
 
-    QString newValue = QString::number(wavelength);
+    auto setWavelengthText = [wavelength](OptionAction& opt) -> void {
+        QString newText = QString::number(wavelength);
+
+        if (opt.getCurrentText().startsWith("Dim "))
+            newText.prepend("Dim ");
+
+        opt.setCurrentText(newText);
+    };
 
     if (index == 0) {
-        _wavelengthsRGBAction.getRedWavelengthAction().setCurrentText(newValue);
+        setWavelengthText(_wavelengthsRGBAction.getRedWavelengthAction());
     }
     else if (index == 1) {
-        _wavelengthsRGBAction.getGreenWavelengthAction().setCurrentText(newValue);
+        setWavelengthText(_wavelengthsRGBAction.getGreenWavelengthAction());
     }
     else if (index == 2) {
-        _wavelengthsRGBAction.getBlueWavelengthAction().setCurrentText(newValue);
+        setWavelengthText(_wavelengthsRGBAction.getBlueWavelengthAction());
     }
 
 }
@@ -661,16 +660,16 @@ void SpectralViewPlugin::updateSelection(Dataset<Points> selection) {
 
     if (selection.isValid()) {
        
-        auto selectedIndices = selection->indices;
+        const auto& selectedIndices = selection->indices;
 
         if (selectedIndices == _prevSelection)
             return;
 
         _prevSelection = selectedIndices;
-        auto noSelectedPoints = selection->getSelectionSize();
+        auto noSelectedPoints = _prevSelection.size();
 
         if (noSelectedPoints > 0) {
-            computeAverageSpectrum(_points, noSelectedPoints, selectedIndices, "selection");
+            computeAverageSpectrum(_points, noSelectedPoints, _prevSelection, "selection");
         }
         
     }
@@ -686,7 +685,7 @@ void SpectralViewPlugin::setSelection(std::vector<unsigned int> indices) {
 }
 */
 
-std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAverageSpectrum(Dataset<DatasetImpl> source, unsigned int noPoints, std::vector<unsigned int> indices, std::string dataOrigin) {
+std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAverageSpectrum(const Dataset<DatasetImpl>& source, size_t noSelPoints, const std::vector<unsigned int>& selIndices, const std::string& dataOrigin) {
 
     auto points = source.get<Points>();
     
@@ -706,9 +705,9 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
         std::vector<float> confIntervalLeft(numDimensions);
         std::vector<float> confIntervalRight(numDimensions);
 
-        points->visitData([this, points, numDimensions, noPoints, &indices, &averageSpectrum, &standardDeviation, &confIntervalRight, &confIntervalLeft](auto pointData) {
-            for (unsigned int i = 0; i < noPoints; i++) {
-                const auto index = indices.at(i);
+        points->visitData([this, points, numDimensions, noSelPoints, &selIndices, &averageSpectrum, &standardDeviation, &confIntervalRight, &confIntervalLeft](auto pointData) {
+            for (unsigned int i = 0; i < noSelPoints; i++) {
+                const auto index = selIndices.at(i);
                 const auto& spectrum = pointData[index];
 
                 for (unsigned int v = 0; v < numDimensions; v++) {
@@ -717,12 +716,12 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
             }
 
             for (unsigned int v = 0; v < numDimensions; v++) {
-                averageSpectrum[v] = noPoints == 0 ? 0 : averageSpectrum[v] / noPoints;
+                averageSpectrum[v] = noSelPoints == 0 ? 0 : averageSpectrum[v] / noSelPoints;
             }
 
-            if (noPoints > 1) {
-                for (unsigned int i = 0; i < noPoints; i++) {
-                    const auto index = indices.at(i);
+            if (noSelPoints > 1) {
+                for (unsigned int i = 0; i < noSelPoints; i++) {
+                    const auto index = selIndices.at(i);
                     const auto& spectrum = pointData[index];
 
                     for (unsigned int v = 0; v < numDimensions; v++) {
@@ -733,7 +732,7 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
                 }
 
                 for (unsigned int v = 0; v < numDimensions; v++) {
-                    const auto std = sqrt(standardDeviation[v] / noPoints);
+                    const auto std = sqrt(standardDeviation[v] / noSelPoints);
                     const auto mean = averageSpectrum[v];
                     standardDeviation[v] = std;
                     confIntervalRight[v] = mean + std;
@@ -1268,7 +1267,7 @@ void SpectralViewPlugin::computeAverageDataset(int width, int height, int numDim
 // Factory
 // =============================================================================
 
-QIcon SpectralViewPluginFactory::getIcon() const
+QIcon SpectralViewPluginFactory::getIcon(const QColor& color) const
 {
     return Application::getIconFont("FontAwesome").getIcon("chart-line");
 }
@@ -1300,7 +1299,7 @@ mv::gui::PluginTriggerActions SpectralViewPluginFactory::getPluginTriggerActions
         if (numberOfDatasets >= 1) {
             if (datasets.first()->getDataType() == PointType) {
                 auto pluginTriggerAction = new PluginTriggerAction(const_cast<SpectralViewPluginFactory*>(this), this, "Spectral Viewer", "Load dataset in spectral Viewer", getIcon(), [this, getInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
-                    for (auto dataset : datasets)
+                    for (const auto& dataset : datasets)
                         getInstance()->loadData(Datasets({ dataset }));
                     });
 

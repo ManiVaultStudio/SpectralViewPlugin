@@ -1,16 +1,18 @@
 #include "LineplotWidget.h"
 
-#include "ClusterData/ClusterData.h"
-#include "util/FileUtil.h"
-
-#include <QVBoxLayout>
+#include "Application.h"
 
 #include <cassert>
-#include <iostream>
+#include <cstdlib>
+#include <regex>
+#include <string>
+#include <utility>
 
+#include <QColor>
+#include <QMouseEvent>
 
-LinePlotCommunicationObject::LinePlotCommunicationObject(LineplotWidget* parent)
-    :
+LinePlotCommunicationObject::LinePlotCommunicationObject(LineplotWidget* parent) :
+    mv::gui::WebCommunicationObject(),
     _parent(parent)
 {
 
@@ -21,11 +23,14 @@ void LinePlotCommunicationObject::js_setRGBWavelength(float wavelength, int inde
     _parent->js_setRGBWavelength(wavelength, index);
 }
 
-LineplotWidget::LineplotWidget(SpectralViewPlugin& spectralViewPlugin) :
+LineplotWidget::LineplotWidget() :
+    mv::gui::WebWidget(),
+    _communicationObject(new LinePlotCommunicationObject(this)),
+    dataOptionBuffer(),
     loaded(false)
 {
     Q_INIT_RESOURCE(lineplot_resources);
-    _communicationObject = new LinePlotCommunicationObject(this);
+
     init(_communicationObject);
     
     setAcceptDrops(true);
@@ -46,36 +51,73 @@ void LineplotWidget::addDataOption(const QString option)
         dataOptionBuffer.append(option);
 }
 
-void LineplotWidget::setData(std::vector<float>& yVals, std::vector<float>& confIntervalLeft, std::vector<float>& confIntervalRight, std::vector<QString>& dimNames, const int numDimensions, std::string dataOrigin)
+void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<float>& confIntervalLeft, const std::vector<float>& confIntervalRight, const std::vector<QString>& dimNames, const int numDimensions, const std::string& dataOrigin)
 {
-    std::string _jsonObject = "";
+    assert(dimNames.size() == numDimensions);
 
-    //qDebug() << "Setting data " << QString::fromStdString(dataOrigin);
+    // Check dimension names before parsing data
+    std::vector<QString> numericDimNames;
 
-    std::string spectra;
+    // check if dimension name contains a) only numbers or "." b) numbers and trailing units c) text
+    // if a) use the number b) remove the unit c) replace names with numeric dimension count
+    // https://godbolt.org/z/E4b1GbM19
+    auto determineNumberAndExtract = [](const std::string & input) -> std::pair<bool, std::string> {
+        std::regex pattern(R"(^\D*?\s*?(\d+(\.\d+)?)\D*?$)");
+        std::smatch match;
+
+        if (std::regex_search(input, match, pattern) && match.size() > 1)
+            return std::make_pair(true, match[1]);
+
+        return std::make_pair(false, "");
+    };
+
+    bool replaceAllNames = false;
+    for (const auto& dimName : dimNames)
+    {
+        auto res = determineNumberAndExtract(dimName.toStdString());
+
+        if (!res.first)
+        {
+            replaceAllNames = true;
+            break;
+        }
+
+        numericDimNames.push_back(QString::fromStdString(res.second));
+    }
+
+    if (replaceAllNames)
+    {
+        numericDimNames.resize(numDimensions);
+        for (size_t i = 0; i < numericDimNames.size(); i++)
+            numericDimNames[i] = QString::number(i);
+    }
+
+    // create json string that will be passed to js
+    QString jsonObject = "[\n";
 
     for (int i = 0; i < numDimensions; i++) {
-        std::string yVal = std::to_string(yVals.at(i));
-        std::string ci_left = std::to_string(confIntervalLeft.at(i));
-        std::string ci_right = std::to_string(confIntervalRight.at(i));
-        spectra = spectra + "{ \"x\": " + dimNames.at(i).toStdString() + ", \"y\": " + yVal +
-                    ", \"CI_Left\": " + ci_left + ", \"CI_Right\": " + ci_right;
+        jsonObject +=
+            "{ \"x\": " + 
+            numericDimNames.at(i) +
+            ", \"y\": " + 
+            QString::number(yVals.at(i)) +
+            ", \"CI_Left\": " + 
+            QString::number(confIntervalLeft.at(i)) +
+            ", \"CI_Right\": " + 
+            QString::number(confIntervalRight.at(i)) +
+            " }";
 
-        if (i == numDimensions - 1)
-            spectra = spectra + +" }";
-        else
-            spectra = spectra + " },\n";
+        if (i < numDimensions - 1)
+            jsonObject += ",\n";
     }
 
-    _jsonObject = "[\n" + spectra + "\n]";
-
-    //qDebug() << _jsonObject.c_str();
+    jsonObject += "\n]";
 
     if (dataOrigin == "selection") {
-        emit _communicationObject->qt_setData(QString(_jsonObject.c_str()));
+        emit _communicationObject->qt_setData(jsonObject);
     }
     else if (dataOrigin == "endmember") {
-        emit _communicationObject->qt_setEndmember(QString(_jsonObject.c_str()));
+        emit _communicationObject->qt_setEndmember(jsonObject);
     }
 }
 

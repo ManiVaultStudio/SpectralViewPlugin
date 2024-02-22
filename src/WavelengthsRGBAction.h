@@ -1,8 +1,8 @@
 #pragma once
 
-#include <actions/WidgetAction.h>
-#include <actions/ToggleAction.h>
 #include <actions/OptionAction.h>
+#include <actions/ToggleAction.h>
+#include <actions/WidgetAction.h>
 
 using namespace mv::gui;
 

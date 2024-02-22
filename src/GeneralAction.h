@@ -1,10 +1,9 @@
 #pragma once
 
-#include <actions/GroupAction.h>
-#include <actions/ToggleAction.h>
-#include <actions/StringAction.h>
 #include <actions/ColorAction.h>
-#include <actions/DecimalAction.h>
+#include <actions/GroupAction.h>
+#include <actions/StringAction.h>
+#include <actions/ToggleAction.h>
 
 class Endmember;
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <actions/WidgetAction.h>
 #include <actions/ToggleAction.h>
+#include <actions/WidgetAction.h>
 
 using namespace mv::gui;
 

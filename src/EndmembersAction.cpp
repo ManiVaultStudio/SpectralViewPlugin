@@ -1,4 +1,5 @@
 #include "EndmembersAction.h"
+
 #include "SettingsAction.h"
 #include "SpectralViewPlugin.h"
 #include "LineplotWidget.h"

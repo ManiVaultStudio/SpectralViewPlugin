@@ -34,15 +34,25 @@ WavelengthsRGBAction::WavelengthsRGBAction(SpectralViewPlugin& spectralViewPlugi
 
     connect(&_wavelengthsRGBEnabledAction, &ToggleAction::toggled, this, updateRGBWavelengths);
 
-    connect(&_redWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget](const QString newWavelength) {
-        //qDebug() << "Wavelength to pass: " << newWavelength;
-        lineplotWidget.updateRGBLine(newWavelength.toFloat(), 0);
+    auto dimToFloat = [](const QString& newWavelength) -> float {
+        float wavelength = 0.f;
+
+        if (newWavelength.startsWith("Dim "))
+            wavelength = newWavelength.mid(4).toFloat();
+        else
+            wavelength = newWavelength.toFloat();
+
+        return wavelength;
+        };
+
+    connect(&_redWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget, dimToFloat](const QString& newWavelength) {
+        lineplotWidget.updateRGBLine(dimToFloat(newWavelength), 0);
         });
-    connect(&_greenWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget](const QString newWavelength) {
-        lineplotWidget.updateRGBLine(newWavelength.toFloat(), 1);
+    connect(&_greenWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget, dimToFloat](const QString& newWavelength) {
+        lineplotWidget.updateRGBLine(dimToFloat(newWavelength), 1);
         });
-    connect(&_blueWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget](const QString newWavelength) {
-        lineplotWidget.updateRGBLine(newWavelength.toFloat(), 2);
+    connect(&_blueWavelengthAction, &OptionAction::currentTextChanged, this, [this, &lineplotWidget, dimToFloat](const QString& newWavelength) {
+        lineplotWidget.updateRGBLine(dimToFloat(newWavelength), 2);
         });
 }
 
