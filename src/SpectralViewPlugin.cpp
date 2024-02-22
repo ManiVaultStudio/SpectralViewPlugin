@@ -1267,7 +1267,7 @@ void SpectralViewPlugin::computeAverageDataset(int width, int height, int numDim
 // Factory
 // =============================================================================
 
-QIcon SpectralViewPluginFactory::getIcon() const
+QIcon SpectralViewPluginFactory::getIcon(const QColor& color) const
 {
     return Application::getIconFont("FontAwesome").getIcon("chart-line");
 }
