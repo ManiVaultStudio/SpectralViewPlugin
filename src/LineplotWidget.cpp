@@ -60,17 +60,15 @@ void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<
 
     // check if dimension name contains a) only numbers or "." b) numbers and trailing units c) text
     // if a) use the number b) remove the unit c) replace names with numeric dimension count
+    // https://godbolt.org/z/E4b1GbM19
     auto determineNumberAndExtract = [](const std::string & input) -> std::pair<bool, std::string> {
-        std::regex numberRegex(R"(\d+(\.\d+)?(\s*[a-zA-Z]+)?)");
+        std::regex pattern(R"(^\D*?\s*?(\d+(\.\d+)?)\D*?$)");
         std::smatch match;
 
-        if (std::regex_match(input, match, numberRegex)) {
-            std::string extractedNumbers = std::regex_replace(match[0].str(), std::regex(R"([^\d.])"), "");
-            return std::make_pair(true, extractedNumbers);
-        }
-        else {
-            return std::make_pair(false, "00");
-        }
+        if (std::regex_search(input, match, pattern) && match.size() > 1)
+            return std::make_pair(true, match[1]);
+
+        return std::make_pair(false, "");
     };
 
     bool replaceAllNames = false;
