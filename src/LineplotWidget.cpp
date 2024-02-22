@@ -56,7 +56,7 @@ void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<
     assert(dimNames.size() == numDimensions);
 
     // Check dimension names before parsing data
-    std::vector<std::string> numericDimNames;
+    std::vector<QString> numericDimNames;
 
     // check if dimension name contains a) only numbers or "." b) numbers and trailing units c) text
     // if a) use the number b) remove the unit c) replace names with numeric dimension count
@@ -84,29 +84,29 @@ void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<
             break;
         }
 
-        numericDimNames.push_back(res.second);
+        numericDimNames.push_back(QString::fromStdString(res.second));
     }
 
     if (replaceAllNames)
     {
         numericDimNames.resize(numDimensions);
         for (size_t i = 0; i < numericDimNames.size(); i++)
-            numericDimNames[i] = std::to_string(i);
+            numericDimNames[i] = QString::number(i);
     }
 
     // create json string that will be passed to js
-    std::string jsonObject = "[\n";
+    QString jsonObject = "[\n";
 
     for (int i = 0; i < numDimensions; i++) {
         jsonObject +=
             "{ \"x\": " + 
             numericDimNames.at(i) +
             ", \"y\": " + 
-            std::to_string(yVals.at(i)) +
+            QString::number(yVals.at(i)) +
             ", \"CI_Left\": " + 
-            std::to_string(confIntervalLeft.at(i)) +
+            QString::number(confIntervalLeft.at(i)) +
             ", \"CI_Right\": " + 
-            std::to_string(confIntervalRight.at(i)) +
+            QString::number(confIntervalRight.at(i)) +
             " }";
 
         if (i < numDimensions - 1)
@@ -116,10 +116,10 @@ void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<
     jsonObject += "\n]";
 
     if (dataOrigin == "selection") {
-        emit _communicationObject->qt_setData(QString(jsonObject.c_str()));
+        emit _communicationObject->qt_setData(jsonObject);
     }
     else if (dataOrigin == "endmember") {
-        emit _communicationObject->qt_setEndmember(QString(jsonObject.c_str()));
+        emit _communicationObject->qt_setEndmember(jsonObject);
     }
 }
 
