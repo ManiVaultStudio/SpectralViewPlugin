@@ -14,8 +14,8 @@ public:
     LinePlotCommunicationObject(LineplotWidget* parent);
 
 signals:
-    void qt_setData(QString data);
-    void qt_setEndmember(QString data);
+    void qt_setData(const QString& data);
+    void qt_setEndmember(const QString& data);
     void qt_setEndmemberColor(int r, int g, int b, int row);
     void qt_setEndmemberVisibility(bool toggled, int row);
     void qt_setEndmemberRemoved(int row);
