@@ -666,10 +666,10 @@ void SpectralViewPlugin::updateSelection(Dataset<Points> selection) {
             return;
 
         _prevSelection = selectedIndices;
-        auto noSelectedPoints = selection->getSelectionSize();
+        auto noSelectedPoints = _prevSelection.size();
 
         if (noSelectedPoints > 0) {
-            computeAverageSpectrum(_points, noSelectedPoints, selectedIndices, "selection");
+            computeAverageSpectrum(_points, noSelectedPoints, _prevSelection, "selection");
         }
         
     }
@@ -685,7 +685,7 @@ void SpectralViewPlugin::setSelection(std::vector<unsigned int> indices) {
 }
 */
 
-std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAverageSpectrum(const Dataset<DatasetImpl>& source, unsigned int noPoints, const std::vector<unsigned int>& indices, const std::string& dataOrigin) {
+std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAverageSpectrum(const Dataset<DatasetImpl>& source, size_t noSelPoints, const std::vector<unsigned int>& selIndices, const std::string& dataOrigin) {
 
     auto points = source.get<Points>();
     
@@ -705,9 +705,9 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
         std::vector<float> confIntervalLeft(numDimensions);
         std::vector<float> confIntervalRight(numDimensions);
 
-        points->visitData([this, points, numDimensions, noPoints, &indices, &averageSpectrum, &standardDeviation, &confIntervalRight, &confIntervalLeft](auto pointData) {
-            for (unsigned int i = 0; i < noPoints; i++) {
-                const auto index = indices.at(i);
+        points->visitData([this, points, numDimensions, noSelPoints, &selIndices, &averageSpectrum, &standardDeviation, &confIntervalRight, &confIntervalLeft](auto pointData) {
+            for (unsigned int i = 0; i < noSelPoints; i++) {
+                const auto index = selIndices.at(i);
                 const auto& spectrum = pointData[index];
 
                 for (unsigned int v = 0; v < numDimensions; v++) {
@@ -716,12 +716,12 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
             }
 
             for (unsigned int v = 0; v < numDimensions; v++) {
-                averageSpectrum[v] = noPoints == 0 ? 0 : averageSpectrum[v] / noPoints;
+                averageSpectrum[v] = noSelPoints == 0 ? 0 : averageSpectrum[v] / noSelPoints;
             }
 
-            if (noPoints > 1) {
-                for (unsigned int i = 0; i < noPoints; i++) {
-                    const auto index = indices.at(i);
+            if (noSelPoints > 1) {
+                for (unsigned int i = 0; i < noSelPoints; i++) {
+                    const auto index = selIndices.at(i);
                     const auto& spectrum = pointData[index];
 
                     for (unsigned int v = 0; v < numDimensions; v++) {
@@ -732,7 +732,7 @@ std::tuple<std::vector<float>, std::vector<float>> SpectralViewPlugin::computeAv
                 }
 
                 for (unsigned int v = 0; v < numDimensions; v++) {
-                    const auto std = sqrt(standardDeviation[v] / noPoints);
+                    const auto std = sqrt(standardDeviation[v] / noSelPoints);
                     const auto mean = averageSpectrum[v];
                     standardDeviation[v] = std;
                     confIntervalRight[v] = mean + std;

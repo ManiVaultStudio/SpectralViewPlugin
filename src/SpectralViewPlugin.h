@@ -48,7 +48,7 @@ public:
     void addAverageDataset(const mv::Dataset<mv::DatasetImpl>& dataset);
     void loadData(const mv::Datasets& datasets) override;
 
-    std::tuple<std::vector<float>, std::vector<float>> computeAverageSpectrum(const mv::Dataset<mv::DatasetImpl>& source, unsigned int noPoints, const std::vector<unsigned int>& indices, const std::string& dataOrigin);
+    std::tuple<std::vector<float>, std::vector<float>> computeAverageSpectrum(const mv::Dataset<mv::DatasetImpl>& source, size_t noSelPoints, const std::vector<unsigned int>& selIndices, const std::string& dataOrigin);
     
 public:
 
