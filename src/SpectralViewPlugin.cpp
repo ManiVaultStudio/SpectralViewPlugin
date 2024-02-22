@@ -639,16 +639,23 @@ void SpectralViewPlugin::initializeImageRGB() {
 
 void SpectralViewPlugin::changeRGBWavelengths(const float wavelength, int index) {
 
-    QString newValue = QString::number(wavelength);
+    auto setWavelengthText = [wavelength](OptionAction& opt) -> void {
+        QString newText = QString::number(wavelength);
+
+        if (opt.getCurrentText().startsWith("Dim "))
+            newText.prepend("Dim ");
+
+        opt.setCurrentText(newText);
+    };
 
     if (index == 0) {
-        _wavelengthsRGBAction.getRedWavelengthAction().setCurrentText(newValue);
+        setWavelengthText(_wavelengthsRGBAction.getRedWavelengthAction());
     }
     else if (index == 1) {
-        _wavelengthsRGBAction.getGreenWavelengthAction().setCurrentText(newValue);
+        setWavelengthText(_wavelengthsRGBAction.getGreenWavelengthAction());
     }
     else if (index == 2) {
-        _wavelengthsRGBAction.getBlueWavelengthAction().setCurrentText(newValue);
+        setWavelengthText(_wavelengthsRGBAction.getBlueWavelengthAction());
     }
 
 }
