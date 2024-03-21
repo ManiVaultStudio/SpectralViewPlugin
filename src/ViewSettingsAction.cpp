@@ -29,6 +29,10 @@ ViewSettingsAction::ViewSettingsAction(SpectralViewPlugin& spectralViewPlugin) :
         lineplotWidget.enableStdArea(_stdAreaEnabledAction.isChecked());
     };
 
+    connect(&_showSelectionAction, &ToggleAction::toggled, this, [&](bool toogled) {
+        _spectralViewPlugin.getLineplotWidget().setSelectionVisibility(_showSelectionAction.isChecked()); 
+    });
+
     connect(&_stdAreaEnabledAction, &ToggleAction::toggled, this, updateStdArea);
 }
 

@@ -666,11 +666,13 @@ void SpectralViewPlugin::updateSelection(Dataset<Points> selection) {
             return;
 
         _prevSelection = selectedIndices;
-        auto noSelectedPoints = _prevSelection.size();
+        auto numSelectedPoints = _prevSelection.size();
 
-        if (noSelectedPoints > 0) {
-            computeAverageSpectrum(_points, noSelectedPoints, _prevSelection, "selection");
+        if (numSelectedPoints > 0) {
+            computeAverageSpectrum(_points, numSelectedPoints, _prevSelection, "selection");
         }
+        else
+            _linePlotWidget.setSelectionVisibility(false);
         
     }
 }

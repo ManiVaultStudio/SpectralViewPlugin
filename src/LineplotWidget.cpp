@@ -134,6 +134,10 @@ void LineplotWidget::setEndmemberVisibility(bool toggled, int row) {
     emit _communicationObject->qt_setEndmemberVisibility(toggled, row);
 }
 
+void LineplotWidget::setSelectionVisibility(bool toggled) {
+    emit _communicationObject->qt_setSelectionVisibility(toggled);
+}
+
 void LineplotWidget::setEndmemberRemoved(int row) {
     emit _communicationObject->qt_setEndmemberRemoved(row);
 }

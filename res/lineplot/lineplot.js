@@ -16,6 +16,7 @@ try {
         QtBridge.qt_enableStdArea.connect(function () { enableStdArea(arguments[0]); });
         QtBridge.qt_addAvailableData.connect(function () { addAvailableData(arguments[0]); });
         QtBridge.qt_setEndmemberVisibility.connect(function () { setEndmemberVisibility(arguments[0], arguments[1]); });
+        QtBridge.qt_setSelectionVisibility.connect(function () { setSelectionVisibility(arguments[0]); });
         QtBridge.qt_updateRedLine.connect(function () { updateRedLine(arguments[0]); });
         QtBridge.qt_updateGreenLine.connect(function () { updateGreenLine(arguments[0]); });
         QtBridge.qt_updateBlueLine.connect(function () { updateBlueLine(arguments[0]); });
@@ -42,6 +43,7 @@ var maxX = 800;
 var minX = 400;
 var checkedRGB = false;
 var _checkedStd = false;
+var _visibleSelection = true;
 var _endmemberColors = [];
 
 var _visibleEndmembers = [];
@@ -424,6 +426,7 @@ function addAvailableData(name) {
 
 function setData(d) {
     _data = JSON.parse(d);
+    setSelectionVisibility(true);
     addData();
 }
 
@@ -452,6 +455,22 @@ function setEndmemberVisibility(toggled, row) {
     else {
         removeElement("#area" + row);
         removeElement("#line" + row);
+    }
+}
+
+function setSelectionVisibility(toggled) {
+    _visibleSelection = toggled;
+
+    if (toggled) {
+        showElement(".selectionLine", 1);
+
+        if (_checkedStd) {
+            showElement(".stdInterval", 0.1);
+        }
+    }
+    else {
+        removeElement(".stdInterval");
+        removeElement(".selectionLine");
     }
 }
 
@@ -513,7 +532,9 @@ function enableStdArea(c) {
     _checkedStd = c;
 
     if (_checkedStd) {
-        showElement(".stdInterval", 0.1);
+
+        if(_visibleSelection)
+            showElement(".stdInterval", 0.1);
 
         for (var i = 0; i < _visibleEndmembers.length; i++) {
             if (_visibleEndmembers[i]) {
