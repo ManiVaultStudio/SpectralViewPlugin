@@ -130,8 +130,6 @@ void SpectralViewPlugin::init()
         // Points dataset is about to be dropped
         if (dataType == PointType) {
 
-            auto noPointsCandiateData = candidateDataset.get<Points>()->getNumPoints();
-
             // Establish drop region description
             const auto description = QString("Visualize %1 as line plot").arg(datasetGuiName);
 
@@ -223,7 +221,6 @@ void SpectralViewPlugin::init()
 
         if (dataType == ClusterType) {
             const auto description = QString("Visualize every cluster in %1 as one line").arg(candidateDataset->getGuiName());
-            bool isNewCluster = true;
 
             if (_points.isValid()) {
 
