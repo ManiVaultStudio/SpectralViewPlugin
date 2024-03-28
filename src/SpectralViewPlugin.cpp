@@ -130,8 +130,6 @@ void SpectralViewPlugin::init()
         // Points dataset is about to be dropped
         if (dataType == PointType) {
 
-            auto noPointsCandiateData = candidateDataset.get<Points>()->getNumPoints();
-
             // Establish drop region description
             const auto description = QString("Visualize %1 as line plot").arg(datasetGuiName);
 
@@ -156,15 +154,16 @@ void SpectralViewPlugin::init()
 
                         if (!candidateDataset->isFull() || candidateDataset->isDerivedData()) {
 
-                            DataHierarchyItems parents = candidateDataset->getDataHierarchyItem().getParents();
+                            auto parent = candidateDataset->getDataHierarchyItem().getParent();
+                            auto points = parent->getDataset().get<Points>();
+
                             QString pointName = _points->getGuiName();
 
                             if (!_points->isFull() || _points->isDerivedData()) {
-                                DataHierarchyItems pointParents = _points->getDataHierarchyItem().getParents();;
-                                pointName = pointParents.at(0)->getDatasetReference()->getGuiName();
+                                DataHierarchyItem* pointParents = _points->getDataHierarchyItem().getParent();;
+                                pointName = pointParents->getDatasetReference()->getGuiName();
                             }
 
-                            auto parent = candidateDataset->getParent();
                             // Load as point positions when no dataset is currently loaded
                             dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
                                 _points = candidateDataset.get<Points>();
@@ -174,7 +173,7 @@ void SpectralViewPlugin::init()
                                 _model.removeAllEndmembers();
                                 });
 
-                            if (parent.get<Points>()->getNumPoints() == _points->getNumPoints() && parents.at(0)->getDatasetReference()->getGuiName() == pointName) {
+                            if (points->getNumPoints() == _points->getNumPoints() && candidateDataset->getParent()->getGuiName() == pointName) {
 
                                 dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
 
@@ -222,21 +221,19 @@ void SpectralViewPlugin::init()
 
         if (dataType == ClusterType) {
             const auto description = QString("Visualize every cluster in %1 as one line").arg(candidateDataset->getGuiName());
-            bool isNewCluster = true;
 
             if (_points.isValid()) {
 
                 QString pointsGuid = _points->getId();
 
                 if (!_points->isFull() || _points->isDerivedData()) {
-                    DataHierarchyItems pointParents = _points->getDataHierarchyItem().getParents();
-                    pointsGuid = pointParents.at(0)->getDataset<Points>()->getId();
+                    DataHierarchyItem* pointParent = _points->getDataHierarchyItem().getParent();
+                    pointsGuid = pointParent->getDataset<Points>()->getId();
                 }
 
-                DataHierarchyItems parents = candidateDataset->getDataHierarchyItem().getParents();
-                const auto parent = parents.at(0)->getDataset<Points>();
+                DataHierarchyItem* parent = candidateDataset->getDataHierarchyItem().getParent();
 
-                if (parent->getNumPoints() == _points->getNumPoints() && parent->getId() == pointsGuid) {
+                if (parent && parent->getDataset<Points>()->getId() == pointsGuid) {
 
                     dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
                         _clusterNames.push_back(candidateDataset->getGuiName());

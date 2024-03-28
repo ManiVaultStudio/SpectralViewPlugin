@@ -271,9 +271,7 @@ void EndmembersModel::updateClustersEndmember(QString datasetGuid, int index, QS
 
 void EndmembersModel::saveEndmembers(QString name) {
 
-    DataHierarchyItems parents = _endmembers[0]->getDataset()->getDataHierarchyItem().getParents();
-
-    auto parent = parents.at(0)->getDataset();
+    auto parent = _endmembers[0]->getDataset()->getDataHierarchyItem().getParent()->getDataset();
     auto points = parent.get<Points>();
     auto& dimNames = points->getDimensionNames();
     auto noDim = points->getNumDimensions();
