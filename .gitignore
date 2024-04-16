@@ -534,3 +534,4 @@ FodyWeavers.xsd
 
 Build/
 .DS_Store
+*.bak

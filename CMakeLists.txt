@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 3.17)
 
+option(MV_UNITY_BUILD "Combine target source files into batches for faster compilation" OFF)
+
+# -----------------------------------------------------------------------------
+# SpectralView Plugin
+# -----------------------------------------------------------------------------
 set(SVPLUGIN "SpectralViewPlugin")
 
 PROJECT(${SVPLUGIN})
 
+# -----------------------------------------------------------------------------
+# CMake Options
+# -----------------------------------------------------------------------------
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -16,6 +24,9 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 endif(MSVC)
 
+# -----------------------------------------------------------------------------
+# Set install directory
+# -----------------------------------------------------------------------------
 # Check if the directory to the ManiVault installation has been provided
 if(NOT DEFINED MV_INSTALL_DIR)
     set(MV_INSTALL_DIR "" CACHE PATH "Directory where ManiVault is installed")
@@ -23,8 +34,14 @@ if(NOT DEFINED MV_INSTALL_DIR)
 endif()
 file(TO_CMAKE_PATH ${MV_INSTALL_DIR} MV_INSTALL_DIR)
 
+# -----------------------------------------------------------------------------
+# Dependencies
+# -----------------------------------------------------------------------------
 find_package(Qt6 6.3.1 COMPONENTS Widgets WebEngineWidgets Concurrent REQUIRED)
 
+# -----------------------------------------------------------------------------
+# Source files
+# -----------------------------------------------------------------------------
 set(PLUGIN
     src/SpectralViewPlugin.h
     src/SpectralViewPlugin.cpp
@@ -95,16 +112,29 @@ source_group(Widget FILES ${WIDGETS})
 source_group(Web FILES ${WEB})
 source_group(Aux FILES ${AUX})
 
+# -----------------------------------------------------------------------------
+# CMake Target
+# -----------------------------------------------------------------------------
 add_library(${SVPLUGIN} SHARED ${SOURCES} ${WEB} ${AUX} ${RESOURCE_FILES})
 
-qt_wrap_cpp(SV_PARAMETERS_MOC ${PLUGIN_MOC_HEADERS} TARGET ${SVPLUGIN})
-target_sources(${SVPLUGIN} PRIVATE ${SV_PARAMETERS_MOC})
-
+# -----------------------------------------------------------------------------
+# Target include directories
+# -----------------------------------------------------------------------------
 target_include_directories(${SVPLUGIN} PRIVATE "${MV_INSTALL_DIR}/$<CONFIGURATION>/include/")
 
+# -----------------------------------------------------------------------------
+# Target properties
+# -----------------------------------------------------------------------------
 # Request C++17
 target_compile_features(${SVPLUGIN} PRIVATE cxx_std_17)
 
+if(MV_UNITY_BUILD)
+    set_target_properties(${SVPLUGIN} PROPERTIES UNITY_BUILD ON)
+endif()
+
+# -----------------------------------------------------------------------------
+# Target library linking
+# -----------------------------------------------------------------------------
 target_link_libraries(${SVPLUGIN} PRIVATE Qt6::Widgets)
 target_link_libraries(${SVPLUGIN} PRIVATE Qt6::WebEngineWidgets)
 target_link_libraries(${SVPLUGIN} PRIVATE Qt6::Concurrent)
@@ -123,6 +153,9 @@ target_link_libraries(${SVPLUGIN} PRIVATE "${POINTDATA_LINK_LIBRARY}")
 target_link_libraries(${SVPLUGIN} PRIVATE "${IMAGEDATA_LINK_LIBRARY}")
 target_link_libraries(${SVPLUGIN} PRIVATE "${CLUSTERDATA_LINK_LIBRARY}")
 
+# -----------------------------------------------------------------------------
+# Target installation
+# -----------------------------------------------------------------------------
 install(TARGETS ${SVPLUGIN}
     RUNTIME DESTINATION Plugins COMPONENT PLUGINS # Windows .dll
     LIBRARY DESTINATION Plugins COMPONENT PLUGINS # Linux/Mac .so
@@ -135,6 +168,9 @@ add_custom_command(TARGET ${SVPLUGIN} POST_BUILD
 	--prefix ${MV_INSTALL_DIR}/$<CONFIGURATION>
 )
 
+# -----------------------------------------------------------------------------
+# Miscellaneous
+# -----------------------------------------------------------------------------
 # Automatically set the debug environment (command + working directory) for MSVC in debug mode
 if(MSVC)
 	set_property(TARGET ${SVPLUGIN} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<IF:$<CONFIG:DEBUG>,${MV_INSTALL_DIR}/debug,${MV_INSTALL_DIR}/release>)
