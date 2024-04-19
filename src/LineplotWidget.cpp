@@ -97,10 +97,10 @@ void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<
             break;
         }
 
-        std::string dimName = res.second;
-        unsureFloatString(dimName);
+        std::string extractedDimName = res.second;
+        unsureFloatString(extractedDimName);
 
-        numericDimNames.push_back(QString::fromStdString(dimName));
+        numericDimNames.push_back(QString::fromStdString(extractedDimName));
     }
 
     if (replaceAllNames)
