@@ -60,7 +60,7 @@ void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<
 
     // check if dimension name contains a) only numbers or "." b) numbers and trailing units c) text
     // if a) use the number b) remove the unit c) replace names with numeric dimension count
-    // https://godbolt.org/z/E4b1GbM19
+    // https://godbolt.org/z/8Yeej4cj6
     auto determineNumberAndExtract = [](const std::string & input) -> std::pair<bool, std::string> {
         std::regex pattern(R"(^\D*?\s*?(\d+(\.\d+)?)\D*?$)");
         std::smatch match;
@@ -69,6 +69,21 @@ void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<
             return std::make_pair(true, match[1]);
 
         return std::make_pair(false, "");
+    };
+
+    // add a decimal point if there is none
+    auto unsureFloatString = [](std::string& input) -> void {
+        // Regular expressions to match float numbers
+        std::regex decimalRegex("([0-9]+)\\.([0-9]+)");
+        std::smatch match;
+
+        // append missing decimal point
+        if (!std::regex_match(input, match, decimalRegex))
+            input.append(".0");
+
+        // remove leading 0s
+        if (!(input.size() > 2 && input[0] == '0' && input[1] == '.' && isdigit(input[2])))
+            input.erase(0, input.find_first_not_of('0'));
     };
 
     bool replaceAllNames = false;
@@ -82,14 +97,17 @@ void LineplotWidget::setData(const std::vector<float>& yVals, const std::vector<
             break;
         }
 
-        numericDimNames.push_back(QString::fromStdString(res.second));
+        std::string dimName = res.second;
+        unsureFloatString(dimName);
+
+        numericDimNames.push_back(QString::fromStdString(dimName));
     }
 
     if (replaceAllNames)
     {
         numericDimNames.resize(numDimensions);
         for (size_t i = 0; i < numericDimNames.size(); i++)
-            numericDimNames[i] = QString::number(i);
+            numericDimNames[i] = QString::number(i) + ".0";
     }
 
     // create json string that will be passed to js
