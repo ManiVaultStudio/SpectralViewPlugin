@@ -123,133 +123,138 @@ void SpectralViewPlugin::init()
         if (!dataTypes.contains(dataType)) {
             dropRegions << new DropWidget::DropRegion(this, "Incompatible data", "This type of data is not supported", "exclamation-circle", false);
         }
+        else if (dataset->getChildren({ ImageType }).size() < 1) {
+            dropRegions << new DropWidget::DropRegion(this, "Incompatible data", "Data must have an image set as it's first child", "exclamation-circle", false);
+        }
+        else
+        {
+            // Get points dataset from the core
+            auto candidateDataset = mv::data().getDataset(datasetId);
 
-        // Get points dataset from the core
-        auto candidateDataset = mv::data().getDataset(datasetId);
+            // Points dataset is about to be dropped
+            if (dataType == PointType) {
 
-        // Points dataset is about to be dropped
-        if (dataType == PointType) {
+                // Establish drop region description
+                const auto description = QString("Visualize %1 as line plot").arg(datasetGuiName);
 
-            // Establish drop region description
-            const auto description = QString("Visualize %1 as line plot").arg(datasetGuiName);
+                try {
 
-            try {
+                    if (!_points.isValid()) {
 
-                if (!_points.isValid()) {
-                    
-                    // Load as point positions when no dataset is currently loaded
-                    dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
-                        loadData({ candidateDataset });
-                        });
-                }
-                else {
-                    if (_points == candidateDataset) {
-                        // already loaded
-                        dropRegions << new DropWidget::DropRegion(this, "Warning", "Data already loaded", "exclamation-circle", false);
+                        // Load as point positions when no dataset is currently loaded
+                        dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
+                            loadData({ candidateDataset });
+                            });
                     }
                     else {
-                        // Establish drop region description
-                        const auto description1 = QString("Visualize every point in %1 as one line").arg(datasetGuiName);
-                        const auto description2 = QString("Visaualize the points in %1 as an average line").arg(datasetGuiName);
-
-                        if (!candidateDataset->isFull() || candidateDataset->isDerivedData()) {
-
-                            auto parent = candidateDataset->getDataHierarchyItem().getParent();
-                            auto points = parent->getDataset().get<Points>();
-
-                            QString pointName = _points->getGuiName();
-
-                            if (!_points->isFull() || _points->isDerivedData()) {
-                                DataHierarchyItem* pointParents = _points->getDataHierarchyItem().getParent();;
-                                pointName = pointParents->getDatasetReference()->getGuiName();
-                            }
-
-                            // Load as point positions when no dataset is currently loaded
-                            dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
-                                _points = candidateDataset.get<Points>();
-
-                                initializeImageRGB();
-                                _mainToolbarAction.setEnabled(true);
-                                _model.removeAllEndmembers();
-                                });
-
-                            if (points->getNumPoints() == _points->getNumPoints() && candidateDataset->getParent()->getGuiName() == pointName) {
-
-                                dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
-
-                                    auto noEndmembers = candidateDataset.get<Points>()->getNumPoints();
-
-                                    if (noEndmembers > 15) {
-                                        EndmembersCheckDialog endmembersCheckDialog(nullptr, noEndmembers);
-
-                                        connect(&endmembersCheckDialog, &EndmembersCheckDialog::closeDialog, this, [this, candidateDataset]() {
-                                            addDataset(candidateDataset);
-                                            });
-
-                                        endmembersCheckDialog.exec();
-
-                                    }
-                                    else
-                                        addDataset(candidateDataset);
-                                    });
-
-                                dropRegions << new DropWidget::DropRegion(this, "Average endmember", description2, "map-marker-alt", true, [this, candidateDataset]() {
-                                    addAverageDataset(candidateDataset);
-                                    });
-                            }
+                        if (_points == candidateDataset) {
+                            // already loaded
+                            dropRegions << new DropWidget::DropRegion(this, "Warning", "Data already loaded", "exclamation-circle", false);
                         }
                         else {
-                            dropRegions << new DropWidget::DropRegion(this, "Points", description, "map-marker-alt", true, [this, candidateDataset]() {
-                                _points = candidateDataset;
+                            // Establish drop region description
+                            const auto description1 = QString("Visualize every point in %1 as one line").arg(datasetGuiName);
+                            const auto description2 = QString("Visaualize the points in %1 as an average line").arg(datasetGuiName);
 
-                                initializeImageRGB();
-                                _mainToolbarAction.setEnabled(true);
-                                _model.removeAllEndmembers();
-                                });
+                            if (!candidateDataset->isFull() || candidateDataset->isDerivedData()) {
+
+                                auto parent = candidateDataset->getDataHierarchyItem().getParent();
+                                auto points = parent->getDataset().get<Points>();
+
+                                QString pointName = _points->getGuiName();
+
+                                if (!_points->isFull() || _points->isDerivedData()) {
+                                    DataHierarchyItem* pointParents = _points->getDataHierarchyItem().getParent();;
+                                    pointName = pointParents->getDatasetReference()->getGuiName();
+                                }
+
+                                // Load as point positions when no dataset is currently loaded
+                                dropRegions << new DropWidget::DropRegion(this, "Point position", description, "map-marker-alt", true, [this, candidateDataset]() {
+                                    _points = candidateDataset.get<Points>();
+
+                                    initializeImageRGB();
+                                    _mainToolbarAction.setEnabled(true);
+                                    _model.removeAllEndmembers();
+                                    });
+
+                                if (points->getNumPoints() == _points->getNumPoints() && candidateDataset->getParent()->getGuiName() == pointName) {
+
+                                    dropRegions << new DropWidget::DropRegion(this, "Endmembers", description1, "map-marker-alt", true, [this, candidateDataset]() {
+
+                                        auto noEndmembers = candidateDataset.get<Points>()->getNumPoints();
+
+                                        if (noEndmembers > 15) {
+                                            EndmembersCheckDialog endmembersCheckDialog(nullptr, noEndmembers);
+
+                                            connect(&endmembersCheckDialog, &EndmembersCheckDialog::closeDialog, this, [this, candidateDataset]() {
+                                                addDataset(candidateDataset);
+                                                });
+
+                                            endmembersCheckDialog.exec();
+
+                                        }
+                                        else
+                                            addDataset(candidateDataset);
+                                        });
+
+                                    dropRegions << new DropWidget::DropRegion(this, "Average endmember", description2, "map-marker-alt", true, [this, candidateDataset]() {
+                                        addAverageDataset(candidateDataset);
+                                        });
+                                }
+                            }
+                            else {
+                                dropRegions << new DropWidget::DropRegion(this, "Points", description, "map-marker-alt", true, [this, candidateDataset]() {
+                                    _points = candidateDataset;
+
+                                    initializeImageRGB();
+                                    _mainToolbarAction.setEnabled(true);
+                                    _model.removeAllEndmembers();
+                                    });
+                            }
                         }
                     }
                 }
-            }
-            catch (std::exception& e)
-            {
-                exceptionMessageBox(QString("Unable to load '%1'").arg(datasetGuiName), e);
-            }
-            catch (...) {
-                exceptionMessageBox(QString("Unable to load '%1'").arg(datasetGuiName));
-            }
-        }
-
-        if (dataType == ClusterType) {
-            const auto description = QString("Visualize every cluster in %1 as one line").arg(candidateDataset->getGuiName());
-
-            if (_points.isValid()) {
-
-                QString pointsGuid = _points->getId();
-
-                if (!_points->isFull() || _points->isDerivedData()) {
-                    DataHierarchyItem* pointParent = _points->getDataHierarchyItem().getParent();
-                    pointsGuid = pointParent->getDataset<Points>()->getId();
+                catch (std::exception& e)
+                {
+                    exceptionMessageBox(QString("Unable to load '%1'").arg(datasetGuiName), e);
                 }
+                catch (...) {
+                    exceptionMessageBox(QString("Unable to load '%1'").arg(datasetGuiName));
+                }
+            }
 
-                DataHierarchyItem* parent = candidateDataset->getDataHierarchyItem().getParent();
+            if (dataType == ClusterType) {
+                const auto description = QString("Visualize every cluster in %1 as one line").arg(candidateDataset->getGuiName());
 
-                if (parent && parent->getDataset<Points>()->getId() == pointsGuid) {
+                if (_points.isValid()) {
 
-                    dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
-                        _clusterNames.push_back(candidateDataset->getGuiName());
-                        _noLoadedClusters.push_back(candidateDataset.get<Clusters>()->getClusters().size());
-                        addDataset(candidateDataset);
+                    QString pointsGuid = _points->getId();
 
-                        });
+                    if (!_points->isFull() || _points->isDerivedData()) {
+                        DataHierarchyItem* pointParent = _points->getDataHierarchyItem().getParent();
+                        pointsGuid = pointParent->getDataset<Points>()->getId();
+                    }
+
+                    DataHierarchyItem* parent = candidateDataset->getDataHierarchyItem().getParent();
+
+                    if (parent && parent->getDataset<Points>()->getId() == pointsGuid) {
+
+                        dropRegions << new DropWidget::DropRegion(this, "Endmembers", description, "map-marker-alt", true, [this, candidateDataset]() {
+                            _clusterNames.push_back(candidateDataset->getGuiName());
+                            _noLoadedClusters.push_back(candidateDataset.get<Clusters>()->getClusters().size());
+                            addDataset(candidateDataset);
+
+                            });
+                    }
+                    else {
+                        dropRegions << new DropWidget::DropRegion(this, "Warning", "Clusters have to be a child of and come from a set of same size as the loaded points", "exclamation-circle", false);
+                    }
                 }
                 else {
-                    dropRegions << new DropWidget::DropRegion(this, "Warning", "Clusters have to be a child of and come from a set of same size as the loaded points", "exclamation-circle", false);
-                }
-            }
-            else {
-                // Only allow user to visualize clusters as lines when there is a points dataset loaded
-                dropRegions << new DropWidget::DropRegion(this, "No points data loaded", "Clusters can only be visualized in concert with points data", "exclamation-circle", false);
+                    // Only allow user to visualize clusters as lines when there is a points dataset loaded
+                    dropRegions << new DropWidget::DropRegion(this, "No points data loaded", "Clusters can only be visualized in concert with points data", "exclamation-circle", false);
 
+                }
             }
         }
 
