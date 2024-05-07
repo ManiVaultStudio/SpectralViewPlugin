@@ -123,9 +123,6 @@ void SpectralViewPlugin::init()
         if (!dataTypes.contains(dataType)) {
             dropRegions << new DropWidget::DropRegion(this, "Incompatible data", "This type of data is not supported", "exclamation-circle", false);
         }
-        else if (dataset->getChildren({ ImageType }).size() < 1) {
-            dropRegions << new DropWidget::DropRegion(this, "Incompatible data", "Data must have an image set as it's first child", "exclamation-circle", false);
-        }
         else
         {
             // Get points dataset from the core
@@ -133,6 +130,11 @@ void SpectralViewPlugin::init()
 
             // Points dataset is about to be dropped
             if (dataType == PointType) {
+
+                if (dataset->getChildren({ ImageType }).size() < 1) {
+                    dropRegions << new DropWidget::DropRegion(this, "Incompatible data", "Data must have an image set as it's first child", "exclamation-circle", false);
+                    return dropRegions;
+                }
 
                 // Establish drop region description
                 const auto description = QString("Visualize %1 as line plot").arg(datasetGuiName);
