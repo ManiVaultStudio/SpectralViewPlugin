@@ -29,7 +29,7 @@ endif(MSVC)
 # -----------------------------------------------------------------------------
 find_package(Qt6 COMPONENTS Widgets WebEngineWidgets Concurrent REQUIRED)
 
-find_package(ManiVault COMPONENTS Core PointData ClusterData ImageData CONFIG REQUIRED)
+find_package(ManiVault COMPONENTS Core PointData ClusterData ImageData CONFIG)
 
 # -----------------------------------------------------------------------------
 # Source files
