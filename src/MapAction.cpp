@@ -34,9 +34,8 @@ MapAction::MapAction(Endmember& endmember) :
     _thresholdAction.setToolTip("Map pixels with value greater than threshold");
     _updateAutoAction.setToolTip("Perform selected algorithm automatically");
     _computeAction.setToolTip("Update map for the selected endmember");
-    
-    auto& fontAwesome = Application::getIconFont("FontAwesome");
-    _computeAction.setIcon(fontAwesome.getIcon("play"));
+
+    _computeAction.setIconByName("play");
 
     //_thresholdAction.setDefaultValue(0.15f);
     //_thresholdAction.defaultValueChanged(0.15f);
