@@ -11,6 +11,8 @@
 #include <QColor>
 #include <QMouseEvent>
 
+using namespace mv::util;
+
 LinePlotCommunicationObject::LinePlotCommunicationObject(LineplotWidget* parent) :
     mv::gui::WebCommunicationObject(),
     _parent(parent)
@@ -24,9 +26,7 @@ void LinePlotCommunicationObject::js_setRGBWavelength(float wavelength, int inde
 }
 
 LineplotWidget::LineplotWidget() :
-    mv::gui::WebWidget(),
     _communicationObject(new LinePlotCommunicationObject(this)),
-    dataOptionBuffer(),
     loaded(false)
 {
     Q_INIT_RESOURCE(lineplot_resources);
@@ -36,7 +36,7 @@ LineplotWidget::LineplotWidget() :
     setAcceptDrops(true);
     setMouseTracking(true);
 
-    setWindowIcon(mv::Application::getIconFont("FontAwesome").getIcon("chart-line"));
+    setWindowIcon(StyledIcon("chart-line"));
 }
 
 LineplotWidget::~LineplotWidget() {

@@ -14,7 +14,7 @@ ViewSettingsAction::ViewSettingsAction(SpectralViewPlugin& spectralViewPlugin) :
     _showSelectionAction(this, "Show selection", true),
     _stdAreaEnabledAction(this, "Show std. dev.", true)
 {
-    setIcon(Application::getIconFont("FontAwesome").getIcon("cog"));
+    setIconByName("gear");
     setText("Global settings");
 
     _showSelectionAction.setToolTip("Show a line for the current selection");
