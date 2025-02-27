@@ -1299,7 +1299,7 @@ mv::gui::PluginTriggerActions SpectralViewPluginFactory::getPluginTriggerActions
     if (PluginFactory::areAllDatasetsOfTheSameType(datasets, PointType)) {
         if (numberOfDatasets >= 1) {
             if (datasets.first()->getDataType() == PointType) {
-                auto pluginTriggerAction = new PluginTriggerAction(const_cast<SpectralViewPluginFactory*>(this), this, "Spectral Viewer", "Load dataset in spectral Viewer", getIcon(), [this, getInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
+                auto pluginTriggerAction = new PluginTriggerAction(const_cast<SpectralViewPluginFactory*>(this), this, "Spectral Viewer", "Load dataset in spectral Viewer", icon(), [this, getInstance, datasets](PluginTriggerAction& pluginTriggerAction) -> void {
                     for (const auto& dataset : datasets)
                         getInstance()->loadData(Datasets({ dataset }));
                     });
