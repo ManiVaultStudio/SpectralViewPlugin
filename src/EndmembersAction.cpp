@@ -13,6 +13,7 @@
 
 using namespace mv;
 using namespace mv::gui;
+using namespace mv::util;
 
 EndmembersAction::EndmembersAction(SettingsAction& settingsAction) :
     WidgetAction(reinterpret_cast<QObject*>(&settingsAction), "EndmembersAction"),
@@ -44,10 +45,8 @@ EndmembersAction::Widget::Widget(QWidget* parent, EndmembersAction* endmembersAc
     _removeEndmemberAction.setToolTip("Remove the selected endmember");
     _saveEndmembersAction.setToolTip("Save the checked endmembers in the list");
 
-    auto& fontAwesome = Application::getIconFont("FontAwesome");
-
-    _removeEndmemberAction.setIcon(fontAwesome.getIcon("trash-alt"));
-    _saveEndmembersAction.setIcon(fontAwesome.getIcon("save"));
+    _removeEndmemberAction.setIcon(StyledIcon("trash-alt"));
+    _saveEndmembersAction.setIcon(StyledIcon("save"));
 
     auto layout = new QVBoxLayout();
     auto treeView = new QTreeView();

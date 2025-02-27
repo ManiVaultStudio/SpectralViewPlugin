@@ -15,7 +15,7 @@ WavelengthsRGBAction::WavelengthsRGBAction(SpectralViewPlugin& spectralViewPlugi
     _greenWavelengthAction(this, "Green", { "532" }, "532"),
     _blueWavelengthAction(this, "Blue", { "464" }, "464")
 {
-    setIcon(Application::getIconFont("FontAwesome").getIcon("grip-lines-vertical"));
+    setIconByName("grip-lines-vertical");
     setText("RGB Wavelengths Settings");
 
     _wavelengthsRGBEnabledAction.setToolTip("Show 3 RGB lines that can be moved");

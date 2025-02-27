@@ -133,11 +133,9 @@ class SpectralViewPluginFactory : public ViewPluginFactory
             FILE  "SpectralViewPlugin.json")
 
 public:
-    SpectralViewPluginFactory() {}
-    ~SpectralViewPluginFactory() override {}
+    SpectralViewPluginFactory();
 
-    /** Returns the plugin icon */
-    QIcon getIcon(const QColor& color = Qt::black) const override;
+    ~SpectralViewPluginFactory() override {}
 
     ViewPlugin* produce() override;
 
