@@ -1268,6 +1268,10 @@ void SpectralViewPlugin::computeAverageDataset(int width, int height, int numDim
     }
 }
 
+SpectralViewPluginFactory::SpectralViewPluginFactory()
+{
+    setIconByName("chart-line");
+}
 
 ViewPlugin* SpectralViewPluginFactory::produce()
 {
