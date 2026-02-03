@@ -6,8 +6,10 @@ option(MV_UNITY_BUILD "Combine target source files into batches for faster compi
 # SpectralView Plugin
 # -----------------------------------------------------------------------------
 set(SVPLUGIN "SpectralViewPlugin")
-
-PROJECT(${SVPLUGIN})
+PROJECT(${SVPLUGIN}
+        DESCRIPTION "View plugin for ManiVault for spectral data"
+        LANGUAGES CXX
+)
 
 # -----------------------------------------------------------------------------
 # CMake Options
