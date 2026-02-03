@@ -6,8 +6,10 @@ option(MV_UNITY_BUILD "Combine target source files into batches for faster compi
 # SpectralView Plugin
 # -----------------------------------------------------------------------------
 set(SVPLUGIN "SpectralViewPlugin")
-
-PROJECT(${SVPLUGIN})
+PROJECT(${SVPLUGIN}
+        DESCRIPTION "View plugin for ManiVault for spectral data"
+        LANGUAGES CXX
+)
 
 # -----------------------------------------------------------------------------
 # CMake Options
@@ -15,14 +17,13 @@ PROJECT(${SVPLUGIN})
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DWIN32 /EHsc /MP /permissive- /Zc:__cplusplus /W3")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MD")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-endif(MSVC)
+endif()
 
 # -----------------------------------------------------------------------------
 # Dependencies
@@ -87,7 +88,7 @@ set(WEB
 
 set(AUX
 	res/lineplot_resources.qrc
-	src/SpectralViewPlugin.json
+	PluginInfo.json
 )
 
 qt6_add_resources(RESOURCE_FILES res/lineplot_resources.qrc)
@@ -113,7 +114,6 @@ target_include_directories(${SVPLUGIN} PRIVATE "${ManiVault_INCLUDE_DIR}")
 # -----------------------------------------------------------------------------
 # Target properties
 # -----------------------------------------------------------------------------
-# Request C++17
 target_compile_features(${SVPLUGIN} PRIVATE cxx_std_20)
 
 if(MV_UNITY_BUILD)
@@ -147,16 +147,13 @@ add_custom_command(TARGET ${SVPLUGIN} POST_BUILD
 	--prefix ${ManiVault_INSTALL_DIR}/$<CONFIGURATION>
 )
 
-set_target_properties(${SVPLUGIN}
-    PROPERTIES
-    FOLDER ViewPlugins
-)
+mv_handle_plugin_config(${SVPLUGIN})
 
 # -----------------------------------------------------------------------------
 # Miscellaneous
 # -----------------------------------------------------------------------------
 # Automatically set the debug environment (command + working directory) for MSVC in debug mode
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set_property(TARGET ${SVPLUGIN} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY $<IF:$<CONFIG:DEBUG>,${ManiVault_INSTALL_DIR}/Debug,$<IF:$<CONFIG:RELWITHDEBINFO>,${ManiVault_INSTALL_DIR}/RelWithDebInfo,${ManiVault_INSTALL_DIR}/Release>>)
     set_property(TARGET ${SVPLUGIN} PROPERTY VS_DEBUGGER_COMMAND $<IF:$<CONFIG:DEBUG>,"${ManiVault_INSTALL_DIR}/Debug/ManiVault Studio.exe",$<IF:$<CONFIG:RELWITHDEBINFO>,"${ManiVault_INSTALL_DIR}/RelWithDebInfo/ManiVault Studio.exe","${ManiVault_INSTALL_DIR}/Release/ManiVault Studio.exe">>)
 endif()
