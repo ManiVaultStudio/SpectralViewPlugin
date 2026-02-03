@@ -87,7 +87,7 @@ set(WEB
 
 set(AUX
 	res/lineplot_resources.qrc
-	src/SpectralViewPlugin.json
+	PluginInfo.json
 )
 
 qt6_add_resources(RESOURCE_FILES res/lineplot_resources.qrc)
@@ -147,10 +147,7 @@ add_custom_command(TARGET ${SVPLUGIN} POST_BUILD
 	--prefix ${ManiVault_INSTALL_DIR}/$<CONFIGURATION>
 )
 
-set_target_properties(${SVPLUGIN}
-    PROPERTIES
-    FOLDER ViewPlugins
-)
+mv_handle_plugin_config(${SVPLUGIN})
 
 # -----------------------------------------------------------------------------
 # Miscellaneous
