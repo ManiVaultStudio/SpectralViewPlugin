@@ -9,7 +9,7 @@
 #include <QDebug>
 #include <QFontMetrics>
 
-Endmember::Endmember(SpectralViewPlugin& spectralViewPlugin, const Dataset<DatasetImpl>& dataset, int index) :
+Endmember::Endmember(SpectralViewPlugin& spectralViewPlugin, const mv::Dataset<mv::DatasetImpl>& dataset, int index) :
     WidgetAction(&spectralViewPlugin, "Endmember"),
     _spectralViewPlugin(spectralViewPlugin),
     _active(false),
@@ -30,7 +30,7 @@ Endmember::Endmember(SpectralViewPlugin& spectralViewPlugin, const Dataset<Datas
     }
 
     // Update dataset name action when the images dataset GUI name changes
-    connect(&_dataset, &Dataset<Points>::guiNameChanged, this, [this]() {
+    connect(&_dataset, &mv::Dataset<Points>::guiNameChanged, this, [this]() {
         _generalAction.getDatasetNameAction().setString(_dataset->getGuiName());
         //_generalAction.getNameAction().setDefaultString(newGuiName);
         });
